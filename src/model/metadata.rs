@@ -47,7 +47,6 @@ impl PaperSize {
     }
 }
 
-
 /// Single font specification from PBN
 #[derive(Debug, Clone)]
 pub struct FontSpec {
