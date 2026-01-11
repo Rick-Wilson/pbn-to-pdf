@@ -111,10 +111,10 @@ fn tokenize_spans(
                     TextStyle::Bold => bold_measurer,
                 };
 
-                let mut chars = s.chars().peekable();
+                let chars = s.chars();
                 let mut current_word = String::new();
 
-                while let Some(c) = chars.next() {
+                for c in chars {
                     if c.is_whitespace() {
                         // Flush any accumulated word fragment
                         if !current_word.is_empty() {
@@ -245,9 +245,9 @@ impl<'a> CommentaryRenderer<'a> {
         let tokens = tokenize_spans(
             &text.spans,
             font_size,
-            &regular_measurer,
-            &bold_measurer,
-            &symbol_measurer,
+            regular_measurer,
+            bold_measurer,
+            symbol_measurer,
         );
 
         // Process tokens and render lines on-the-fly

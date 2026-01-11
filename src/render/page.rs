@@ -36,7 +36,7 @@ impl PageManager {
 
     /// Determine if we need a new page based on board index
     pub fn needs_new_page(&self, board_index: usize) -> bool {
-        board_index % (self.boards_per_page as usize) == 0
+        board_index.is_multiple_of(self.boards_per_page as usize)
     }
 
     /// Get the board position on the current page (0-based within page)

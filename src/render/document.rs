@@ -332,6 +332,7 @@ impl DocumentRenderer {
 
     /// Render a contract with proper suit symbol font
     /// Returns the x position after the rendered text
+    #[allow(clippy::too_many_arguments)]
     fn render_contract(
         &self,
         layer: &PdfLayerReference,
@@ -394,6 +395,7 @@ impl DocumentRenderer {
     }
 
     /// Render opening lead with proper suit symbol font
+    #[allow(clippy::too_many_arguments)]
     fn render_lead(
         &self,
         layer: &PdfLayerReference,

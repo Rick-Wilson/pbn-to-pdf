@@ -11,37 +11,37 @@ pub fn parse_header_line(line: &str) -> Option<HeaderDirective> {
     let content = &line[1..].trim();
 
     // Parse different header types
-    if content.starts_with("PBN ") {
-        let version = content[4..].trim().to_string();
+    if let Some(stripped) = content.strip_prefix("PBN ") {
+        let version = stripped.trim().to_string();
         return Some(HeaderDirective::Version(version));
     }
 
-    if content.starts_with("Creator:") {
-        let creator = content[8..].trim().to_string();
+    if let Some(stripped) = content.strip_prefix("Creator:") {
+        let creator = stripped.trim().to_string();
         return Some(HeaderDirective::Creator(creator));
     }
 
-    if content.starts_with("Created:") {
-        let created = content[8..].trim().to_string();
+    if let Some(stripped) = content.strip_prefix("Created:") {
+        let created = stripped.trim().to_string();
         return Some(HeaderDirective::Created(created));
     }
 
-    if content.starts_with("BoardsPerPage ") {
-        let value = content[14..].trim();
+    if let Some(stripped) = content.strip_prefix("BoardsPerPage ") {
+        let value = stripped.trim();
         if let Some(num) = parse_boards_per_page(value) {
             return Some(HeaderDirective::BoardsPerPage(num));
         }
     }
 
-    if content.starts_with("Margins ") {
-        let value = content[8..].trim();
+    if let Some(stripped) = content.strip_prefix("Margins ") {
+        let value = stripped.trim();
         if let Some(margins) = parse_margins(value) {
             return Some(HeaderDirective::Margins(margins));
         }
     }
 
-    if content.starts_with("PaperSize ") {
-        let value = content[10..].trim();
+    if let Some(stripped) = content.strip_prefix("PaperSize ") {
+        let value = stripped.trim();
         if let Some(size) = parse_paper_size(value) {
             return Some(HeaderDirective::PaperSize(size));
         }
@@ -53,21 +53,21 @@ pub fn parse_header_line(line: &str) -> Option<HeaderDirective> {
         }
     }
 
-    if content.starts_with("PipColors ") {
-        let value = content[10..].trim();
+    if let Some(stripped) = content.strip_prefix("PipColors ") {
+        let value = stripped.trim();
         if let Some(colors) = parse_pip_colors(value) {
             return Some(HeaderDirective::PipColors(colors));
         }
     }
 
-    if content.starts_with("HRTitleEvent ") {
-        let value = content[13..].trim();
+    if let Some(stripped) = content.strip_prefix("HRTitleEvent ") {
+        let value = stripped.trim();
         let title = value.trim_matches('"').to_string();
         return Some(HeaderDirective::TitleEvent(title));
     }
 
-    if content.starts_with("HRTitleDate ") {
-        let value = content[12..].trim();
+    if let Some(stripped) = content.strip_prefix("HRTitleDate ") {
+        let value = stripped.trim();
         let date = value.trim_matches('"').to_string();
         return Some(HeaderDirective::TitleDate(date));
     }
@@ -77,19 +77,18 @@ pub fn parse_header_line(line: &str) -> Option<HeaderDirective> {
     }
 
     // Parse BCOptions line: "%BCOptions Float Justify NoHRStats STBorder STShade ShowHCP"
-    if content.starts_with("BCOptions ") {
-        let options = &content[10..];
-        return Some(HeaderDirective::BCOptions(parse_bc_options(options)));
+    if let Some(stripped) = content.strip_prefix("BCOptions ") {
+        return Some(HeaderDirective::BCOptions(parse_bc_options(stripped)));
     }
 
-    if content.starts_with("ShowCardTable ") {
-        let value = content[14..].trim();
+    if let Some(stripped) = content.strip_prefix("ShowCardTable ") {
+        let value = stripped.trim();
         let show = value != "0";
         return Some(HeaderDirective::ShowCardTable(show));
     }
 
-    if content.starts_with("ShowBoardLabels ") {
-        let value = content[16..].trim();
+    if let Some(stripped) = content.strip_prefix("ShowBoardLabels ") {
+        let value = stripped.trim();
         let show = value != "0";
         return Some(HeaderDirective::ShowBoardLabels(show));
     }

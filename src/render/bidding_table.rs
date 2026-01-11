@@ -8,6 +8,7 @@ use super::colors::{SuitColors, BLACK};
 pub struct BiddingTableRenderer<'a> {
     layer: &'a PdfLayerReference,
     font: &'a IndirectFontRef,
+    #[allow(dead_code)]
     bold_font: &'a IndirectFontRef,
     italic_font: &'a IndirectFontRef,
     symbol_font: &'a IndirectFontRef, // Font with Unicode suit symbols (DejaVu Sans)
@@ -54,7 +55,7 @@ impl<'a> BiddingTableRenderer<'a> {
         {
             let x = ox.0 + (i as f32 * col_width);
             self.layer.use_text(
-                &format!("{}", dir), // Use Display trait for full name
+                format!("{}", dir), // Use Display trait for full name
                 self.settings.header_font_size,
                 Mm(x),
                 oy,

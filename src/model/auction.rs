@@ -22,7 +22,7 @@ impl BidSuit {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s.to_uppercase().as_str() {
             "C" => Some(BidSuit::Clubs),
             "D" => Some(BidSuit::Diamonds),
@@ -64,11 +64,11 @@ impl Call {
                 // Parse "1C", "2H", "3NT", etc.
                 let mut chars = s.chars();
                 let level = chars.next()?.to_digit(10)? as u8;
-                if level < 1 || level > 7 {
+                if !(1..=7).contains(&level) {
                     return None;
                 }
                 let suit_str: String = chars.collect();
-                let suit = BidSuit::from_str(&suit_str)?;
+                let suit = BidSuit::parse(&suit_str)?;
                 Some(Call::Bid { level, suit })
             }
         }

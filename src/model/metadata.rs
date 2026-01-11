@@ -29,8 +29,9 @@ impl Default for Margins {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum PaperSize {
+    #[default]
     Letter,
     A4,
     Legal,
@@ -46,11 +47,6 @@ impl PaperSize {
     }
 }
 
-impl Default for PaperSize {
-    fn default() -> Self {
-        PaperSize::Letter
-    }
-}
 
 /// Single font specification from PBN
 #[derive(Debug, Clone)]
