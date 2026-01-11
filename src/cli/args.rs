@@ -3,7 +3,11 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(name = "pbn-to-pdf")]
-#[command(author, version, about = "Convert PBN bridge files to PDF with Bridge Composer-style formatting")]
+#[command(
+    author,
+    version,
+    about = "Convert PBN bridge files to PDF with Bridge Composer-style formatting"
+)]
 pub struct Args {
     /// Input PBN file path
     #[arg(required = true)]

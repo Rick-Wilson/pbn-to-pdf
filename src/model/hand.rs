@@ -70,7 +70,12 @@ impl Hand {
         Self::default()
     }
 
-    pub fn from_holdings(spades: Holding, hearts: Holding, diamonds: Holding, clubs: Holding) -> Self {
+    pub fn from_holdings(
+        spades: Holding,
+        hearts: Holding,
+        diamonds: Holding,
+        clubs: Holding,
+    ) -> Self {
         Self {
             spades,
             hearts,
@@ -152,7 +157,8 @@ mod tests {
     #[test]
     fn test_hand_shape() {
         let mut hand = Hand::new();
-        hand.spades = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]);
+        hand.spades =
+            Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]);
         hand.hearts = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
         hand.diamonds = Holding::from_ranks([Rank::Ace, Rank::King]);
         hand.clubs = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);

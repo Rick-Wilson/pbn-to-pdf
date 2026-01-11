@@ -127,8 +127,14 @@ mod tests {
     #[test]
     fn test_vulnerability_parsing() {
         assert_eq!(Vulnerability::from_pbn("None"), Some(Vulnerability::None));
-        assert_eq!(Vulnerability::from_pbn("NS"), Some(Vulnerability::NorthSouth));
-        assert_eq!(Vulnerability::from_pbn("E-W"), Some(Vulnerability::EastWest));
+        assert_eq!(
+            Vulnerability::from_pbn("NS"),
+            Some(Vulnerability::NorthSouth)
+        );
+        assert_eq!(
+            Vulnerability::from_pbn("E-W"),
+            Some(Vulnerability::EastWest)
+        );
         assert_eq!(Vulnerability::from_pbn("Both"), Some(Vulnerability::Both));
     }
 

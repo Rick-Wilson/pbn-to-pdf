@@ -13,7 +13,12 @@ use super::page::PageManager;
 use super::text_metrics::get_measurer;
 
 /// Light gray color for debug boxes
-const DEBUG_BOX_COLOR: Rgb = Rgb { r: 0.7, g: 0.7, b: 0.7, icc_profile: None };
+const DEBUG_BOX_COLOR: Rgb = Rgb {
+    r: 0.7,
+    g: 0.7,
+    b: 0.7,
+    icc_profile: None,
+};
 const DEBUG_BOXES: bool = false;
 
 /// Main document renderer
@@ -59,9 +64,9 @@ impl DocumentRenderer {
         }
 
         // Save to bytes
-        let bytes = doc.save_to_bytes().map_err(|e| {
-            RenderError::PdfGeneration(format!("Failed to save PDF: {:?}", e))
-        })?;
+        let bytes = doc
+            .save_to_bytes()
+            .map_err(|e| RenderError::PdfGeneration(format!("Failed to save PDF: {:?}", e)))?;
 
         Ok(bytes)
     }
@@ -72,8 +77,7 @@ impl DocumentRenderer {
             return;
         }
         // y is top of box, draw from bottom-left to top-right
-        let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y))
-            .with_mode(PaintMode::Stroke);
+        let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y)).with_mode(PaintMode::Stroke);
         layer.set_outline_color(Color::Rgb(DEBUG_BOX_COLOR));
         layer.set_outline_thickness(0.25);
         layer.add_rect(rect);
@@ -111,7 +115,7 @@ impl DocumentRenderer {
         let mut title_lines: Vec<String> = Vec::new();
 
         if let Some(num) = board.number {
-            title_lines.push(format!("Deal {}", num));  // Changed from "Board" to "Deal"
+            title_lines.push(format!("Deal {}", num)); // Changed from "Board" to "Deal"
         }
         if let Some(dealer) = board.dealer {
             title_lines.push(format!("{} Deals", dealer));
@@ -177,14 +181,14 @@ impl DocumentRenderer {
         // Diagram origin: same Y as page_top (North aligns with "Board 1")
         // The diagram renderer will place North to the right (after hand_width gap for title)
         let diagram_x = margin_left;
-        let diagram_y = page_top;  // Start at same level as title
+        let diagram_y = page_top; // Start at same level as title
 
         let hand_renderer = HandDiagramRenderer::new(
             layer,
             &diagram_fonts.regular,
             &diagram_fonts.bold,
-            &card_table_fonts.regular,  // Compass uses CardTable font
-            &fonts.sans.regular,  // DejaVu Sans for suit symbols
+            &card_table_fonts.regular, // Compass uses CardTable font
+            &fonts.sans.regular,       // DejaVu Sans for suit symbols
             &self.settings,
         );
         let diagram_height = hand_renderer.render_deal(&board.deal, (Mm(diagram_x), Mm(diagram_y)));
@@ -200,7 +204,7 @@ impl DocumentRenderer {
                     &hand_record_fonts.regular,
                     &hand_record_fonts.bold,
                     &hand_record_fonts.italic,
-                    &fonts.sans.regular,  // DejaVu Sans for suit symbols
+                    &fonts.sans.regular, // DejaVu Sans for suit symbols
                     &self.settings,
                 );
                 let table_height = bidding_renderer.render(auction, (Mm(margin_left), content_y));
@@ -208,7 +212,8 @@ impl DocumentRenderer {
 
                 // Render contract below auction (no label)
                 if let Some(contract) = auction.final_contract() {
-                    let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
+                    let colors =
+                        SuitColors::new(self.settings.black_color, self.settings.red_color);
                     let x = self.render_contract(
                         layer,
                         &contract,
@@ -227,7 +232,8 @@ impl DocumentRenderer {
                 if let Some(ref play) = board.play {
                     if let Some(first_trick) = play.tricks.first() {
                         if let Some(lead_card) = first_trick.cards[0] {
-                            let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
+                            let colors =
+                                SuitColors::new(self.settings.black_color, self.settings.red_color);
                             self.render_lead(
                                 layer,
                                 &lead_card,
@@ -253,7 +259,7 @@ impl DocumentRenderer {
                 &commentary_fonts.regular,
                 &commentary_fonts.bold,
                 &commentary_fonts.italic,
-                &fonts.sans.regular,  // DejaVu Sans for suit symbols
+                &fonts.sans.regular, // DejaVu Sans for suit symbols
                 &self.settings,
             );
 
@@ -264,14 +270,14 @@ impl DocumentRenderer {
 
             let full_width = self.settings.content_width();
             let page_center = margin_left + full_width / 2.0;
-            let float_width = full_width / 2.0 - 2.0;  // Small gap from center
+            let float_width = full_width / 2.0 - 2.0; // Small gap from center
 
             // The float_until_y is where the deal content ends (current content_y)
             let float_until_y = content_y.0;
 
             let float_layout = FloatLayout {
                 float_until_y,
-                float_left: page_center + 2.0,  // Start just right of center
+                float_left: page_center + 2.0, // Start just right of center
                 float_width,
                 full_left: margin_left,
                 full_width,
@@ -361,7 +367,11 @@ impl DocumentRenderer {
             layer.set_fill_color(Color::Rgb(BLACK));
         }
 
-        let font = if use_symbol_font { symbol_font } else { text_font };
+        let font = if use_symbol_font {
+            symbol_font
+        } else {
+            text_font
+        };
         layer.use_text(symbol, font_size, Mm(current_x), y, font);
         current_x += measurer.measure_width_mm(symbol, font_size);
 

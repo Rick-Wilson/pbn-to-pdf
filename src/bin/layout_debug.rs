@@ -57,12 +57,12 @@ fn main() {
     let north_x = ox + hand_w + (compass_size - hand_w) / 2.0;
     let north_y = oy;
 
-    let row2_y = north_y - hand_h;  // No extra gap
+    let row2_y = north_y - hand_h; // No extra gap
 
     let west_x = ox;
 
     let compass_center_x = north_x + 2.5;
-    let compass_y = row2_y - hand_h / 2.0;  // Center vertically with West/East
+    let compass_y = row2_y - hand_h / 2.0; // Center vertically with West/East
 
     let east_x = compass_center_x + compass_size / 2.0 + 2.0;
 
@@ -72,7 +72,10 @@ fn main() {
 
     // Print positions
     println!("=== Layout Debug (with actual font metrics) ===");
-    println!("Page: {}x{} mm, margin: {} mm", settings.page_width, settings.page_height, margin);
+    println!(
+        "Page: {}x{} mm, margin: {} mm",
+        settings.page_width, settings.page_height, margin
+    );
     println!("Hand dimensions: {}x{} mm", hand_w, hand_h);
     println!("Line height: {} mm", line_height);
     println!("Font size: {} pt", font_size);
@@ -83,31 +86,68 @@ fn main() {
     println!();
     println!("Origin (ox, oy): ({}, {})", ox, oy);
     println!();
-    println!("North hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
-             north_x, north_y, north_x + hand_w, north_y - hand_h);
+    println!(
+        "North hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
+        north_x,
+        north_y,
+        north_x + hand_w,
+        north_y - hand_h
+    );
     let first_baseline = north_y - cap_height;
     println!("  First baseline (top - cap_height): {:.1}", first_baseline);
-    println!("  Text baselines at Y: {:.1}, {:.1}, {:.1}, {:.1}",
-             first_baseline, first_baseline - line_height,
-             first_baseline - 2.0*line_height, first_baseline - 3.0*line_height);
+    println!(
+        "  Text baselines at Y: {:.1}, {:.1}, {:.1}, {:.1}",
+        first_baseline,
+        first_baseline - line_height,
+        first_baseline - 2.0 * line_height,
+        first_baseline - 3.0 * line_height
+    );
     println!();
     println!("Row 2 Y (West/East top): {:.1}", row2_y);
-    println!("  Gap from North bottom to Row2: {:.1}", (north_y - hand_h) - row2_y);
+    println!(
+        "  Gap from North bottom to Row2: {:.1}",
+        (north_y - hand_h) - row2_y
+    );
     println!();
-    println!("West hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
-             west_x, row2_y, west_x + hand_w, row2_y - hand_h);
+    println!(
+        "West hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
+        west_x,
+        row2_y,
+        west_x + hand_w,
+        row2_y - hand_h
+    );
     println!();
-    println!("Compass: center=({:.1}, {:.1}), size={}", compass_center_x, compass_y, compass_size);
-    println!("  Top edge: {:.1}, Bottom edge: {:.1}", compass_y + compass_size/2.0, compass_y - compass_size/2.0);
+    println!(
+        "Compass: center=({:.1}, {:.1}), size={}",
+        compass_center_x, compass_y, compass_size
+    );
+    println!(
+        "  Top edge: {:.1}, Bottom edge: {:.1}",
+        compass_y + compass_size / 2.0,
+        compass_y - compass_size / 2.0
+    );
     println!();
-    println!("East hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
-             east_x, row2_y, east_x + hand_w, row2_y - hand_h);
+    println!(
+        "East hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
+        east_x,
+        row2_y,
+        east_x + hand_w,
+        row2_y - hand_h
+    );
     println!();
     println!("HCP row Y: {:.1}", hcp_row_y);
-    println!("  Gap from West/East bottom to HCP: {:.1}", (row2_y - hand_h) - hcp_row_y);
+    println!(
+        "  Gap from West/East bottom to HCP: {:.1}",
+        (row2_y - hand_h) - hcp_row_y
+    );
     println!();
-    println!("South hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
-             north_x, south_y, north_x + hand_w, south_y - hand_h);
+    println!(
+        "South hand: top-left=({:.1}, {:.1}), bottom-right=({:.1}, {:.1})",
+        north_x,
+        south_y,
+        north_x + hand_w,
+        south_y - hand_h
+    );
     println!("  Gap from HCP to South: {:.1}", hcp_row_y - south_y);
 
     // Draw debug rectangles (bounding boxes as calculated)
@@ -121,7 +161,15 @@ fn main() {
     // Compass box (green)
     let compass_left = compass_center_x - compass_size / 2.0;
     let compass_top = compass_y + compass_size / 2.0;
-    draw_rect(&layer, compass_left, compass_top, compass_size, compass_size, &green, "Compass");
+    draw_rect(
+        &layer,
+        compass_left,
+        compass_top,
+        compass_size,
+        compass_size,
+        &green,
+        "Compass",
+    );
 
     // East hand box (orange)
     draw_rect(&layer, east_x, row2_y, hand_w, hand_h, &orange, "East");
@@ -132,7 +180,10 @@ fn main() {
     let hcp_line = printpdf::Line {
         points: vec![
             (printpdf::Point::new(Mm(ox), Mm(hcp_row_y)), false),
-            (printpdf::Point::new(Mm(ox + hand_w * 2.0 + compass_size), Mm(hcp_row_y)), false),
+            (
+                printpdf::Point::new(Mm(ox + hand_w * 2.0 + compass_size), Mm(hcp_row_y)),
+                false,
+            ),
         ],
         is_closed: false,
     };
@@ -187,10 +238,17 @@ fn main() {
     println!("Saved to /tmp/layout_debug.pdf");
 }
 
-fn draw_rect(layer: &printpdf::PdfLayerReference, x: f32, y: f32, w: f32, h: f32, color: &Rgb, _label: &str) {
+fn draw_rect(
+    layer: &printpdf::PdfLayerReference,
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
+    color: &Rgb,
+    _label: &str,
+) {
     // Draw outline rectangle (y is top, so bottom = y - h)
-    let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y))
-        .with_mode(PaintMode::Stroke);
+    let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y)).with_mode(PaintMode::Stroke);
 
     layer.set_outline_color(Color::Rgb(color.clone()));
     layer.set_outline_thickness(0.5);

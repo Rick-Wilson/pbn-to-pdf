@@ -24,8 +24,7 @@ fn main() -> Result<()> {
         .with_context(|| format!("Failed to read input file: {}", args.input.display()))?;
 
     // Parse PBN
-    let pbn_file = parse_pbn(&pbn_content)
-        .with_context(|| "Failed to parse PBN content")?;
+    let pbn_file = parse_pbn(&pbn_content).with_context(|| "Failed to parse PBN content")?;
 
     log::info!("Parsed {} boards from PBN file", pbn_file.boards.len());
 
@@ -59,8 +58,7 @@ fn main() -> Result<()> {
     // Generate PDF
     let output_path = args.output_path();
 
-    let pdf_data = generate_pdf(&boards, &settings)
-        .with_context(|| "Failed to generate PDF")?;
+    let pdf_data = generate_pdf(&boards, &settings).with_context(|| "Failed to generate PDF")?;
 
     // Write output
     fs::write(&output_path, pdf_data)

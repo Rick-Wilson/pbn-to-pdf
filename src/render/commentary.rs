@@ -3,7 +3,9 @@ use crate::model::{CommentaryBlock, FormattedText, Suit, TextSpan};
 use printpdf::{Color, IndirectFontRef, Mm, PdfLayerReference};
 
 use super::colors::{SuitColors, BLACK};
-use super::text_metrics::{get_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer};
+use super::text_metrics::{
+    get_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer,
+};
 use crate::model::card::Rank;
 
 /// Parameters for floating layout
@@ -36,7 +38,7 @@ pub struct CommentaryRenderer<'a> {
     font: &'a IndirectFontRef,
     bold_font: &'a IndirectFontRef,
     italic_font: &'a IndirectFontRef,
-    symbol_font: &'a IndirectFontRef,  // Font with Unicode suit symbols (DejaVu Sans)
+    symbol_font: &'a IndirectFontRef, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
 }
@@ -84,15 +86,16 @@ fn tokenize_spans(
     let mut current_group_width: f32 = 0.0;
 
     // Helper to flush the current word group
-    let flush_group = |tokens: &mut Vec<RenderToken>, group: &mut Vec<RenderFragment>, width: &mut f32| {
-        if !group.is_empty() {
-            tokens.push(RenderToken::WordGroup(WordGroup {
-                fragments: std::mem::take(group),
-                width: *width,
-            }));
-            *width = 0.0;
-        }
-    };
+    let flush_group =
+        |tokens: &mut Vec<RenderToken>, group: &mut Vec<RenderFragment>, width: &mut f32| {
+            if !group.is_empty() {
+                tokens.push(RenderToken::WordGroup(WordGroup {
+                    fragments: std::mem::take(group),
+                    width: *width,
+                }));
+                *width = 0.0;
+            }
+        };
 
     for span in spans {
         match span {
@@ -147,9 +150,14 @@ fn tokenize_spans(
                 current_group_width += w;
             }
             TextSpan::CardRef { suit, rank } => {
-                let symbol_w = symbol_measurer.measure_width_mm(&suit.symbol().to_string(), font_size);
-                let rank_w = regular_measurer.measure_width_mm(&rank.to_char().to_string(), font_size);
-                current_group.push(RenderFragment::CardRef { suit: *suit, rank: *rank });
+                let symbol_w =
+                    symbol_measurer.measure_width_mm(&suit.symbol().to_string(), font_size);
+                let rank_w =
+                    regular_measurer.measure_width_mm(&rank.to_char().to_string(), font_size);
+                current_group.push(RenderFragment::CardRef {
+                    suit: *suit,
+                    rank: *rank,
+                });
                 current_group_width += symbol_w + rank_w;
             }
             TextSpan::LineBreak => {
@@ -164,7 +172,6 @@ fn tokenize_spans(
 
     tokens
 }
-
 
 impl<'a> CommentaryRenderer<'a> {
     pub fn new(
@@ -188,7 +195,8 @@ impl<'a> CommentaryRenderer<'a> {
 
     /// Render a commentary block and return the height used
     pub fn render(&self, block: &CommentaryBlock, origin: (Mm, Mm), max_width: f32) -> f32 {
-        self.render_formatted_text(&block.content, origin, max_width, None).height
+        self.render_formatted_text(&block.content, origin, max_width, None)
+            .height
     }
 
     /// Render a commentary block with floating layout
@@ -199,7 +207,12 @@ impl<'a> CommentaryRenderer<'a> {
         origin: (Mm, Mm),
         float_layout: &FloatLayout,
     ) -> FloatRenderResult {
-        self.render_formatted_text(&block.content, origin, float_layout.float_width, Some(float_layout))
+        self.render_formatted_text(
+            &block.content,
+            origin,
+            float_layout.float_width,
+            Some(float_layout),
+        )
     }
 
     /// Render formatted text and return height used
@@ -263,7 +276,11 @@ impl<'a> CommentaryRenderer<'a> {
                 match &tokens[token_idx] {
                     RenderToken::WordGroup(group) => {
                         // Calculate width if we add this word
-                        let space_needed = if line_groups.is_empty() { 0.0 } else { base_space_width };
+                        let space_needed = if line_groups.is_empty() {
+                            0.0
+                        } else {
+                            base_space_width
+                        };
                         let new_width = line_width + space_needed + group.width;
 
                         if line_groups.is_empty() || new_width <= max_width {
@@ -301,7 +318,11 @@ impl<'a> CommentaryRenderer<'a> {
             }
 
             // Calculate space width for justification
-            let space_count = if line_groups.len() > 1 { line_groups.len() - 1 } else { 0 };
+            let space_count = if line_groups.len() > 1 {
+                line_groups.len() - 1
+            } else {
+                0
+            };
             let space_width = if justify && !is_paragraph_end && space_count > 0 {
                 // Calculate total content width (word groups only, no spaces)
                 let total_word_width: f32 = line_groups.iter().map(|g| g.width).sum();
@@ -339,13 +360,7 @@ impl<'a> CommentaryRenderer<'a> {
                             let width = measurer.measure_width_mm(txt, font_size);
 
                             self.layer.set_fill_color(Color::Rgb(BLACK));
-                            self.layer.use_text(
-                                txt,
-                                font_size,
-                                Mm(x),
-                                Mm(y),
-                                font,
-                            );
+                            self.layer.use_text(txt, font_size, Mm(x), Mm(y), font);
                             x += width;
                         }
                         RenderFragment::SuitSymbol(suit) => {
@@ -354,42 +369,28 @@ impl<'a> CommentaryRenderer<'a> {
 
                             let color = self.colors.for_suit(suit);
                             self.layer.set_fill_color(Color::Rgb(color));
-                            self.layer.use_text(
-                                &symbol,
-                                font_size,
-                                Mm(x),
-                                Mm(y),
-                                self.symbol_font,
-                            );
+                            self.layer
+                                .use_text(&symbol, font_size, Mm(x), Mm(y), self.symbol_font);
                             x += width;
                         }
                         RenderFragment::CardRef { suit, rank } => {
                             let symbol = suit.symbol().to_string();
                             let symbol_width = symbol_measurer.measure_width_mm(&symbol, font_size);
                             let rank_str = rank.to_char().to_string();
-                            let rank_width = regular_measurer.measure_width_mm(&rank_str, font_size);
+                            let rank_width =
+                                regular_measurer.measure_width_mm(&rank_str, font_size);
 
                             // Render suit symbol with color
                             let color = self.colors.for_suit(suit);
                             self.layer.set_fill_color(Color::Rgb(color));
-                            self.layer.use_text(
-                                &symbol,
-                                font_size,
-                                Mm(x),
-                                Mm(y),
-                                self.symbol_font,
-                            );
+                            self.layer
+                                .use_text(&symbol, font_size, Mm(x), Mm(y), self.symbol_font);
                             x += symbol_width;
 
                             // Render rank in black
                             self.layer.set_fill_color(Color::Rgb(BLACK));
-                            self.layer.use_text(
-                                &rank_str,
-                                font_size,
-                                Mm(x),
-                                Mm(y),
-                                self.font,
-                            );
+                            self.layer
+                                .use_text(&rank_str, font_size, Mm(x), Mm(y), self.font);
                             x += rank_width;
                         }
                     }

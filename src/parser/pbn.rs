@@ -51,7 +51,9 @@ fn parse_boards(lines: &[&str]) -> Result<Vec<Board>, PbnError> {
         let trimmed = line.trim();
 
         // Skip empty lines and comments (but not if we're in commentary)
-        if !in_commentary && (trimmed.is_empty() || trimmed.starts_with('%') || trimmed.starts_with(';')) {
+        if !in_commentary
+            && (trimmed.is_empty() || trimmed.starts_with('%') || trimmed.starts_with(';'))
+        {
             continue;
         }
 
@@ -102,7 +104,15 @@ fn parse_boards(lines: &[&str]) -> Result<Vec<Board>, PbnError> {
 
             // Parse the tag pair
             if let Ok((_, tag)) = parse_tag_pair(trimmed) {
-                process_tag(&mut current_board, &mut boards, tag, &mut in_auction, &mut auction_dealer, &mut in_play, &mut play_leader)?;
+                process_tag(
+                    &mut current_board,
+                    &mut boards,
+                    tag,
+                    &mut in_auction,
+                    &mut auction_dealer,
+                    &mut in_play,
+                    &mut play_leader,
+                )?;
             }
         } else if trimmed.starts_with('{') {
             // Start of commentary block

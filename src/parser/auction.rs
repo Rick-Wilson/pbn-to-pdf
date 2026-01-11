@@ -68,7 +68,7 @@ fn strip_annotations(token: &str) -> String {
     let mut result = String::new();
     for c in token.chars() {
         match c {
-            '!' | '?' | '$' => break, // NAG markers
+            '!' | '?' | '$' => break,       // NAG markers
             '{' | '}' | '(' | ')' => break, // Comment markers
             _ => result.push(c),
         }

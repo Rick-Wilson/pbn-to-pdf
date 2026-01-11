@@ -10,7 +10,7 @@ pub struct BiddingTableRenderer<'a> {
     font: &'a IndirectFontRef,
     bold_font: &'a IndirectFontRef,
     italic_font: &'a IndirectFontRef,
-    symbol_font: &'a IndirectFontRef,  // Font with Unicode suit symbols (DejaVu Sans)
+    symbol_font: &'a IndirectFontRef, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
 }
@@ -43,28 +43,36 @@ impl<'a> BiddingTableRenderer<'a> {
 
         // Render header row with spelled-out, italicized direction names
         self.layer.set_fill_color(Color::Rgb(BLACK));
-        for (i, dir) in [Direction::West, Direction::North, Direction::East, Direction::South]
-            .iter()
-            .enumerate()
+        for (i, dir) in [
+            Direction::West,
+            Direction::North,
+            Direction::East,
+            Direction::South,
+        ]
+        .iter()
+        .enumerate()
         {
             let x = ox.0 + (i as f32 * col_width);
             self.layer.use_text(
-                &format!("{}", dir),  // Use Display trait for full name
+                &format!("{}", dir), // Use Display trait for full name
                 self.settings.header_font_size,
                 Mm(x),
                 oy,
-                self.italic_font,  // Use italic font
+                self.italic_font, // Use italic font
             );
         }
 
         let calls = &auction.calls;
 
         // Check if auction is passed out (exactly 4 passes, no bids)
-        let is_passed_out = calls.len() == 4
-            && calls.iter().all(|a| a.call == Call::Pass);
+        let is_passed_out = calls.len() == 4 && calls.iter().all(|a| a.call == Call::Pass);
 
         // Check if auction ends with 3+ passes after bidding (for "All Pass" rendering)
-        let trailing_passes = calls.iter().rev().take_while(|a| a.call == Call::Pass).count();
+        let trailing_passes = calls
+            .iter()
+            .rev()
+            .take_while(|a| a.call == Call::Pass)
+            .count();
         let show_all_pass = !is_passed_out && trailing_passes >= 3;
         let calls_to_render = if is_passed_out || show_all_pass {
             calls.len() - trailing_passes.min(calls.len())
@@ -134,49 +142,30 @@ impl<'a> BiddingTableRenderer<'a> {
         match call {
             Call::Pass => {
                 self.layer.set_fill_color(Color::Rgb(BLACK));
-                self.layer.use_text(
-                    "Pass",
-                    self.settings.body_font_size,
-                    x,
-                    y,
-                    self.font,
-                );
+                self.layer
+                    .use_text("Pass", self.settings.body_font_size, x, y, self.font);
             }
             Call::Double => {
                 self.layer.set_fill_color(Color::Rgb(BLACK));
-                self.layer.use_text(
-                    "Dbl",
-                    self.settings.body_font_size,
-                    x,
-                    y,
-                    self.font,
-                );
+                self.layer
+                    .use_text("Dbl", self.settings.body_font_size, x, y, self.font);
             }
             Call::Redouble => {
                 self.layer.set_fill_color(Color::Rgb(BLACK));
-                self.layer.use_text(
-                    "Rdbl",
-                    self.settings.body_font_size,
-                    x,
-                    y,
-                    self.font,
-                );
+                self.layer
+                    .use_text("Rdbl", self.settings.body_font_size, x, y, self.font);
             }
             Call::Bid { level, suit } => {
                 // Render level
                 self.layer.set_fill_color(Color::Rgb(BLACK));
                 let level_str = level.to_string();
-                self.layer.use_text(
-                    &level_str,
-                    self.settings.body_font_size,
-                    x,
-                    y,
-                    self.font,
-                );
+                self.layer
+                    .use_text(&level_str, self.settings.body_font_size, x, y, self.font);
 
                 // Render suit symbol immediately after level (no gap)
                 let measurer = super::text_metrics::get_serif_measurer();
-                let level_width = measurer.measure_width_mm(&level_str, self.settings.body_font_size);
+                let level_width =
+                    measurer.measure_width_mm(&level_str, self.settings.body_font_size);
                 let suit_x = Mm(x.0 + level_width);
                 self.render_bid_suit(*suit, (suit_x, y));
             }
@@ -196,21 +185,19 @@ impl<'a> BiddingTableRenderer<'a> {
         };
 
         if is_red {
-            self.layer.set_fill_color(Color::Rgb(
-                self.colors.hearts.clone(),
-            ));
+            self.layer
+                .set_fill_color(Color::Rgb(self.colors.hearts.clone()));
         } else {
             self.layer.set_fill_color(Color::Rgb(BLACK));
         }
 
         // Use symbol font for suit symbols, regular font for "NT"
-        let font = if use_symbol_font { self.symbol_font } else { self.font };
-        self.layer.use_text(
-            text,
-            self.settings.body_font_size,
-            x,
-            y,
-            font,
-        );
+        let font = if use_symbol_font {
+            self.symbol_font
+        } else {
+            self.font
+        };
+        self.layer
+            .use_text(text, self.settings.body_font_size, x, y, font);
     }
 }

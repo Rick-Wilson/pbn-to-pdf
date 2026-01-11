@@ -125,7 +125,6 @@ pub enum HeaderDirective {
     Unknown(String),
 }
 
-
 fn parse_boards_per_page(value: &str) -> Option<u8> {
     // Format: "fit,1" or just "1"
     let parts: Vec<&str> = value.split(',').collect();
@@ -266,17 +265,15 @@ pub fn parse_headers(lines: &[&str]) -> PbnMetadata {
                 HeaderDirective::BoardsPerPage(n) => metadata.layout.boards_per_page = Some(n),
                 HeaderDirective::Margins(m) => metadata.layout.margins = Some(m),
                 HeaderDirective::PaperSize(s) => metadata.layout.paper_size = Some(s),
-                HeaderDirective::Font(name, spec) => {
-                    match name.as_str() {
-                        "CardTable" => metadata.fonts.card_table = Some(spec),
-                        "Commentary" => metadata.fonts.commentary = Some(spec),
-                        "Diagram" => metadata.fonts.diagram = Some(spec),
-                        "Event" => metadata.fonts.event = Some(spec),
-                        "FixedPitch" => metadata.fonts.fixed_pitch = Some(spec),
-                        "HandRecord" => metadata.fonts.hand_record = Some(spec),
-                        _ => {}
-                    }
-                }
+                HeaderDirective::Font(name, spec) => match name.as_str() {
+                    "CardTable" => metadata.fonts.card_table = Some(spec),
+                    "Commentary" => metadata.fonts.commentary = Some(spec),
+                    "Diagram" => metadata.fonts.diagram = Some(spec),
+                    "Event" => metadata.fonts.event = Some(spec),
+                    "FixedPitch" => metadata.fonts.fixed_pitch = Some(spec),
+                    "HandRecord" => metadata.fonts.hand_record = Some(spec),
+                    _ => {}
+                },
                 HeaderDirective::PipColors(c) => metadata.colors = c,
                 HeaderDirective::TitleEvent(t) => metadata.title_event = Some(t),
                 HeaderDirective::TitleDate(d) => metadata.title_date = Some(d),
@@ -327,10 +324,10 @@ mod tests {
         let directive = parse_header_line("%Margins 1000,1000,500,750").unwrap();
         match directive {
             HeaderDirective::Margins(m) => {
-                assert!((m.top - 25.4).abs() < 0.1);      // 1000 twips = 1 inch
-                assert!((m.bottom - 25.4).abs() < 0.1);   // 1000 twips = 1 inch
-                assert!((m.right - 12.7).abs() < 0.1);    // 500 twips = 0.5 inch
-                assert!((m.left - 19.05).abs() < 0.1);    // 750 twips = 0.75 inch
+                assert!((m.top - 25.4).abs() < 0.1); // 1000 twips = 1 inch
+                assert!((m.bottom - 25.4).abs() < 0.1); // 1000 twips = 1 inch
+                assert!((m.right - 12.7).abs() < 0.1); // 500 twips = 0.5 inch
+                assert!((m.left - 19.05).abs() < 0.1); // 750 twips = 0.75 inch
             }
             _ => panic!("Expected Margins directive"),
         }
@@ -350,7 +347,9 @@ mod tests {
 
     #[test]
     fn test_parse_bc_options() {
-        let directive = parse_header_line("%BCOptions Float Justify NoHRStats STBorder STShade ShowHCP").unwrap();
+        let directive =
+            parse_header_line("%BCOptions Float Justify NoHRStats STBorder STShade ShowHCP")
+                .unwrap();
         match directive {
             HeaderDirective::BCOptions(opts) => {
                 assert!(opts.justify, "Expected Justify to be true");

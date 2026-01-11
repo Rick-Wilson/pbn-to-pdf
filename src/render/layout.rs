@@ -44,9 +44,8 @@ impl LayoutEngine {
                 let row = board_index / 2;
 
                 let x = self.settings.margin + (col as f32 * half_width);
-                let y = self.settings.page_height
-                    - self.settings.margin
-                    - (row as f32 * half_height);
+                let y =
+                    self.settings.page_height - self.settings.margin - (row as f32 * half_height);
 
                 (Mm(x), Mm(y))
             }

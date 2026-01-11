@@ -9,4 +9,4 @@ pub mod page;
 pub mod text_metrics;
 
 pub use document::generate_pdf;
-pub use text_metrics::{get_measurer, TextMeasurer, FontMetrics};
+pub use text_metrics::{get_measurer, FontMetrics, TextMeasurer};

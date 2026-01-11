@@ -59,7 +59,12 @@ impl Direction {
     }
 
     pub fn all() -> [Direction; 4] {
-        [Direction::North, Direction::East, Direction::South, Direction::West]
+        [
+            Direction::North,
+            Direction::East,
+            Direction::South,
+            Direction::West,
+        ]
     }
 }
 

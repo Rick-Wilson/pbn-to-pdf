@@ -20,10 +20,7 @@ pub fn parse_deal(input: &str) -> Result<Deal, String> {
     let hand_notations: Vec<&str> = hands_str.split_whitespace().collect();
 
     if hand_notations.len() != 4 {
-        return Err(format!(
-            "Expected 4 hands, got {}",
-            hand_notations.len()
-        ));
+        return Err(format!("Expected 4 hands, got {}", hand_notations.len()));
     }
 
     // Parse each hand
@@ -74,8 +71,8 @@ fn parse_holding(input: &str) -> Result<Holding, String> {
             continue;
         }
 
-        let rank = Rank::from_pbn_char(c)
-            .ok_or_else(|| format!("Invalid rank character: {}", c))?;
+        let rank =
+            Rank::from_pbn_char(c).ok_or_else(|| format!("Invalid rank character: {}", c))?;
         holding.add(rank);
     }
 

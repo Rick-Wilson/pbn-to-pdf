@@ -13,8 +13,8 @@ const TERMES_BOLD: &[u8] = include_bytes!("../../assets/fonts/texgyretermes-bold
 /// Font family for measurement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MeasurementFont {
-    SansSerif,  // DejaVu Sans
-    Serif,      // TeX Gyre Termes
+    SansSerif, // DejaVu Sans
+    Serif,     // TeX Gyre Termes
 }
 
 /// Font metrics for layout calculations
@@ -41,7 +41,9 @@ impl FontMetrics {
             descender: face.descender(),
             line_gap: face.line_gap(),
             // Cap height is typically ~70% of ascender if not available
-            cap_height: face.capital_height().unwrap_or((face.ascender() as f32 * 0.7) as i16),
+            cap_height: face
+                .capital_height()
+                .unwrap_or((face.ascender() as f32 * 0.7) as i16),
         }
     }
 
@@ -106,7 +108,8 @@ impl TextMeasurer {
         let units_per_em = self.face.units_per_em() as f32;
         let scale = font_size / units_per_em;
 
-        let total_advance: i32 = output.glyph_positions()
+        let total_advance: i32 = output
+            .glyph_positions()
             .iter()
             .map(|pos| pos.x_advance)
             .sum();
@@ -146,8 +149,7 @@ pub fn get_measurer() -> &'static TextMeasurer {
     static MEASURER: OnceLock<TextMeasurer> = OnceLock::new();
 
     MEASURER.get_or_init(|| {
-        TextMeasurer::new(DEJAVU_SANS)
-            .expect("Failed to load embedded font for text measurement")
+        TextMeasurer::new(DEJAVU_SANS).expect("Failed to load embedded font for text measurement")
     })
 }
 

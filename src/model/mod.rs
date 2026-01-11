@@ -13,5 +13,5 @@ pub use card::{Card, Rank, Suit};
 pub use commentary::{CommentaryBlock, FormattedText, TextSpan};
 pub use deal::{Deal, Direction};
 pub use hand::{Hand, Holding};
-pub use metadata::{FontSpec, FontSettings, PbnMetadata};
+pub use metadata::{FontSettings, FontSpec, PbnMetadata};
 pub use play::{PlaySequence, Trick};

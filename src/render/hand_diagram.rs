@@ -6,7 +6,12 @@ use printpdf::{Color, IndirectFontRef, Mm, PdfLayerReference, Rect, Rgb};
 use super::colors::SuitColors;
 
 /// Light gray color for debug boxes
-const DEBUG_BOX_COLOR: Rgb = Rgb { r: 0.7, g: 0.7, b: 0.7, icc_profile: None };
+const DEBUG_BOX_COLOR: Rgb = Rgb {
+    r: 0.7,
+    g: 0.7,
+    b: 0.7,
+    icc_profile: None,
+};
 
 /// Renderer for hand diagrams
 pub struct HandDiagramRenderer<'a> {
@@ -14,7 +19,7 @@ pub struct HandDiagramRenderer<'a> {
     font: &'a IndirectFontRef,
     bold_font: &'a IndirectFontRef,
     compass_font: &'a IndirectFontRef,
-    symbol_font: &'a IndirectFontRef,  // Font with Unicode suit symbols (DejaVu Sans)
+    symbol_font: &'a IndirectFontRef, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
     debug_boxes: bool,
@@ -47,8 +52,7 @@ impl<'a> HandDiagramRenderer<'a> {
             return;
         }
         // y is top of box, draw from bottom-left to top-right
-        let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y))
-            .with_mode(PaintMode::Stroke);
+        let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y)).with_mode(PaintMode::Stroke);
         self.layer.set_outline_color(Color::Rgb(DEBUG_BOX_COLOR));
         self.layer.set_outline_thickness(0.25);
         self.layer.add_rect(rect);
@@ -80,7 +84,9 @@ impl<'a> HandDiagramRenderer<'a> {
                 let cards_str = if holding.is_void() {
                     "-".to_string()
                 } else {
-                    holding.ranks.iter()
+                    holding
+                        .ranks
+                        .iter()
                         .map(|r| r.to_char().to_string())
                         .collect::<Vec<_>>()
                         .join(" ")
@@ -115,7 +121,7 @@ impl<'a> HandDiagramRenderer<'a> {
         self.render_hand_cards(&deal.north, (Mm(north_x), Mm(north_y)));
 
         // Row 2: West hand | Compass | East hand (immediately below North)
-        let row2_y = north_y - hand_h;  // No extra gap
+        let row2_y = north_y - hand_h; // No extra gap
 
         // West hand - left side
         let west_x = ox.0;
@@ -127,9 +133,14 @@ impl<'a> HandDiagramRenderer<'a> {
         let suit_symbol_width = 5.0;
         let half_char_adjust = 1.5; // Fine-tune alignment
         let compass_center_x = north_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
-        let compass_y = row2_y - hand_h / 2.0;  // Center vertically with West/East
-        // Debug box for compass (centered)
-        self.draw_debug_box(compass_center_x - compass_size/2.0, compass_y + compass_size/2.0, compass_size, compass_size);
+        let compass_y = row2_y - hand_h / 2.0; // Center vertically with West/East
+                                               // Debug box for compass (centered)
+        self.draw_debug_box(
+            compass_center_x - compass_size / 2.0,
+            compass_y + compass_size / 2.0,
+            compass_size,
+            compass_size,
+        );
         self.render_compass((Mm(compass_center_x), Mm(compass_y)));
 
         // East hand - to the right of compass
@@ -182,12 +193,7 @@ impl<'a> HandDiagramRenderer<'a> {
     }
 
     /// Render a single suit line (symbol + cards)
-    fn render_suit_line(
-        &self,
-        suit: Suit,
-        holding: &crate::model::Holding,
-        origin: (Mm, Mm),
-    ) {
+    fn render_suit_line(&self, suit: Suit, holding: &crate::model::Holding, origin: (Mm, Mm)) {
         let (ox, oy) = origin;
 
         // Set color based on suit

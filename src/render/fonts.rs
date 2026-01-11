@@ -17,8 +17,8 @@ const TERMES_BOLD_ITALIC: &[u8] = include_bytes!("../../assets/fonts/texgyreterm
 /// Font family for a font set
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FontFamily {
-    SansSerif,  // Arial, Helvetica -> DejaVu Sans
-    Serif,      // Times New Roman, Times -> DejaVu Serif
+    SansSerif, // Arial, Helvetica -> DejaVu Sans
+    Serif,     // Times New Roman, Times -> DejaVu Serif
 }
 
 impl FontFamily {
@@ -69,24 +69,36 @@ impl FontManager {
             .map_err(|e| RenderError::FontLoad(format!("Failed to load DejaVuSans: {:?}", e)))?;
         let sans_bold = doc
             .add_external_font(Cursor::new(DEJAVU_SANS_BOLD))
-            .map_err(|e| RenderError::FontLoad(format!("Failed to load DejaVuSans-Bold: {:?}", e)))?;
+            .map_err(|e| {
+                RenderError::FontLoad(format!("Failed to load DejaVuSans-Bold: {:?}", e))
+            })?;
         let sans_italic = doc
             .add_external_font(Cursor::new(DEJAVU_SANS_OBLIQUE))
-            .map_err(|e| RenderError::FontLoad(format!("Failed to load DejaVuSans-Oblique: {:?}", e)))?;
+            .map_err(|e| {
+                RenderError::FontLoad(format!("Failed to load DejaVuSans-Oblique: {:?}", e))
+            })?;
 
         // Load TeX Gyre Termes family (serif)
         let serif_regular = doc
             .add_external_font(Cursor::new(TERMES_REGULAR))
-            .map_err(|e| RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Regular: {:?}", e)))?;
+            .map_err(|e| {
+                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Regular: {:?}", e))
+            })?;
         let serif_bold = doc
             .add_external_font(Cursor::new(TERMES_BOLD))
-            .map_err(|e| RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Bold: {:?}", e)))?;
+            .map_err(|e| {
+                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Bold: {:?}", e))
+            })?;
         let serif_italic = doc
             .add_external_font(Cursor::new(TERMES_ITALIC))
-            .map_err(|e| RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Italic: {:?}", e)))?;
+            .map_err(|e| {
+                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Italic: {:?}", e))
+            })?;
         let serif_bold_italic = doc
             .add_external_font(Cursor::new(TERMES_BOLD_ITALIC))
-            .map_err(|e| RenderError::FontLoad(format!("Failed to load TeXGyreTermes-BoldItalic: {:?}", e)))?;
+            .map_err(|e| {
+                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-BoldItalic: {:?}", e))
+            })?;
 
         Ok(Self {
             sans: FontSet {
@@ -145,10 +157,10 @@ impl FontManager {
 /// Convert a suit to its display character
 pub fn suit_char(suit: &crate::model::Suit) -> char {
     match suit {
-        crate::model::Suit::Spades => '\u{2660}',   // ♠ BLACK SPADE SUIT
-        crate::model::Suit::Hearts => '\u{2665}',   // ♥ BLACK HEART SUIT
+        crate::model::Suit::Spades => '\u{2660}', // ♠ BLACK SPADE SUIT
+        crate::model::Suit::Hearts => '\u{2665}', // ♥ BLACK HEART SUIT
         crate::model::Suit::Diamonds => '\u{2666}', // ♦ BLACK DIAMOND SUIT
-        crate::model::Suit::Clubs => '\u{2663}',    // ♣ BLACK CLUB SUIT
+        crate::model::Suit::Clubs => '\u{2663}',  // ♣ BLACK CLUB SUIT
     }
 }
 

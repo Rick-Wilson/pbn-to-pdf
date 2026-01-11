@@ -250,6 +250,9 @@ mod tests {
         }
         assert_eq!(text.spans.len(), 2);
         assert_eq!(text.spans[0], TextSpan::Bold("Declarer play.".to_string()));
-        assert_eq!(text.spans[1], TextSpan::Plain(" Declarer (North)".to_string()));
+        assert_eq!(
+            text.spans[1],
+            TextSpan::Plain(" Declarer (North)".to_string())
+        );
     }
 }

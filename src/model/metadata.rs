@@ -57,7 +57,7 @@ impl Default for PaperSize {
 pub struct FontSpec {
     pub family: String,
     pub size: f32,
-    pub weight: u16,  // 400 = normal, 700 = bold
+    pub weight: u16, // 400 = normal, 700 = bold
     pub italic: bool,
 }
 
@@ -122,10 +122,10 @@ pub struct ColorSettings {
 impl Default for ColorSettings {
     fn default() -> Self {
         Self {
-            spades: (0, 0, 0),       // Black
-            hearts: (255, 0, 0),     // Red
-            diamonds: (255, 0, 0),   // Red
-            clubs: (0, 0, 0),        // Black
+            spades: (0, 0, 0),     // Black
+            hearts: (255, 0, 0),   // Red
+            diamonds: (255, 0, 0), // Red
+            clubs: (0, 0, 0),      // Black
         }
     }
 }

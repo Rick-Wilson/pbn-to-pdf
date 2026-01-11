@@ -83,7 +83,10 @@ fn test_commentary_parsing() {
         .filter(|b| !b.commentary.is_empty())
         .count();
 
-    assert!(boards_with_commentary > 0, "Expected some boards to have commentary");
+    assert!(
+        boards_with_commentary > 0,
+        "Expected some boards to have commentary"
+    );
 }
 
 #[test]
@@ -96,12 +99,19 @@ fn test_auction_parsing() {
     for board in &pbn_file.boards {
         if let Some(ref auction) = board.auction {
             // Auctions should have at least some calls
-            assert!(!auction.calls.is_empty(), "Board {} has empty auction", board.number.unwrap_or(0));
+            assert!(
+                !auction.calls.is_empty(),
+                "Board {} has empty auction",
+                board.number.unwrap_or(0)
+            );
 
             // Should be able to determine final contract
             let contract = auction.final_contract();
-            assert!(contract.is_some() || auction.is_passed_out,
-                "Board {} should have contract or be passed out", board.number.unwrap_or(0));
+            assert!(
+                contract.is_some() || auction.is_passed_out,
+                "Board {} should have contract or be passed out",
+                board.number.unwrap_or(0)
+            );
         }
     }
 }

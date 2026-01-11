@@ -9,7 +9,7 @@ pub struct Settings {
     // Page dimensions
     pub page_width: f32,
     pub page_height: f32,
-    pub margin: f32,  // Single margin for backward compatibility
+    pub margin: f32, // Single margin for backward compatibility
     pub margin_top: f32,
     pub margin_bottom: f32,
     pub margin_left: f32,
@@ -76,8 +76,8 @@ impl Default for Settings {
             header_font_size: DEFAULT_HEADER_FONT_SIZE,
             body_font_size: DEFAULT_BODY_FONT_SIZE,
             card_font_size: DEFAULT_CARD_FONT_SIZE,
-            compass_font_size: 11.0,  // CardTable default
-            commentary_font_size: 12.0,  // Commentary default
+            compass_font_size: 11.0,    // CardTable default
+            commentary_font_size: 12.0, // Commentary default
 
             fonts: FontSettings::default(),
 
