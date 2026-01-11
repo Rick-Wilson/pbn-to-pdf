@@ -5,6 +5,9 @@ Future enhancements planned for pbn-to-pdf.
 ## Planned Features
 
 - [ ] Add hand record layout
+- [ ] Add dealer summary layout
+- [ ] Add bidding sheets layout
+- [ ] Add two-column layout
 - [ ] Append PBN to PDF
 - [ ] Compare page sizes with Bridge Composer-generated PDF
 - [ ] Compare page sizes with Windows-printed PDF
