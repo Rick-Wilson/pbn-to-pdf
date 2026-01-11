@@ -96,6 +96,9 @@ src/
 ├── lib.rs               # Library exports
 ├── error.rs             # Error types (PbnError, RenderError)
 │
+├── bin/
+│   └── layout_debug.rs  # Debug utility for layout testing
+│
 ├── cli/
 │   ├── mod.rs
 │   └── args.rs          # CLI argument definitions (clap)
@@ -108,7 +111,7 @@ src/
 │   ├── auction.rs       # Bidding sequence parsing
 │   ├── play.rs          # Play sequence parsing
 │   ├── commentary.rs    # {<b>text</b> \S} parsing
-│   └── header.rs        # % directive parsing
+│   └── header.rs        # % directive parsing (incl. BCOptions)
 │
 ├── model/
 │   ├── mod.rs
@@ -119,18 +122,19 @@ src/
 │   ├── play.rs          # Trick, PlaySequence
 │   ├── commentary.rs    # TextSpan, FormattedText
 │   ├── board.rs         # Board, Vulnerability
-│   └── metadata.rs      # PbnMetadata, LayoutSettings
+│   └── metadata.rs      # PbnMetadata, LayoutSettings, FontSettings
 │
 ├── render/
 │   ├── mod.rs
 │   ├── document.rs      # PDF document orchestration
 │   ├── page.rs          # Page management
-│   ├── fonts.rs         # Font loading
+│   ├── fonts.rs         # Font loading (DejaVu Sans, TeX Gyre Termes)
 │   ├── colors.rs        # Suit color definitions
 │   ├── layout.rs        # Position calculations
+│   ├── text_metrics.rs  # Text measurement with rustybuzz
 │   ├── hand_diagram.rs  # Compass-rose hand rendering
 │   ├── bidding_table.rs # Auction table rendering
-│   └── commentary.rs    # Formatted text rendering
+│   └── commentary.rs    # Formatted text rendering with justification
 │
 └── config/
     ├── mod.rs
@@ -206,6 +210,7 @@ struct Board {
 | `thiserror` | Error type definitions |
 | `anyhow` | Application-level error handling |
 | `log` + `env_logger` | Logging |
+| `rustybuzz` | Text shaping and measurement for accurate layout |
 
 ## PBN Format Reference
 
@@ -255,7 +260,10 @@ Cards: A, K, Q, J, T (ten), 9-2
 %Margins 1000,1000,500,750
 %PipColors #000000,#ff0000,#ff0000,#000000
 %Font:CardTable "Arial",11,400,0
+%BCOptions Float Justify ShowHCP
 ```
+
+- `BCOptions` flags: `Float` (floating commentary), `Justify` (full justification), `ShowHCP`
 
 ## Layout Design
 
@@ -290,9 +298,18 @@ WEST       N       EAST
   Pass
 ```
 
+## Embedded Fonts
+
+The tool embeds two font families for consistent rendering across platforms:
+
+- **DejaVu Sans** - Sans-serif font with full Unicode suit symbol support (♠♥♦♣)
+- **TeX Gyre Termes** - High-quality Times New Roman clone for professional serif typography
+
+Font selection is automatic based on PBN font specifications (Arial → DejaVu Sans, Times → TeX Gyre Termes).
+
 ## Future Enhancements
 
-1. **Font Embedding** - Embed custom fonts for better Unicode support
+1. ~~**Font Embedding** - Embed custom fonts for better Unicode support~~ ✓ Done
 2. **Custom Themes** - Allow color scheme customization
 3. **Play Diagram** - Visual trick-by-trick play display
 4. **Hand Records** - Generate multi-page hand record sheets
