@@ -14,3 +14,8 @@ anyhow = "1.0"
 log = "0.4"
 env_logger = "0.11"
 rustybuzz = "0.18"  # Text shaping and measurement
+subsetter = "0.2"   # Font subsetting for smaller PDFs
+
+[build-dependencies]
+subsetter = "0.2"
+rustybuzz = "0.18"
