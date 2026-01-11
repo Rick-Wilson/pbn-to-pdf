@@ -8,6 +8,7 @@ use super::bidding_table::BiddingTableRenderer;
 use super::colors::{SuitColors, BLACK};
 use super::commentary::{CommentaryRenderer, FloatLayout};
 use super::fonts::FontManager;
+use super::glyph_collector::GlyphCollector;
 use super::hand_diagram::HandDiagramRenderer;
 use super::page::PageManager;
 use super::text_metrics::get_measurer;
@@ -39,6 +40,11 @@ impl DocumentRenderer {
             .map(|s| s.as_str())
             .unwrap_or("Bridge Hands");
 
+        // Collect glyphs used in the document for font subsetting
+        let mut collector = GlyphCollector::new();
+        collector.collect_from_boards(boards, &self.settings);
+        let glyph_strings = collector.into_strings();
+
         let (doc, page_idx, layer_idx) = PdfDocument::new(
             title,
             Mm(self.settings.page_width),
@@ -46,7 +52,8 @@ impl DocumentRenderer {
             "Layer 1",
         );
 
-        let fonts = FontManager::new(&doc)?;
+        // Load fonts subsetted to only include used glyphs
+        let fonts = FontManager::new_with_glyphs(&doc, &glyph_strings)?;
         let page_manager = PageManager::new(&self.settings);
 
         let mut current_layer = doc.get_page(page_idx).get_layer(layer_idx);
