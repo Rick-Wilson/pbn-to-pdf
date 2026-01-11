@@ -165,16 +165,19 @@ impl<'a> BiddingTableRenderer<'a> {
             Call::Bid { level, suit } => {
                 // Render level
                 self.layer.set_fill_color(Color::Rgb(BLACK));
+                let level_str = level.to_string();
                 self.layer.use_text(
-                    &level.to_string(),
+                    &level_str,
                     self.settings.body_font_size,
                     x,
                     y,
                     self.font,
                 );
 
-                // Render suit symbol with appropriate color
-                let suit_x = Mm(x.0 + 3.5);
+                // Render suit symbol immediately after level (no gap)
+                let measurer = super::text_metrics::get_serif_measurer();
+                let level_width = measurer.measure_width_mm(&level_str, self.settings.body_font_size);
+                let suit_x = Mm(x.0 + level_width);
                 self.render_bid_suit(*suit, (suit_x, y));
             }
         }

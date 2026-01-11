@@ -26,7 +26,7 @@ pub const DEFAULT_BODY_FONT_SIZE: f32 = 10.0;
 pub const DEFAULT_CARD_FONT_SIZE: f32 = 11.0;
 
 /// Default bidding column width in mm
-pub const DEFAULT_BID_COLUMN_WIDTH: f32 = 14.0;
+pub const DEFAULT_BID_COLUMN_WIDTH: f32 = 24.0;
 
 /// Default bidding row height in mm
 pub const DEFAULT_BID_ROW_HEIGHT: f32 = 5.0;

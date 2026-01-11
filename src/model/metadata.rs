@@ -7,6 +7,7 @@ pub struct LayoutSettings {
     pub show_hcp: bool,
     pub show_card_table: bool,
     pub show_board_labels: bool,
+    pub justify: bool,
 }
 
 #[derive(Debug, Clone, Copy)]

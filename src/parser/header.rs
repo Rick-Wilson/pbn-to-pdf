@@ -72,8 +72,14 @@ pub fn parse_header_line(line: &str) -> Option<HeaderDirective> {
         return Some(HeaderDirective::TitleDate(date));
     }
 
-    if content.starts_with("ShowHCP") || content.contains("ShowHCP") {
+    if content.starts_with("ShowHCP") {
         return Some(HeaderDirective::ShowHcp(true));
+    }
+
+    // Parse BCOptions line: "%BCOptions Float Justify NoHRStats STBorder STShade ShowHCP"
+    if content.starts_with("BCOptions ") {
+        let options = &content[10..];
+        return Some(HeaderDirective::BCOptions(parse_bc_options(options)));
     }
 
     if content.starts_with("ShowCardTable ") {
@@ -92,6 +98,14 @@ pub fn parse_header_line(line: &str) -> Option<HeaderDirective> {
     Some(HeaderDirective::Unknown(content.to_string()))
 }
 
+/// Options parsed from %BCOptions line
+#[derive(Debug, Clone, Default)]
+pub struct BCOptions {
+    pub justify: bool,
+    pub show_hcp: bool,
+    pub float: bool,
+}
+
 #[derive(Debug, Clone)]
 pub enum HeaderDirective {
     Version(String),
@@ -107,6 +121,7 @@ pub enum HeaderDirective {
     ShowHcp(bool),
     ShowCardTable(bool),
     ShowBoardLabels(bool),
+    BCOptions(BCOptions),
     Unknown(String),
 }
 
@@ -221,6 +236,23 @@ fn parse_color(value: &str) -> Option<(u8, u8, u8)> {
     Some((r, g, b))
 }
 
+/// Parse BCOptions line: "Float Justify NoHRStats STBorder STShade ShowHCP"
+fn parse_bc_options(value: &str) -> BCOptions {
+    let mut options = BCOptions::default();
+
+    // Split by whitespace and check for each option
+    for word in value.split_whitespace() {
+        match word {
+            "Justify" => options.justify = true,
+            "ShowHCP" => options.show_hcp = true,
+            "Float" => options.float = true,
+            _ => {} // Ignore unknown options like NoHRStats, STBorder, STShade
+        }
+    }
+
+    options
+}
+
 /// Parse all header lines and build metadata
 pub fn parse_headers(lines: &[&str]) -> PbnMetadata {
     let mut metadata = PbnMetadata::default();
@@ -251,6 +283,14 @@ pub fn parse_headers(lines: &[&str]) -> PbnMetadata {
                 HeaderDirective::ShowHcp(v) => metadata.layout.show_hcp = v,
                 HeaderDirective::ShowCardTable(v) => metadata.layout.show_card_table = v,
                 HeaderDirective::ShowBoardLabels(v) => metadata.layout.show_board_labels = v,
+                HeaderDirective::BCOptions(opts) => {
+                    if opts.show_hcp {
+                        metadata.layout.show_hcp = true;
+                    }
+                    if opts.justify {
+                        metadata.layout.justify = true;
+                    }
+                }
                 HeaderDirective::Unknown(_) => {}
             }
         }
@@ -305,6 +345,32 @@ mod tests {
                 assert_eq!(c.hearts, (255, 0, 0));
             }
             _ => panic!("Expected PipColors directive"),
+        }
+    }
+
+    #[test]
+    fn test_parse_bc_options() {
+        let directive = parse_header_line("%BCOptions Float Justify NoHRStats STBorder STShade ShowHCP").unwrap();
+        match directive {
+            HeaderDirective::BCOptions(opts) => {
+                assert!(opts.justify, "Expected Justify to be true");
+                assert!(opts.show_hcp, "Expected ShowHCP to be true");
+                assert!(opts.float, "Expected Float to be true");
+            }
+            _ => panic!("Expected BCOptions directive"),
+        }
+    }
+
+    #[test]
+    fn test_parse_bc_options_partial() {
+        let directive = parse_header_line("%BCOptions Justify").unwrap();
+        match directive {
+            HeaderDirective::BCOptions(opts) => {
+                assert!(opts.justify, "Expected Justify to be true");
+                assert!(!opts.show_hcp, "Expected ShowHCP to be false");
+                assert!(!opts.float, "Expected Float to be false");
+            }
+            _ => panic!("Expected BCOptions directive"),
         }
     }
 }

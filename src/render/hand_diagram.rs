@@ -37,7 +37,7 @@ impl<'a> HandDiagramRenderer<'a> {
             symbol_font,
             colors: SuitColors::new(settings.black_color, settings.red_color),
             settings,
-            debug_boxes: true, // Enable debug boxes temporarily
+            debug_boxes: false, // Disable debug boxes for production
         }
     }
 
@@ -100,7 +100,7 @@ impl<'a> HandDiagramRenderer<'a> {
         // Layout constants
         let hand_w = self.settings.hand_width; // Used for positioning
         let hand_h = self.actual_hand_height(); // Use actual calculated height
-        let compass_size = 18.0; // Size of compass box
+        let compass_size = self.compass_box_size(); // Dynamic size based on font
 
         // Calculate actual widths for each hand
         let north_w = self.actual_hand_width(&deal.north);
@@ -123,14 +123,17 @@ impl<'a> HandDiagramRenderer<'a> {
         self.render_hand_cards(&deal.west, (Mm(west_x), Mm(row2_y)));
 
         // Compass rose - vertically centered with West/East hands
-        let compass_center_x = north_x + 2.5;  // Align with gap between suit symbol and cards
+        // Left edge of compass aligns with right edge of suit symbols (suit symbols are ~5mm wide)
+        let suit_symbol_width = 5.0;
+        let half_char_adjust = 1.5; // Fine-tune alignment
+        let compass_center_x = north_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
         let compass_y = row2_y - hand_h / 2.0;  // Center vertically with West/East
         // Debug box for compass (centered)
         self.draw_debug_box(compass_center_x - compass_size/2.0, compass_y + compass_size/2.0, compass_size, compass_size);
         self.render_compass((Mm(compass_center_x), Mm(compass_y)));
 
         // East hand - to the right of compass
-        let east_x = compass_center_x + compass_size / 2.0 + 2.0;
+        let east_x = compass_center_x + compass_size / 2.0 + 3.5;
         self.draw_debug_box(east_x, row2_y, east_w, hand_h);
         self.render_hand_cards(&deal.east, (Mm(east_x), Mm(row2_y)));
 
@@ -226,11 +229,40 @@ impl<'a> HandDiagramRenderer<'a> {
         );
     }
 
+    /// Calculate compass box size based on font metrics
+    fn compass_box_size(&self) -> f32 {
+        let measurer = super::text_metrics::get_measurer();
+        let font_size = self.settings.compass_font_size;
+
+        // Measure the widest letter (W is typically widest)
+        let w_width = measurer.measure_width_mm("W", font_size);
+        let cap_height = measurer.cap_height_mm(font_size);
+
+        // Box needs to fit: letter on each side + padding
+        // Width: W on left + gap + W on right + padding on edges
+        // Height: N on top + gap + S on bottom + padding on edges
+        let letter_size = w_width.max(cap_height);
+        let padding = 1.5; // Small padding around letters at edges
+        let inner_gap = letter_size * 1.6; // Gap between letters - proportional to letter size
+
+        // Total: padding + letter + gap + letter + padding
+        (padding * 2.0) + (letter_size * 2.0) + inner_gap
+    }
+
     /// Render compass rose with green filled box and white letters
     fn render_compass(&self, center: (Mm, Mm)) {
         let (cx, cy) = center;
-        let box_size = 18.0; // Size of the green box in mm
+        let measurer = super::text_metrics::get_measurer();
+        let font_size = self.settings.compass_font_size;
+
+        let box_size = self.compass_box_size();
         let half_box = box_size / 2.0;
+
+        // Get font metrics for positioning
+        let cap_height = measurer.cap_height_mm(font_size);
+        let n_width = measurer.measure_width_mm("N", font_size);
+        let s_width = measurer.measure_width_mm("S", font_size);
+        let e_width = measurer.measure_width_mm("E", font_size);
 
         // Draw filled green rectangle
         let rect = Rect::new(
@@ -244,43 +276,44 @@ impl<'a> HandDiagramRenderer<'a> {
         self.layer.set_fill_color(Color::Rgb(super::colors::GREEN));
         self.layer.add_rect(rect);
 
-        // Draw white letters using compass font size (CardTable font)
+        // Draw white letters using compass font size
         self.layer.set_fill_color(Color::Rgb(super::colors::WHITE));
-        let font_size = self.settings.compass_font_size;
 
-        // N (top center)
+        let padding = 1.5;
+
+        // N (top center) - baseline positioned so cap-height reaches near top edge
         self.layer.use_text(
             "N",
             font_size,
-            Mm(cx.0 - 2.5),
-            Mm(cy.0 + half_box - 6.0),
+            Mm(cx.0 - n_width / 2.0),
+            Mm(cy.0 + half_box - padding - cap_height),
             self.compass_font,
         );
 
-        // S (bottom center)
+        // S (bottom center) - baseline near bottom edge
         self.layer.use_text(
             "S",
             font_size,
-            Mm(cx.0 - 2.0),
-            Mm(cy.0 - half_box + 1.5),
+            Mm(cx.0 - s_width / 2.0),
+            Mm(cy.0 - half_box + padding),
             self.compass_font,
         );
 
-        // W (left center)
+        // W (left center) - vertically centered
         self.layer.use_text(
             "W",
             font_size,
-            Mm(cx.0 - half_box + 1.5),
-            Mm(cy.0 - 2.0),
+            Mm(cx.0 - half_box + padding),
+            Mm(cy.0 - cap_height / 2.0),
             self.compass_font,
         );
 
-        // E (right center)
+        // E (right center) - vertically centered
         self.layer.use_text(
             "E",
             font_size,
-            Mm(cx.0 + half_box - 5.5),
-            Mm(cy.0 - 2.0),
+            Mm(cx.0 + half_box - padding - e_width),
+            Mm(cy.0 - cap_height / 2.0),
             self.compass_font,
         );
     }
@@ -306,26 +339,29 @@ impl<'a> HandDiagramRenderer<'a> {
         let east_hcp = deal.east.total_hcp();
         let west_hcp = deal.west.total_hcp();
 
+        // Use bold measurer for HCP values
+        let bold_measurer = super::text_metrics::get_serif_bold_measurer();
+
         // N (top center)
         let n_text = format!("{}", north_hcp);
-        let n_width = super::text_metrics::get_measurer().measure_width_mm(&n_text, font_size);
+        let n_width = bold_measurer.measure_width_mm(&n_text, font_size);
         self.layer.use_text(
             &n_text,
             font_size,
             Mm(center_x - n_width / 2.0),
             Mm(center_y + half_box - 5.0),
-            self.font,
+            self.bold_font,
         );
 
         // S (bottom center)
         let s_text = format!("{}", south_hcp);
-        let s_width = super::text_metrics::get_measurer().measure_width_mm(&s_text, font_size);
+        let s_width = bold_measurer.measure_width_mm(&s_text, font_size);
         self.layer.use_text(
             &s_text,
             font_size,
             Mm(center_x - s_width / 2.0),
             Mm(center_y - half_box + 2.0),
-            self.font,
+            self.bold_font,
         );
 
         // W (left center)
@@ -335,18 +371,18 @@ impl<'a> HandDiagramRenderer<'a> {
             font_size,
             Mm(ox.0 + 2.0),
             Mm(center_y - 1.5),
-            self.font,
+            self.bold_font,
         );
 
         // E (right center)
         let e_text = format!("{}", east_hcp);
-        let e_width = super::text_metrics::get_measurer().measure_width_mm(&e_text, font_size);
+        let e_width = bold_measurer.measure_width_mm(&e_text, font_size);
         self.layer.use_text(
             &e_text,
             font_size,
             Mm(ox.0 + box_size - e_width - 2.0),
             Mm(center_y - 1.5),
-            self.font,
+            self.bold_font,
         );
     }
 }

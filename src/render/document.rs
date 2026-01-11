@@ -14,7 +14,7 @@ use super::text_metrics::get_measurer;
 
 /// Light gray color for debug boxes
 const DEBUG_BOX_COLOR: Rgb = Rgb { r: 0.7, g: 0.7, b: 0.7, icc_profile: None };
-const DEBUG_BOXES: bool = true;
+const DEBUG_BOXES: bool = false;
 
 /// Main document renderer
 pub struct DocumentRenderer {

@@ -21,6 +21,7 @@ pub struct Settings {
     pub show_play: bool,
     pub show_commentary: bool,
     pub show_hcp: bool,
+    pub justify: bool,
 
     // Layout dimensions (in mm)
     pub hand_width: f32,
@@ -64,6 +65,7 @@ impl Default for Settings {
             show_play: true,
             show_commentary: true,
             show_hcp: true,
+            justify: false,
 
             hand_width: DEFAULT_HAND_WIDTH,
             hand_height: DEFAULT_HAND_HEIGHT,
@@ -141,6 +143,14 @@ impl Settings {
 
         // Store font settings for font family selection
         self.fonts = metadata.fonts.clone();
+
+        // Apply display options from PBN metadata
+        if metadata.layout.show_hcp {
+            self.show_hcp = true;
+        }
+        if metadata.layout.justify {
+            self.justify = true;
+        }
 
         self
     }
