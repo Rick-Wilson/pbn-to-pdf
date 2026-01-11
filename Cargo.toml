@@ -1,0 +1,16 @@
+[package]
+name = "pbn-to-pdf"
+version = "0.1.0"
+edition = "2021"
+description = "Convert PBN bridge files to PDF with Bridge Composer-style formatting"
+license = "Unlicense"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+printpdf = "0.7"
+nom = "8.0"
+thiserror = "2.0"
+anyhow = "1.0"
+log = "0.4"
+env_logger = "0.11"
+rustybuzz = "0.18"  # Text shaping and measurement

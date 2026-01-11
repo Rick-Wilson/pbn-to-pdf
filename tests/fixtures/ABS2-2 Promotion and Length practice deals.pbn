@@ -1,0 +1,312 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.109
+%Created: Sat Dec  7 14:45:22 2024 -0800
+%BCOptions Float Justify NoHRStats STBorder STShade ShowHCP
+%BidAndCardSpacing Hair
+%BoardsPerPage fit,1
+%CardTableColors #008000,#ffffff,#aaaaaa
+%DDAFormat 0
+%DefaultPagination 0
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Times New Roman",12,400,0
+%Font:Diagram "Times New Roman",12,400,0
+%Font:Event "Times New Roman",20,700,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Times New Roman",11,400,0
+%GutterSize 500,500
+%HRTitleDate 2023.10.10
+%HRTitleEvent "ABS2-2 Developing Tricks -- Promotion and Length"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite ""
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,500,750
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SectionSpacing 12,0,0
+%SelectedBoard 0
+%ShowBoardLabels 1
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "Deal %"
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:A65.J4.A764.A983 QJT73.9852.K3.Q7 K82.KQT3.T52.642 94.A76.QJ98.KJT5"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "1NT"]
+[Result ""]
+{<b>Bidding.</b> North, dealer, holds 13 points and should open the bidding. With four
+diamonds and four clubs, North chooses to open 1\D.
+
+If East passes, South has eight points and should respond. He bids 1\H; only a
+four-card suit is required for responding. North must bid again after a
+response in a new suit. North chooses 1NT with a balanced hand without four
+hearts or four spades.
+
+If East overcalls 1\S, South should instead double (<i>negative double</i>) to
+indicate that she wanted to respond 1\H. North should rebid 1NT for the same
+reasons as above.
+
+<b>Defense.</b> East leads the \SQ, highest touching honor of a sequence. West
+discourages with the \S4.
+
+<b>Declarer play.</b> Declarer (North) considers that the objective is seven tricks.
+
+Declarer counts four sure winners: two in spades, one in diamonds, and one in
+clubs.
+
+Declarer next considers alternatives for three additional tricks. A promotion
+in hearts will yield three extra tricks. A length trick in both diamonds and
+clubs is possible if the outstanding cards in those suits divide three and
+three.
+
+Declarer sees that hearts are a sure opportunity for three extra tricks, enough
+to fulfill the contract.
+
+Declarer now puts it all together: win the opening lead and promote three heart
+tricks by starting with the \HJ (high card from the shorter side) so as not to
+strand the heart winners. Declarer notices that once the heart tricks are
+promoted, he may need an entry to dummy to take them if the defenders don't win
+the \HA right away. That entry can only be the \SK, so declarer takes care to
+win the opening lead with the \SA.
+
+<b>Key point.</b> As you plan to make your contract as declarer, you usually find that
+you don’t have the necessary number of sure tricks needed to make the contract.
+One way to develop extra tricks is through promotion. Promotion is as simple as
+playing your high cards in order to drive out the opponents’ high cards. You
+sacrifice tricks in order to gain tricks.
+
+Tricks are only good, however, if you can get to them. You need to be careful
+to keep high cards in the same hand as your eventual winning tricks, so that
+you can get to the winning cards.}
+[BCFlags "1f"]
+[OriginalRotationBasis "N"]
+[RotationNote "Board 1, chOption: N, chBasis: N, basisKind:Declarer, nOption:0, nBasis: 0, nRot: 0, useStandardVul: true"]
+[Auction "N"]
+1D 1S X Pass
+1NT AP
+[Play "E"]
+SQ
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "NS"]
+[Deal "W:QT65.J84.KJ3.AQ6 87.A97.A8542.J95 AKJ43.T3.Q97.K72 92.KQ652.T6.T843"]
+[Scoring ""]
+[Declarer "E"]
+[Contract "4S"]
+[Result ""]
+{<b>Bidding.</b> West, dealer, has 13 points and should open the bidding. West chooses
+1\C since 1\S would show five spades and 1\D would show four diamonds (unless
+exactly 4=4=3=2).
+
+East holds 14 points and knows that his side belongs in game. East begins a
+search for a fit in spades by responding 1\S, which shows four or more spades
+and requires opener to bid again.
+
+With four spades, West knows that a fit exists and plans to raise spades. West
+reevaluates his hand as a dummy, but with no shortness the hand remains at 13
+points. This is in the minimum range (13–16 points), so West just raises spades
+one level by bidding 2\S. East concludes the auction by jumping to game in
+spades.
+
+<b>Defense.</b> South leads the \HK. Only a two-card honor sequence is required for
+leading against suit contracts. North holds an equivalent honor and so
+encourages South to continue playing hearts by playing the \H9, the highest
+spot card. The defense continues with two more rounds of hearts.
+
+<b>Declarer play.</b> Declarer (East) considers that the objective is ten tricks.
+Declarer counts eight sure winners: five in spades and three in clubs.
+
+Declarer next considers alternatives for extra tricks. A promotion in diamonds
+will yield two extra tricks, enough to fulfill the contract. Ruffing the third
+round of hearts will not increase the trick total since those spades are
+already counted for winners, but ruffing does keep the opponents from taking
+more than two heart tricks.
+
+Since declarer is in a trump contract, declarer should also count the fast
+losers: two in hearts and one in diamonds. Declarer can afford to lose three
+tricks, so there is no problem with losers.
+
+Declarer now puts it all together: assuming the opponents play three rounds of
+high hearts, declarer ruffs the third round, pulls trumps (trumps are not
+otherwise needed for ruffing), and forces out the \DA. The only snag will occur
+if one opponent has all four spades, in which case declarer must promote the
+diamonds before pulling all the trumps.
+
+<b>Key point.</b> Whenever you play a hand in a suit contract, you have to decide when
+to draw the trumps. It’s usually a good idea to draw them right away,
+especially if you have the number of losers you can afford. You don’t want to
+create an extra loser for yourself by having the opponents use one of their
+trumps on a trick you hadn’t intended to lose.}
+[BCFlags "1f"]
+[OriginalRotationBasis "W"]
+[RotationNote "Board 2, chOption: E, chBasis: W, basisKind:Declarer, nOption:1, nBasis: 3, nRot: 2, useStandardVul: true"]
+[Auction "W"]
+1C Pass 1S Pass
+2S Pass 4S AP
+[Play "S"]
+HK
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "EW"]
+[Deal "S:A95.K4.A7653.K63 QT4.QT8.J8.QT752 J82.A632.K42.A84 K763.J975.QT9.J9"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "3NT"]
+[Result ""]
+{<b>Bidding.</b> Dealer (South) has 15 points and should open. Some will open 1NT
+(15–17 balanced) and some will discount the fifth diamond in a weak suit and
+open 1\D.
+
+After a 1NT opening, North should drive the hand to game, but should check for
+a fit in hearts on the way by bidding 2\C Stayman. South will deny a four-card
+major by rebidding 2\D, and North can then go directly to 3NT.
+
+After a 1\D opening, North, with 11 points, should respond. He chooses 1\H as
+only a four-card suit is required for responding. With a minimum-range,
+balanced hand without four hearts or four spades, South rebids 1NT.
+
+North knows that South may have 14 points, enough for game, so invites with his
+balanced hand by rebidding 2NT (11–12 points). South, with a maximum for his
+previous bidding, bids the game in notrump.
+
+<b>Defense.</b> West has no sequence to lead, so chooses to start with clubs in an
+effort to promote tricks there. West chooses the \C5, the fourth-best club, by
+convention ("fourth-best from your longest and strongest").
+
+<b>Declarer play.</b> Declarer (South) considers that the objective is nine tricks.
+
+Declarer counts seven sure winners: one in spades, two in hearts, two in
+diamonds, and two in clubs.
+
+Declarer next considers alternatives for two extra tricks. Two length tricks in
+diamonds are possible if the outstanding cards divide three and two. No other
+extra tricks are likely elsewhere, but two extra tricks are enough for the
+contract.
+
+Declarer now puts it all together: win the opening lead and promote two extra
+diamond tricks by first giving up a diamond (best to give up tricks you must
+lose first). Declarer regains the lead in any suit and takes one spade, two
+hearts, four diamonds (leading the \DK next), and two clubs to fulfill the
+contract.
+
+<b>Key point.</b> When declarer knows that more tricks need to be developed, one of
+the best sources of tricks can be found in long suits. If declarer plus dummy
+hold at least seven cards in a suit, or if either declarer or dummy hold at
+least five cards in a suit, the could provide a source of extra tricks. Of
+course a suit of more than seven cards combined offers an even more likely
+source of extra tricks.}
+[BCFlags "1f"]
+[OriginalRotationBasis "S"]
+[RotationNote "Board 3, chOption: S, chBasis: S, basisKind:Declarer, nOption:2, nBasis: 2, nRot: 0, useStandardVul: true"]
+[Auction "S"]
+1D $2 Pass 1H Pass
+1NT Pass 2NT Pass
+3NT AP
+[Play "W"]
+C5
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "All"]
+[Deal "E:KJ7.J72.A762.T82 T5.Q985.QT.Q9653 AQ842.4.K943.AK7 963.AKT63.J85.J4"]
+[Scoring ""]
+[Declarer "W"]
+[Contract "4S"]
+[Result ""]
+{<b>Bidding.</b> Dealer (East) and South do not have enough points to open, but West,
+with 17 points, should do. With an unbalanced hand, West chooses 1\S, showing
+at least five spades.
+
+North needs both a good five-card suit and opening values to overcall at the
+two-level, and so passes.
+
+East knows that his side has a fit in spades, so reevaluates his hand as a
+dummy. With no shortness, East has nine points, a minimum-range response (6–10
+points), and so raises spades one level to 2\S.
+
+West, with an intermediate-range opening hand, now knows that his side may have
+enough points for game, and so bids 3\S. East has nearly a maximum for a simple
+raise, and so proceeds to the spade game.
+
+<b>Defense.</b> North should lead the \HA, highest of an honor sequence. A two-card
+sequence is adequate when defending a suit contract. South holds an equivalent
+honor to North's presumed \HK, so encourages a heart continuation by playing
+the \H9. North should continue with the \HK since South might hold a doubleton
+heart, looking to ruff.
+
+<b>Declarer play.</b> Declarer (West) considers that the objective is ten tricks.
+
+Declarer counts eight immediate winners: four in spades, two in diamonds, and
+two in clubs.
+
+Declarer next considers alternatives for two extra tricks: a length trick is
+likely in spades if the outstanding cards divide three and two (3-2) or four
+and one (4-1).  A promotion of one trick in diamonds is possible if the
+outstanding diamonds divide 3-2, as is likely. No other extra tricks are likely
+elsewhere, but two extra tricks are enough to fulfill the contract.
+
+Since this is a trump contract, declarer counts the immediate losers: just one
+in hearts, so no problem with losers.
+
+Declarer now puts it all together: assuming that the opponents persist with
+high hearts, ruff the second heart, pull the opponent's trumps, and promote
+another winner in diamonds.
+
+<b>Key point.</b> Long suits come in handy, not only in notrump but in suit contracts.
+Once the trumps are drawn, in fact, a suit contract is very much like playing
+in notrump. Often all that is required is a normal division of the missing
+cards and declarer’s ability to take advantage of it.}
+[BCFlags "1f"]
+[OriginalRotationBasis "E"]
+[RotationNote "Board 4, chOption: W, chBasis: E, basisKind:Declarer, nOption:3, nBasis: 1, nRot: 2, useStandardVul: true"]
+[Auction "E"]
+Pass Pass 1S Pass
+2S Pass 3S Pass
+4S AP
+[Play "N"]
+HA

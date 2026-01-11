@@ -1,0 +1,167 @@
+use crate::cli::Args;
+use crate::model::{FontSettings, PbnMetadata};
+
+use super::defaults::*;
+
+/// Runtime settings for PDF generation
+#[derive(Debug, Clone)]
+pub struct Settings {
+    // Page dimensions
+    pub page_width: f32,
+    pub page_height: f32,
+    pub margin: f32,  // Single margin for backward compatibility
+    pub margin_top: f32,
+    pub margin_bottom: f32,
+    pub margin_left: f32,
+    pub margin_right: f32,
+    pub boards_per_page: u8,
+
+    // Display options
+    pub show_bidding: bool,
+    pub show_play: bool,
+    pub show_commentary: bool,
+    pub show_hcp: bool,
+
+    // Layout dimensions (in mm)
+    pub hand_width: f32,
+    pub hand_height: f32,
+    pub compass_gap: f32,
+    pub line_height: f32,
+
+    // Typography (in points)
+    pub title_font_size: f32,
+    pub header_font_size: f32,
+    pub body_font_size: f32,
+    pub card_font_size: f32,
+    pub compass_font_size: f32,
+    pub commentary_font_size: f32,
+
+    // Font specifications from PBN (for font family selection)
+    pub fonts: FontSettings,
+
+    // Bidding table
+    pub bid_column_width: f32,
+    pub bid_row_height: f32,
+
+    // Colors (RGB 0.0-1.0)
+    pub black_color: (f32, f32, f32),
+    pub red_color: (f32, f32, f32),
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            page_width: 215.9, // Letter
+            page_height: 279.4,
+            margin: DEFAULT_PAGE_MARGIN,
+            margin_top: DEFAULT_PAGE_MARGIN,
+            margin_bottom: DEFAULT_PAGE_MARGIN,
+            margin_left: DEFAULT_PAGE_MARGIN,
+            margin_right: DEFAULT_PAGE_MARGIN,
+            boards_per_page: 1,
+
+            show_bidding: true,
+            show_play: true,
+            show_commentary: true,
+            show_hcp: true,
+
+            hand_width: DEFAULT_HAND_WIDTH,
+            hand_height: DEFAULT_HAND_HEIGHT,
+            compass_gap: DEFAULT_COMPASS_GAP,
+            line_height: DEFAULT_LINE_HEIGHT,
+
+            title_font_size: DEFAULT_TITLE_FONT_SIZE,
+            header_font_size: DEFAULT_HEADER_FONT_SIZE,
+            body_font_size: DEFAULT_BODY_FONT_SIZE,
+            card_font_size: DEFAULT_CARD_FONT_SIZE,
+            compass_font_size: 11.0,  // CardTable default
+            commentary_font_size: 12.0,  // Commentary default
+
+            fonts: FontSettings::default(),
+
+            bid_column_width: DEFAULT_BID_COLUMN_WIDTH,
+            bid_row_height: DEFAULT_BID_ROW_HEIGHT,
+
+            black_color: BLACK_SUIT_COLOR,
+            red_color: RED_SUIT_COLOR,
+        }
+    }
+}
+
+impl Settings {
+    /// Create settings from CLI arguments
+    pub fn from_args(args: &Args) -> Self {
+        let (page_width, page_height) = args.page_dimensions();
+
+        Self {
+            page_width,
+            page_height,
+            boards_per_page: args.boards_per_page,
+            show_bidding: args.show_bidding(),
+            show_play: args.show_play(),
+            show_commentary: args.show_commentary(),
+            show_hcp: args.show_hcp(),
+            ..Default::default()
+        }
+    }
+
+    /// Merge with PBN metadata (embedded settings override defaults)
+    pub fn with_metadata(mut self, metadata: &PbnMetadata) -> Self {
+        if let Some(bpp) = metadata.layout.boards_per_page {
+            self.boards_per_page = bpp;
+        }
+
+        if let Some(ref margins) = metadata.layout.margins {
+            self.margin_top = margins.top;
+            self.margin_bottom = margins.bottom;
+            self.margin_left = margins.left;
+            self.margin_right = margins.right;
+            self.margin = margins.left; // Use left margin as general margin for backward compatibility
+        }
+
+        // Apply font sizes from metadata
+        self.card_font_size = metadata.fonts.diagram_size();
+        self.body_font_size = metadata.fonts.hand_record_size();
+        self.title_font_size = metadata.fonts.event_size();
+        self.compass_font_size = metadata.fonts.card_table_size();
+        self.commentary_font_size = metadata.fonts.commentary_size();
+
+        // Apply colors from metadata
+        let scale = |v: u8| v as f32 / 255.0;
+        self.black_color = (
+            scale(metadata.colors.spades.0),
+            scale(metadata.colors.spades.1),
+            scale(metadata.colors.spades.2),
+        );
+        self.red_color = (
+            scale(metadata.colors.hearts.0),
+            scale(metadata.colors.hearts.1),
+            scale(metadata.colors.hearts.2),
+        );
+
+        // Store font settings for font family selection
+        self.fonts = metadata.fonts.clone();
+
+        self
+    }
+
+    /// Get the usable content area width
+    pub fn content_width(&self) -> f32 {
+        self.page_width - self.margin_left - self.margin_right
+    }
+
+    /// Get the usable content area height
+    pub fn content_height(&self) -> f32 {
+        self.page_height - self.margin_top - self.margin_bottom
+    }
+
+    /// Get the total width of the hand diagram (including compass)
+    pub fn diagram_width(&self) -> f32 {
+        (self.hand_width * 2.0) + self.compass_gap
+    }
+
+    /// Get the total height of the hand diagram (including compass)
+    pub fn diagram_height(&self) -> f32 {
+        (self.hand_height * 2.0) + self.compass_gap
+    }
+}
