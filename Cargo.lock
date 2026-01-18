@@ -1185,7 +1185,7 @@ dependencies = [
 
 [[package]]
 name = "pbn-to-pdf"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1194,7 +1194,6 @@ dependencies = [
  "nom 8.0.0",
  "printpdf",
  "rustybuzz 0.18.0",
- "subsetter",
  "thiserror",
 ]
 

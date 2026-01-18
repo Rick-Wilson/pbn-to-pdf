@@ -1,6 +1,6 @@
 [package]
 name = "pbn-to-pdf"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Convert PBN bridge files to PDF with Bridge Composer-style formatting"
 license = "Unlicense"
@@ -14,5 +14,4 @@ anyhow = "1.0"
 log = "0.4"
 env_logger = "0.11"
 rustybuzz = "0.18"  # Text shaping and measurement
-subsetter = "0.2"   # Font subsetting for smaller PDFs
 
