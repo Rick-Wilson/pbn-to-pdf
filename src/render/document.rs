@@ -1,16 +1,14 @@
 use crate::config::Settings;
 use crate::error::RenderError;
 use crate::model::{BidSuit, Board};
-use printpdf::path::PaintMode;
-use printpdf::{Color, IndirectFontRef, Mm, PdfDocument, PdfLayerReference, Rect, Rgb};
+use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
 use super::bidding_table::BiddingTableRenderer;
 use super::colors::{SuitColors, BLACK};
 use super::commentary::{CommentaryRenderer, FloatLayout};
 use super::fonts::FontManager;
-use super::glyph_collector::GlyphCollector;
 use super::hand_diagram::HandDiagramRenderer;
-use super::page::PageManager;
+use super::layer::LayerBuilder;
 use super::text_metrics::get_measurer;
 
 /// Light gray color for debug boxes
@@ -40,60 +38,49 @@ impl DocumentRenderer {
             .map(|s| s.as_str())
             .unwrap_or("Bridge Hands");
 
-        // Collect glyphs used in the document for font subsetting
-        let mut collector = GlyphCollector::new();
-        collector.collect_from_boards(boards, &self.settings);
-        let glyph_strings = collector.into_strings();
+        let mut doc = PdfDocument::new(title);
 
-        let (doc, page_idx, layer_idx) = PdfDocument::new(
-            title,
-            Mm(self.settings.page_width),
-            Mm(self.settings.page_height),
-            "Layer 1",
-        );
+        // Load fonts - printpdf 0.8 handles subsetting automatically
+        let fonts = FontManager::new(&mut doc)?;
 
-        // Load fonts subsetted to only include used glyphs
-        let fonts = FontManager::new_with_glyphs(&doc, &glyph_strings)?;
-        let page_manager = PageManager::new(&self.settings);
+        let mut pages = Vec::new();
 
-        let mut current_layer = doc.get_page(page_idx).get_layer(layer_idx);
-        let mut page_count = 0;
+        for board in boards {
+            let mut layer = LayerBuilder::new();
+            self.render_board(&mut layer, board, &fonts);
 
-        for (i, board) in boards.iter().enumerate() {
-            // Create new page if needed (skip first board, already have a page)
-            if i > 0 && page_manager.needs_new_page(i) {
-                let (_, layer) = page_manager.create_page(&doc, page_count + 1);
-                current_layer = layer;
-                page_count += 1;
-            }
-
-            self.render_board(&current_layer, board, &fonts);
+            let page = PdfPage::new(
+                Mm(self.settings.page_width),
+                Mm(self.settings.page_height),
+                layer.into_ops(),
+            );
+            pages.push(page);
         }
 
-        // Save to bytes
-        let bytes = doc
-            .save_to_bytes()
-            .map_err(|e| RenderError::PdfGeneration(format!("Failed to save PDF: {:?}", e)))?;
+        doc.with_pages(pages);
+
+        // Save with auto-subsetting enabled (default)
+        let mut warnings = Vec::new();
+        let bytes = doc.save(&PdfSaveOptions::default(), &mut warnings);
 
         Ok(bytes)
     }
 
     /// Draw a debug outline box
-    fn draw_debug_box(&self, layer: &printpdf::PdfLayerReference, x: f32, y: f32, w: f32, h: f32) {
+    fn draw_debug_box(&self, layer: &mut LayerBuilder, x: f32, y: f32, w: f32, h: f32) {
         if !DEBUG_BOXES {
             return;
         }
         // y is top of box, draw from bottom-left to top-right
-        let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y)).with_mode(PaintMode::Stroke);
         layer.set_outline_color(Color::Rgb(DEBUG_BOX_COLOR));
         layer.set_outline_thickness(0.25);
-        layer.add_rect(rect);
+        layer.add_rect(Mm(x), Mm(y - h), Mm(x + w), Mm(y), PaintMode::Stroke);
     }
 
     /// Render a single board - Bridge Composer style layout
     fn render_board(
         &self,
-        layer: &printpdf::PdfLayerReference,
+        layer: &mut LayerBuilder,
         board: &Board,
         fonts: &FontManager,
     ) {
@@ -191,14 +178,13 @@ impl DocumentRenderer {
         let diagram_y = page_top; // Start at same level as title
 
         let hand_renderer = HandDiagramRenderer::new(
-            layer,
             &diagram_fonts.regular,
             &diagram_fonts.bold,
             &card_table_fonts.regular, // Compass uses CardTable font
             &fonts.sans.regular,       // DejaVu Sans for suit symbols
             &self.settings,
         );
-        let diagram_height = hand_renderer.render_deal(&board.deal, (Mm(diagram_x), Mm(diagram_y)));
+        let diagram_height = hand_renderer.render_deal(layer, &board.deal, (Mm(diagram_x), Mm(diagram_y)));
 
         // Content below diagram
         let mut content_y = Mm(diagram_y - diagram_height - 5.0);
@@ -207,14 +193,13 @@ impl DocumentRenderer {
         if self.settings.show_bidding {
             if let Some(ref auction) = board.auction {
                 let bidding_renderer = BiddingTableRenderer::new(
-                    layer,
                     &hand_record_fonts.regular,
                     &hand_record_fonts.bold,
                     &hand_record_fonts.italic,
                     &fonts.sans.regular, // DejaVu Sans for suit symbols
                     &self.settings,
                 );
-                let table_height = bidding_renderer.render(auction, (Mm(margin_left), content_y));
+                let table_height = bidding_renderer.render(layer, auction, (Mm(margin_left), content_y));
                 content_y = Mm(content_y.0 - table_height - 2.0);
 
                 // Render contract below auction (no label)
@@ -262,7 +247,6 @@ impl DocumentRenderer {
         // Render commentary if present - using floating layout
         if self.settings.show_commentary && !board.commentary.is_empty() {
             let commentary_renderer = CommentaryRenderer::new(
-                layer,
                 &commentary_fonts.regular,
                 &commentary_fonts.bold,
                 &commentary_fonts.italic,
@@ -298,6 +282,7 @@ impl DocumentRenderer {
                 if first_block {
                     // First block uses floating layout
                     let result = commentary_renderer.render_float(
+                        layer,
                         block,
                         (Mm(float_layout.float_left), Mm(commentary_y)),
                         &float_layout,
@@ -314,6 +299,7 @@ impl DocumentRenderer {
                     if commentary_y > float_until_y {
                         // Still in float zone
                         let result = commentary_renderer.render_float(
+                            layer,
                             block,
                             (Mm(float_layout.float_left), Mm(commentary_y)),
                             &float_layout,
@@ -322,6 +308,7 @@ impl DocumentRenderer {
                     } else {
                         // Below float zone, use full width
                         let height = commentary_renderer.render(
+                            layer,
                             block,
                             (Mm(margin_left), Mm(commentary_y)),
                             full_width,
@@ -342,12 +329,12 @@ impl DocumentRenderer {
     #[allow(clippy::too_many_arguments)]
     fn render_contract(
         &self,
-        layer: &PdfLayerReference,
+        layer: &mut LayerBuilder,
         contract: &crate::model::Contract,
         x: Mm,
         y: Mm,
-        text_font: &IndirectFontRef,
-        symbol_font: &IndirectFontRef,
+        text_font: &FontId,
+        symbol_font: &FontId,
         colors: &SuitColors,
     ) -> f32 {
         let measurer = get_measurer();
@@ -405,12 +392,12 @@ impl DocumentRenderer {
     #[allow(clippy::too_many_arguments)]
     fn render_lead(
         &self,
-        layer: &PdfLayerReference,
+        layer: &mut LayerBuilder,
         card: &crate::model::Card,
         x: Mm,
         y: Mm,
-        text_font: &IndirectFontRef,
-        symbol_font: &IndirectFontRef,
+        text_font: &FontId,
+        symbol_font: &FontId,
         colors: &SuitColors,
     ) {
         let measurer = get_measurer();

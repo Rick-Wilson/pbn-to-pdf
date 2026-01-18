@@ -1,10 +1,7 @@
 use crate::error::RenderError;
-use crate::render::glyph_collector::GlyphStrings;
-use printpdf::{IndirectFontRef, PdfDocumentReference};
-use std::io::Cursor;
-use subsetter::GlyphRemapper;
+use printpdf::{FontId, ParsedFont, PdfDocument};
 
-// Embed full fonts at compile time (for runtime subsetting)
+// Embed full fonts at compile time - printpdf 0.8 handles subsetting automatically
 const DEJAVU_SANS_FULL: &[u8] = include_bytes!("../../assets/fonts/DejaVuSans.ttf");
 const DEJAVU_SANS_BOLD_FULL: &[u8] = include_bytes!("../../assets/fonts/DejaVuSans-Bold.ttf");
 
@@ -14,27 +11,6 @@ const TERMES_BOLD_FULL: &[u8] = include_bytes!("../../assets/fonts/texgyretermes
 const TERMES_ITALIC_FULL: &[u8] = include_bytes!("../../assets/fonts/texgyretermes-italic.ttf");
 const TERMES_BOLD_ITALIC_FULL: &[u8] =
     include_bytes!("../../assets/fonts/texgyretermes-bolditalic.ttf");
-
-/// Subset a font to include only the specified characters
-fn subset_font(font_data: &[u8], chars: &str) -> Result<Vec<u8>, RenderError> {
-    let face = rustybuzz::Face::from_slice(font_data, 0)
-        .ok_or_else(|| RenderError::FontLoad("Failed to parse font for subsetting".to_string()))?;
-
-    let mut remapper = GlyphRemapper::new();
-
-    // Always include glyph 0 (notdef)
-    remapper.remap(0);
-
-    // Map each character to its glyph ID
-    for c in chars.chars() {
-        if let Some(glyph_id) = face.glyph_index(c) {
-            remapper.remap(glyph_id.0);
-        }
-    }
-
-    subsetter::subset(font_data, 0, &remapper)
-        .map_err(|e| RenderError::FontLoad(format!("Font subsetting failed: {:?}", e)))
-}
 
 /// Font family for a font set
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,92 +38,79 @@ impl FontFamily {
 }
 
 /// A set of fonts (regular, bold, italic, bold-italic) for one family
+#[derive(Clone)]
 pub struct FontSet {
-    pub regular: IndirectFontRef,
-    pub bold: IndirectFontRef,
-    pub italic: IndirectFontRef,
-    pub bold_italic: IndirectFontRef,
+    pub regular: FontId,
+    pub bold: FontId,
+    pub italic: FontId,
+    pub bold_italic: FontId,
 }
 
 /// Font manager for PDF rendering
 ///
 /// Uses embedded fonts with Unicode suit symbol support.
 /// Provides sans-serif (DejaVu Sans) and serif (TeX Gyre Termes) font families.
+#[derive(Clone)]
 pub struct FontManager {
     pub sans: FontSet,
     pub serif: FontSet,
     // Aliases for backward compatibility - points to serif (default for bridge docs)
-    pub regular: IndirectFontRef,
-    pub bold: IndirectFontRef,
-    pub italic: IndirectFontRef,
+    pub regular: FontId,
+    pub bold: FontId,
+    pub italic: FontId,
 }
 
 impl FontManager {
-    /// Load fonts with runtime subsetting based on collected glyphs
+    /// Load fonts into the document
     ///
-    /// This subsets fonts to include only the characters actually used in the document,
-    /// resulting in minimal PDF file sizes.
-    pub fn new_with_glyphs(
-        doc: &PdfDocumentReference,
-        glyphs: &GlyphStrings,
-    ) -> Result<Self, RenderError> {
-        // Subset and load DejaVu Sans family
-        let sans_regular_data = subset_font(DEJAVU_SANS_FULL, &glyphs.sans_regular)?;
-        let sans_regular = doc
-            .add_external_font(Cursor::new(sans_regular_data))
-            .map_err(|e| RenderError::FontLoad(format!("Failed to load DejaVuSans: {:?}", e)))?;
+    /// printpdf 0.8 handles subsetting automatically when saving the PDF,
+    /// so we just load the full fonts here.
+    pub fn new(doc: &mut PdfDocument) -> Result<Self, RenderError> {
+        let mut warnings = Vec::new();
 
-        let sans_bold_data = subset_font(DEJAVU_SANS_BOLD_FULL, &glyphs.sans_bold)?;
-        let sans_bold = doc
-            .add_external_font(Cursor::new(sans_bold_data))
-            .map_err(|e| {
-                RenderError::FontLoad(format!("Failed to load DejaVuSans-Bold: {:?}", e))
-            })?;
+        // Load DejaVu Sans family
+        let sans_regular_font = ParsedFont::from_bytes(DEJAVU_SANS_FULL, 0, &mut warnings)
+            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans".to_string()))?;
+        let sans_regular = doc.add_font(&sans_regular_font);
 
-        // Sans italic uses same glyphs as regular (not commonly used, but include for fallback)
-        let sans_italic_data = subset_font(DEJAVU_SANS_FULL, &glyphs.sans_regular)?;
-        let sans_italic = doc
-            .add_external_font(Cursor::new(sans_italic_data))
-            .map_err(|e| {
-                RenderError::FontLoad(format!("Failed to load DejaVuSans-Oblique: {:?}", e))
-            })?;
+        let sans_bold_font = ParsedFont::from_bytes(DEJAVU_SANS_BOLD_FULL, 0, &mut warnings)
+            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-Bold".to_string()))?;
+        let sans_bold = doc.add_font(&sans_bold_font);
 
-        // Subset and load TeX Gyre Termes family (serif)
-        let serif_regular_data = subset_font(TERMES_REGULAR_FULL, &glyphs.serif_regular)?;
-        let serif_regular = doc
-            .add_external_font(Cursor::new(serif_regular_data))
-            .map_err(|e| {
-                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Regular: {:?}", e))
-            })?;
+        // Sans italic - use regular as fallback (DejaVu Sans Oblique not included)
+        let sans_italic = sans_regular.clone();
 
-        let serif_bold_data = subset_font(TERMES_BOLD_FULL, &glyphs.serif_bold)?;
-        let serif_bold = doc
-            .add_external_font(Cursor::new(serif_bold_data))
-            .map_err(|e| {
-                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Bold: {:?}", e))
+        // Load TeX Gyre Termes family (serif)
+        let serif_regular_font = ParsedFont::from_bytes(TERMES_REGULAR_FULL, 0, &mut warnings)
+            .ok_or_else(|| {
+                RenderError::FontLoad("Failed to parse TeXGyreTermes-Regular".to_string())
             })?;
+        let serif_regular = doc.add_font(&serif_regular_font);
 
-        let serif_italic_data = subset_font(TERMES_ITALIC_FULL, &glyphs.serif_italic)?;
-        let serif_italic = doc
-            .add_external_font(Cursor::new(serif_italic_data))
-            .map_err(|e| {
-                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-Italic: {:?}", e))
+        let serif_bold_font = ParsedFont::from_bytes(TERMES_BOLD_FULL, 0, &mut warnings)
+            .ok_or_else(|| {
+                RenderError::FontLoad("Failed to parse TeXGyreTermes-Bold".to_string())
             })?;
+        let serif_bold = doc.add_font(&serif_bold_font);
 
-        let serif_bold_italic_data =
-            subset_font(TERMES_BOLD_ITALIC_FULL, &glyphs.serif_bold_italic)?;
-        let serif_bold_italic = doc
-            .add_external_font(Cursor::new(serif_bold_italic_data))
-            .map_err(|e| {
-                RenderError::FontLoad(format!("Failed to load TeXGyreTermes-BoldItalic: {:?}", e))
+        let serif_italic_font = ParsedFont::from_bytes(TERMES_ITALIC_FULL, 0, &mut warnings)
+            .ok_or_else(|| {
+                RenderError::FontLoad("Failed to parse TeXGyreTermes-Italic".to_string())
             })?;
+        let serif_italic = doc.add_font(&serif_italic_font);
+
+        let serif_bold_italic_font =
+            ParsedFont::from_bytes(TERMES_BOLD_ITALIC_FULL, 0, &mut warnings).ok_or_else(|| {
+                RenderError::FontLoad("Failed to parse TeXGyreTermes-BoldItalic".to_string())
+            })?;
+        let serif_bold_italic = doc.add_font(&serif_bold_italic_font);
 
         Ok(Self {
             sans: FontSet {
                 regular: sans_regular.clone(),
                 bold: sans_bold.clone(),
                 italic: sans_italic.clone(),
-                bold_italic: sans_italic.clone(), // Sans doesn't have bold-italic, use italic as fallback
+                bold_italic: sans_italic.clone(), // Sans doesn't have bold-italic
             },
             serif: FontSet {
                 regular: serif_regular.clone(),
@@ -171,7 +134,7 @@ impl FontManager {
     }
 
     /// Get the appropriate font for a font specification
-    pub fn for_spec(&self, family_name: &str, bold: bool, italic: bool) -> &IndirectFontRef {
+    pub fn for_spec(&self, family_name: &str, bold: bool, italic: bool) -> &FontId {
         let family = FontFamily::from_name(family_name);
         let set = self.family(family);
 
@@ -199,10 +162,10 @@ impl FontManager {
 /// Convert a suit to its display character
 pub fn suit_char(suit: &crate::model::Suit) -> char {
     match suit {
-        crate::model::Suit::Spades => '\u{2660}', // ♠ BLACK SPADE SUIT
-        crate::model::Suit::Hearts => '\u{2665}', // ♥ BLACK HEART SUIT
+        crate::model::Suit::Spades => '\u{2660}',   // ♠ BLACK SPADE SUIT
+        crate::model::Suit::Hearts => '\u{2665}',   // ♥ BLACK HEART SUIT
         crate::model::Suit::Diamonds => '\u{2666}', // ♦ BLACK DIAMOND SUIT
-        crate::model::Suit::Clubs => '\u{2663}',  // ♣ BLACK CLUB SUIT
+        crate::model::Suit::Clubs => '\u{2663}',    // ♣ BLACK CLUB SUIT
     }
 }
 

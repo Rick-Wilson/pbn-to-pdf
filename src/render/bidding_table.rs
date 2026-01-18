@@ -1,32 +1,30 @@
 use crate::config::Settings;
 use crate::model::{Auction, BidSuit, Call, Direction};
-use printpdf::{Color, IndirectFontRef, Mm, PdfLayerReference};
+use printpdf::{Color, FontId, Mm};
 
 use super::colors::{SuitColors, BLACK};
+use super::layer::LayerBuilder;
 
 /// Renderer for bidding tables
 pub struct BiddingTableRenderer<'a> {
-    layer: &'a PdfLayerReference,
-    font: &'a IndirectFontRef,
+    font: &'a FontId,
     #[allow(dead_code)]
-    bold_font: &'a IndirectFontRef,
-    italic_font: &'a IndirectFontRef,
-    symbol_font: &'a IndirectFontRef, // Font with Unicode suit symbols (DejaVu Sans)
+    bold_font: &'a FontId,
+    italic_font: &'a FontId,
+    symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
 }
 
 impl<'a> BiddingTableRenderer<'a> {
     pub fn new(
-        layer: &'a PdfLayerReference,
-        font: &'a IndirectFontRef,
-        bold_font: &'a IndirectFontRef,
-        italic_font: &'a IndirectFontRef,
-        symbol_font: &'a IndirectFontRef,
+        font: &'a FontId,
+        bold_font: &'a FontId,
+        italic_font: &'a FontId,
+        symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
         Self {
-            layer,
             font,
             bold_font,
             italic_font,
@@ -37,13 +35,13 @@ impl<'a> BiddingTableRenderer<'a> {
     }
 
     /// Render the bidding table and return the height used
-    pub fn render(&self, auction: &Auction, origin: (Mm, Mm)) -> f32 {
+    pub fn render(&self, layer: &mut LayerBuilder, auction: &Auction, origin: (Mm, Mm)) -> f32 {
         let (ox, oy) = origin;
         let col_width = self.settings.bid_column_width;
         let row_height = self.settings.bid_row_height;
 
         // Render header row with spelled-out, italicized direction names
-        self.layer.set_fill_color(Color::Rgb(BLACK));
+        layer.set_fill_color(Color::Rgb(BLACK));
         for (i, dir) in [
             Direction::West,
             Direction::North,
@@ -54,7 +52,7 @@ impl<'a> BiddingTableRenderer<'a> {
         .enumerate()
         {
             let x = ox.0 + (i as f32 * col_width);
-            self.layer.use_text(
+            layer.use_text(
                 format!("{}", dir), // Use Display trait for full name
                 self.settings.header_font_size,
                 Mm(x),
@@ -91,8 +89,8 @@ impl<'a> BiddingTableRenderer<'a> {
             let x = ox.0 + (col as f32 * col_width);
             let y = oy.0 - (row as f32 * row_height);
 
-            self.layer.set_fill_color(Color::Rgb(BLACK));
-            self.layer.use_text(
+            layer.set_fill_color(Color::Rgb(BLACK));
+            layer.use_text(
                 "Passed Out",
                 self.settings.body_font_size,
                 Mm(x),
@@ -106,7 +104,7 @@ impl<'a> BiddingTableRenderer<'a> {
                 let x = ox.0 + (col as f32 * col_width);
                 let y = oy.0 - (row as f32 * row_height);
 
-                self.render_call(&annotated.call, (Mm(x), Mm(y)));
+                self.render_call(layer, &annotated.call, (Mm(x), Mm(y)));
 
                 col += 1;
                 if col >= 4 {
@@ -120,8 +118,8 @@ impl<'a> BiddingTableRenderer<'a> {
                 let x = ox.0 + (col as f32 * col_width);
                 let y = oy.0 - (row as f32 * row_height);
 
-                self.layer.set_fill_color(Color::Rgb(BLACK));
-                self.layer.use_text(
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text(
                     "All Pass",
                     self.settings.body_font_size,
                     Mm(x),
@@ -137,44 +135,40 @@ impl<'a> BiddingTableRenderer<'a> {
     }
 
     /// Render a single call
-    fn render_call(&self, call: &Call, pos: (Mm, Mm)) {
+    fn render_call(&self, layer: &mut LayerBuilder, call: &Call, pos: (Mm, Mm)) {
         let (x, y) = pos;
 
         match call {
             Call::Pass => {
-                self.layer.set_fill_color(Color::Rgb(BLACK));
-                self.layer
-                    .use_text("Pass", self.settings.body_font_size, x, y, self.font);
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text("Pass", self.settings.body_font_size, x, y, self.font);
             }
             Call::Double => {
-                self.layer.set_fill_color(Color::Rgb(BLACK));
-                self.layer
-                    .use_text("Dbl", self.settings.body_font_size, x, y, self.font);
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text("Dbl", self.settings.body_font_size, x, y, self.font);
             }
             Call::Redouble => {
-                self.layer.set_fill_color(Color::Rgb(BLACK));
-                self.layer
-                    .use_text("Rdbl", self.settings.body_font_size, x, y, self.font);
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text("Rdbl", self.settings.body_font_size, x, y, self.font);
             }
             Call::Bid { level, suit } => {
                 // Render level
-                self.layer.set_fill_color(Color::Rgb(BLACK));
+                layer.set_fill_color(Color::Rgb(BLACK));
                 let level_str = level.to_string();
-                self.layer
-                    .use_text(&level_str, self.settings.body_font_size, x, y, self.font);
+                layer.use_text(&level_str, self.settings.body_font_size, x, y, self.font);
 
                 // Render suit symbol immediately after level (no gap)
                 let measurer = super::text_metrics::get_serif_measurer();
                 let level_width =
                     measurer.measure_width_mm(&level_str, self.settings.body_font_size);
                 let suit_x = Mm(x.0 + level_width);
-                self.render_bid_suit(*suit, (suit_x, y));
+                self.render_bid_suit(layer, *suit, (suit_x, y));
             }
         }
     }
 
     /// Render a bid suit symbol
-    fn render_bid_suit(&self, suit: BidSuit, pos: (Mm, Mm)) {
+    fn render_bid_suit(&self, layer: &mut LayerBuilder, suit: BidSuit, pos: (Mm, Mm)) {
         let (x, y) = pos;
 
         let (text, is_red, use_symbol_font) = match suit {
@@ -186,10 +180,9 @@ impl<'a> BiddingTableRenderer<'a> {
         };
 
         if is_red {
-            self.layer
-                .set_fill_color(Color::Rgb(self.colors.hearts.clone()));
+            layer.set_fill_color(Color::Rgb(self.colors.hearts.clone()));
         } else {
-            self.layer.set_fill_color(Color::Rgb(BLACK));
+            layer.set_fill_color(Color::Rgb(BLACK));
         }
 
         // Use symbol font for suit symbols, regular font for "NT"
@@ -198,7 +191,6 @@ impl<'a> BiddingTableRenderer<'a> {
         } else {
             self.font
         };
-        self.layer
-            .use_text(text, self.settings.body_font_size, x, y, font);
+        layer.use_text(text, self.settings.body_font_size, x, y, font);
     }
 }

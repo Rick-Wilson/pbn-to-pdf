@@ -1,8 +1,9 @@
 use crate::config::Settings;
 use crate::model::{CommentaryBlock, FormattedText, Suit, TextSpan};
-use printpdf::{Color, IndirectFontRef, Mm, PdfLayerReference};
+use printpdf::{Color, FontId, Mm};
 
 use super::colors::{SuitColors, BLACK};
+use super::layer::LayerBuilder;
 use super::text_metrics::{
     get_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer,
 };
@@ -34,11 +35,10 @@ pub struct FloatRenderResult {
 
 /// Renderer for commentary text
 pub struct CommentaryRenderer<'a> {
-    layer: &'a PdfLayerReference,
-    font: &'a IndirectFontRef,
-    bold_font: &'a IndirectFontRef,
-    italic_font: &'a IndirectFontRef,
-    symbol_font: &'a IndirectFontRef, // Font with Unicode suit symbols (DejaVu Sans)
+    font: &'a FontId,
+    bold_font: &'a FontId,
+    italic_font: &'a FontId,
+    symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
 }
@@ -175,15 +175,13 @@ fn tokenize_spans(
 
 impl<'a> CommentaryRenderer<'a> {
     pub fn new(
-        layer: &'a PdfLayerReference,
-        font: &'a IndirectFontRef,
-        bold_font: &'a IndirectFontRef,
-        italic_font: &'a IndirectFontRef,
-        symbol_font: &'a IndirectFontRef,
+        font: &'a FontId,
+        bold_font: &'a FontId,
+        italic_font: &'a FontId,
+        symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
         Self {
-            layer,
             font,
             bold_font,
             italic_font,
@@ -194,8 +192,8 @@ impl<'a> CommentaryRenderer<'a> {
     }
 
     /// Render a commentary block and return the height used
-    pub fn render(&self, block: &CommentaryBlock, origin: (Mm, Mm), max_width: f32) -> f32 {
-        self.render_formatted_text(&block.content, origin, max_width, None)
+    pub fn render(&self, layer: &mut LayerBuilder, block: &CommentaryBlock, origin: (Mm, Mm), max_width: f32) -> f32 {
+        self.render_formatted_text(layer, &block.content, origin, max_width, None)
             .height
     }
 
@@ -203,11 +201,13 @@ impl<'a> CommentaryRenderer<'a> {
     /// Returns the result including final Y position for continuation
     pub fn render_float(
         &self,
+        layer: &mut LayerBuilder,
         block: &CommentaryBlock,
         origin: (Mm, Mm),
         float_layout: &FloatLayout,
     ) -> FloatRenderResult {
         self.render_formatted_text(
+            layer,
             &block.content,
             origin,
             float_layout.float_width,
@@ -218,6 +218,7 @@ impl<'a> CommentaryRenderer<'a> {
     /// Render formatted text and return height used
     fn render_formatted_text(
         &self,
+        layer: &mut LayerBuilder,
         text: &FormattedText,
         origin: (Mm, Mm),
         initial_max_width: f32,
@@ -359,8 +360,8 @@ impl<'a> CommentaryRenderer<'a> {
                             };
                             let width = measurer.measure_width_mm(txt, font_size);
 
-                            self.layer.set_fill_color(Color::Rgb(BLACK));
-                            self.layer.use_text(txt, font_size, Mm(x), Mm(y), font);
+                            layer.set_fill_color(Color::Rgb(BLACK));
+                            layer.use_text(txt, font_size, Mm(x), Mm(y), font);
                             x += width;
                         }
                         RenderFragment::SuitSymbol(suit) => {
@@ -368,9 +369,8 @@ impl<'a> CommentaryRenderer<'a> {
                             let width = symbol_measurer.measure_width_mm(&symbol, font_size);
 
                             let color = self.colors.for_suit(suit);
-                            self.layer.set_fill_color(Color::Rgb(color));
-                            self.layer
-                                .use_text(&symbol, font_size, Mm(x), Mm(y), self.symbol_font);
+                            layer.set_fill_color(Color::Rgb(color));
+                            layer.use_text(&symbol, font_size, Mm(x), Mm(y), self.symbol_font);
                             x += width;
                         }
                         RenderFragment::CardRef { suit, rank } => {
@@ -382,15 +382,13 @@ impl<'a> CommentaryRenderer<'a> {
 
                             // Render suit symbol with color
                             let color = self.colors.for_suit(suit);
-                            self.layer.set_fill_color(Color::Rgb(color));
-                            self.layer
-                                .use_text(&symbol, font_size, Mm(x), Mm(y), self.symbol_font);
+                            layer.set_fill_color(Color::Rgb(color));
+                            layer.use_text(&symbol, font_size, Mm(x), Mm(y), self.symbol_font);
                             x += symbol_width;
 
                             // Render rank in black
-                            self.layer.set_fill_color(Color::Rgb(BLACK));
-                            self.layer
-                                .use_text(&rank_str, font_size, Mm(x), Mm(y), self.font);
+                            layer.set_fill_color(Color::Rgb(BLACK));
+                            layer.use_text(&rank_str, font_size, Mm(x), Mm(y), self.font);
                             x += rank_width;
                         }
                     }

@@ -3,8 +3,10 @@
 
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::render::get_measurer;
-use printpdf::path::PaintMode;
-use printpdf::{Color, Mm, PdfDocument, Rect, Rgb};
+use printpdf::{
+    Color, FontId, LinePoint, Mm, Op, PaintMode, ParsedFont, PdfDocument, PdfPage, PdfSaveOptions,
+    Point, Polygon, PolygonRing, Pt, Rgb, TextItem, WindingOrder, Line,
+};
 use std::fs::File;
 use std::io::BufWriter;
 
@@ -20,17 +22,13 @@ fn main() {
     let cap_height = measurer.cap_height_mm(font_size);
 
     // Create PDF
-    let (doc, page_idx, layer_idx) = PdfDocument::new(
-        "Layout Debug",
-        Mm(settings.page_width),
-        Mm(settings.page_height),
-        "Layer 1",
-    );
+    let mut doc = PdfDocument::new("Layout Debug");
 
     // Load font
-    let font = doc.add_external_font(DEJAVU_SANS).unwrap();
-
-    let layer = doc.get_page(page_idx).get_layer(layer_idx);
+    let mut warnings = Vec::new();
+    let parsed_font = ParsedFont::from_bytes(DEJAVU_SANS, 0, &mut warnings)
+        .expect("Failed to parse font");
+    let font = doc.add_font(&parsed_font);
 
     // Layout constants (same as hand_diagram.rs)
     let margin = settings.margin;
@@ -150,121 +148,141 @@ fn main() {
     );
     println!("  Gap from HCP to South: {:.1}", hcp_row_y - south_y);
 
+    // Build operations for the page
+    let mut ops = Vec::new();
+
     // Draw debug rectangles (bounding boxes as calculated)
 
     // North hand box (red)
-    draw_rect(&layer, north_x, north_y, hand_w, hand_h, &red, "North");
+    add_rect_ops(&mut ops, north_x, north_y, hand_w, hand_h, &red);
 
     // West hand box (blue)
-    draw_rect(&layer, west_x, row2_y, hand_w, hand_h, &blue, "West");
+    add_rect_ops(&mut ops, west_x, row2_y, hand_w, hand_h, &blue);
 
     // Compass box (green)
     let compass_left = compass_center_x - compass_size / 2.0;
     let compass_top = compass_y + compass_size / 2.0;
-    draw_rect(
-        &layer,
-        compass_left,
-        compass_top,
-        compass_size,
-        compass_size,
-        &green,
-        "Compass",
-    );
+    add_rect_ops(&mut ops, compass_left, compass_top, compass_size, compass_size, &green);
 
     // East hand box (orange)
-    draw_rect(&layer, east_x, row2_y, hand_w, hand_h, &orange, "East");
+    add_rect_ops(&mut ops, east_x, row2_y, hand_w, hand_h, &orange);
 
     // HCP row (purple line)
-    layer.set_outline_color(Color::Rgb(purple.clone()));
-    layer.set_outline_thickness(0.5);
-    let hcp_line = printpdf::Line {
+    ops.push(Op::SetOutlineColor { col: Color::Rgb(purple.clone()) });
+    ops.push(Op::SetOutlineThickness { pt: Pt(0.5) });
+    let hcp_line = Line {
         points: vec![
-            (printpdf::Point::new(Mm(ox), Mm(hcp_row_y)), false),
-            (
-                printpdf::Point::new(Mm(ox + hand_w * 2.0 + compass_size), Mm(hcp_row_y)),
-                false,
-            ),
+            LinePoint { p: Point { x: Mm(ox).into(), y: Mm(hcp_row_y).into() }, bezier: false },
+            LinePoint { p: Point { x: Mm(ox + hand_w * 2.0 + compass_size).into(), y: Mm(hcp_row_y).into() }, bezier: false },
         ],
         is_closed: false,
     };
-    layer.add_line(hcp_line);
+    ops.push(Op::DrawLine { line: hcp_line });
 
     // South hand box (cyan)
-    draw_rect(&layer, north_x, south_y, hand_w, hand_h, &cyan, "South");
+    add_rect_ops(&mut ops, north_x, south_y, hand_w, hand_h, &cyan);
 
     // Now render ACTUAL text at the same positions to see where it really goes
     // Using cap_height offset to align text tops with bounding box tops
-    layer.set_fill_color(Color::Rgb(black.clone()));
+    ops.push(Op::SetFillColor { col: Color::Rgb(black.clone()) });
 
     // North hand - render actual text
     let suits = ["♠ AKQ", "♥ JT9", "♦ 876", "♣ 5432"];
     let north_first_baseline = north_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = north_first_baseline - (i as f32 * line_height);
-        layer.use_text(*suit_text, font_size, Mm(north_x), Mm(y), &font);
-
-        // Draw a small marker at the baseline position
-        draw_baseline_marker(&layer, north_x - 2.0, y, &gray);
+        add_text_ops(&mut ops, suit_text, font_size, north_x, y, &font);
+        add_baseline_marker_ops(&mut ops, north_x - 2.0, y, &gray);
     }
 
     // West hand
     let west_first_baseline = row2_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = west_first_baseline - (i as f32 * line_height);
-        layer.use_text(*suit_text, font_size, Mm(west_x), Mm(y), &font);
-        draw_baseline_marker(&layer, west_x - 2.0, y, &gray);
+        add_text_ops(&mut ops, suit_text, font_size, west_x, y, &font);
+        add_baseline_marker_ops(&mut ops, west_x - 2.0, y, &gray);
     }
 
     // East hand
     let east_first_baseline = row2_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = east_first_baseline - (i as f32 * line_height);
-        layer.use_text(*suit_text, font_size, Mm(east_x), Mm(y), &font);
-        draw_baseline_marker(&layer, east_x - 2.0, y, &gray);
+        add_text_ops(&mut ops, suit_text, font_size, east_x, y, &font);
+        add_baseline_marker_ops(&mut ops, east_x - 2.0, y, &gray);
     }
 
     // South hand
     let south_first_baseline = south_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = south_first_baseline - (i as f32 * line_height);
-        layer.use_text(*suit_text, font_size, Mm(north_x), Mm(y), &font);
-        draw_baseline_marker(&layer, north_x - 2.0, y, &gray);
+        add_text_ops(&mut ops, suit_text, font_size, north_x, y, &font);
+        add_baseline_marker_ops(&mut ops, north_x - 2.0, y, &gray);
     }
+
+    // Create page with operations
+    let page = PdfPage::new(
+        Mm(settings.page_width),
+        Mm(settings.page_height),
+        ops,
+    );
+    doc.with_pages(vec![page]);
 
     // Save
     let file = File::create("/tmp/layout_debug.pdf").unwrap();
-    doc.save(&mut BufWriter::new(file)).unwrap();
+    let mut warnings = Vec::new();
+    let bytes = doc.save(&PdfSaveOptions::default(), &mut warnings);
+    std::io::Write::write_all(&mut BufWriter::new(file), &bytes).unwrap();
     println!();
     println!("Saved to /tmp/layout_debug.pdf");
 }
 
-fn draw_rect(
-    layer: &printpdf::PdfLayerReference,
-    x: f32,
-    y: f32,
-    w: f32,
-    h: f32,
-    color: &Rgb,
-    _label: &str,
-) {
+fn add_rect_ops(ops: &mut Vec<Op>, x: f32, y: f32, w: f32, h: f32, color: &Rgb) {
     // Draw outline rectangle (y is top, so bottom = y - h)
-    let rect = Rect::new(Mm(x), Mm(y - h), Mm(x + w), Mm(y)).with_mode(PaintMode::Stroke);
+    ops.push(Op::SetOutlineColor { col: Color::Rgb(color.clone()) });
+    ops.push(Op::SetOutlineThickness { pt: Pt(0.5) });
 
-    layer.set_outline_color(Color::Rgb(color.clone()));
-    layer.set_outline_thickness(0.5);
-    layer.add_rect(rect);
+    let points = vec![
+        LinePoint { p: Point { x: Mm(x).into(), y: Mm(y - h).into() }, bezier: false },
+        LinePoint { p: Point { x: Mm(x + w).into(), y: Mm(y - h).into() }, bezier: false },
+        LinePoint { p: Point { x: Mm(x + w).into(), y: Mm(y).into() }, bezier: false },
+        LinePoint { p: Point { x: Mm(x).into(), y: Mm(y).into() }, bezier: false },
+    ];
+
+    let polygon = Polygon {
+        rings: vec![PolygonRing { points }],
+        mode: PaintMode::Stroke,
+        winding_order: WindingOrder::NonZero,
+    };
+
+    ops.push(Op::DrawPolygon { polygon });
 }
 
-fn draw_baseline_marker(layer: &printpdf::PdfLayerReference, x: f32, y: f32, color: &Rgb) {
+fn add_text_ops(ops: &mut Vec<Op>, text: &str, font_size: f32, x: f32, y: f32, font: &FontId) {
+    ops.push(Op::StartTextSection);
+    ops.push(Op::SetTextCursor {
+        pos: Point { x: Mm(x).into(), y: Mm(y).into() },
+    });
+    ops.push(Op::SetFontSize {
+        size: Pt(font_size),
+        font: font.clone(),
+    });
+    ops.push(Op::WriteText {
+        items: vec![TextItem::Text(text.to_string())],
+        font: font.clone(),
+    });
+    ops.push(Op::EndTextSection);
+}
+
+fn add_baseline_marker_ops(ops: &mut Vec<Op>, x: f32, y: f32, color: &Rgb) {
     // Draw a small horizontal line to mark the baseline
-    layer.set_outline_color(Color::Rgb(color.clone()));
-    layer.set_outline_thickness(0.3);
-    let line = printpdf::Line {
+    ops.push(Op::SetOutlineColor { col: Color::Rgb(color.clone()) });
+    ops.push(Op::SetOutlineThickness { pt: Pt(0.3) });
+    let line = Line {
         points: vec![
-            (printpdf::Point::new(Mm(x), Mm(y)), false),
-            (printpdf::Point::new(Mm(x + 1.5), Mm(y)), false),
+            LinePoint { p: Point { x: Mm(x).into(), y: Mm(y).into() }, bezier: false },
+            LinePoint { p: Point { x: Mm(x + 1.5).into(), y: Mm(y).into() }, bezier: false },
         ],
         is_closed: false,
     };
-    layer.add_line(line);
+    ops.push(Op::DrawLine { line });
 }
