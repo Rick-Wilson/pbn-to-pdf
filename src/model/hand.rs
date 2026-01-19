@@ -106,6 +106,18 @@ impl Hand {
         self.spades.hcp() + self.hearts.hcp() + self.diamonds.hcp() + self.clubs.hcp()
     }
 
+    /// Calculate length points (1 point for each card beyond 4 in each suit)
+    pub fn length_points(&self) -> u8 {
+        let mut points = 0u8;
+        for suit in [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs] {
+            let len = self.holding(suit).len();
+            if len > 4 {
+                points += (len - 4) as u8;
+            }
+        }
+        points
+    }
+
     pub fn shape(&self) -> [u8; 4] {
         [
             self.spades.len() as u8,
@@ -165,5 +177,46 @@ mod tests {
 
         assert_eq!(hand.shape(), [5, 3, 2, 3]);
         assert_eq!(hand.card_count(), 13);
+    }
+
+    #[test]
+    fn test_length_points() {
+        let mut hand = Hand::new();
+        // 5-card spade suit = 1 length point
+        hand.spades =
+            Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]);
+        // 3-card heart suit = 0 length points
+        hand.hearts = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
+        // 2-card diamond suit = 0 length points
+        hand.diamonds = Holding::from_ranks([Rank::Ace, Rank::King]);
+        // 3-card club suit = 0 length points
+        hand.clubs = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
+
+        assert_eq!(hand.length_points(), 1);
+
+        // Add 6-card suit (2 length points)
+        let mut hand2 = Hand::new();
+        hand2.spades = Holding::from_ranks([
+            Rank::Ace,
+            Rank::King,
+            Rank::Queen,
+            Rank::Jack,
+            Rank::Ten,
+            Rank::Nine,
+        ]);
+        hand2.hearts = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
+        hand2.diamonds = Holding::from_ranks([Rank::Ace, Rank::King]);
+        hand2.clubs = Holding::from_ranks([Rank::Ace, Rank::King]);
+
+        assert_eq!(hand2.length_points(), 2);
+
+        // Balanced hand (4-3-3-3) = 0 length points
+        let mut hand3 = Hand::new();
+        hand3.spades = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen, Rank::Jack]);
+        hand3.hearts = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
+        hand3.diamonds = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
+        hand3.clubs = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
+
+        assert_eq!(hand3.length_points(), 0);
     }
 }

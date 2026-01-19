@@ -1,7 +1,10 @@
-use crate::cli::{Args, Layout};
+use crate::cli::{Args, Layout, MarginPreset};
 use crate::model::{FontSettings, PbnMetadata};
 
 use super::defaults::*;
+
+/// Standard margin for bidding sheets (1/2 inch)
+const BIDDING_SHEETS_MARGIN: f32 = 12.7;
 
 /// Runtime settings for PDF generation
 #[derive(Debug, Clone)]
@@ -16,6 +19,9 @@ pub struct Settings {
     pub margin_right: f32,
     pub boards_per_page: u8,
 
+    // CLI margin override (if specified)
+    margin_preset: Option<MarginPreset>,
+
     // Layout style
     pub layout: Layout,
 
@@ -25,6 +31,12 @@ pub struct Settings {
     pub show_commentary: bool,
     pub show_hcp: bool,
     pub justify: bool,
+    pub debug_boxes: bool,
+
+    /// Title override from CLI (None = use metadata, Some("") = hide, Some(x) = use x)
+    pub title_override: Option<String>,
+    /// Title from metadata (HRTitleEvent)
+    pub title_from_metadata: Option<String>,
 
     // Layout dimensions (in mm)
     pub hand_width: f32,
@@ -63,6 +75,7 @@ impl Default for Settings {
             margin_left: DEFAULT_PAGE_MARGIN,
             margin_right: DEFAULT_PAGE_MARGIN,
             boards_per_page: 1,
+            margin_preset: None,
 
             layout: Layout::Analysis,
 
@@ -71,6 +84,9 @@ impl Default for Settings {
             show_commentary: true,
             show_hcp: true,
             justify: false,
+            debug_boxes: false,
+            title_override: None,
+            title_from_metadata: None,
 
             hand_width: DEFAULT_HAND_WIDTH,
             hand_height: DEFAULT_HAND_HEIGHT,
@@ -100,15 +116,33 @@ impl Settings {
     pub fn from_args(args: &Args) -> Self {
         let (page_width, page_height) = args.page_dimensions();
 
+        // Determine initial margins based on layout and CLI override
+        let initial_margin = if let Some(preset) = args.margins {
+            preset.size_mm()
+        } else if args.layout == Layout::BiddingSheets {
+            // Bidding sheets use standard margins by default
+            BIDDING_SHEETS_MARGIN
+        } else {
+            DEFAULT_PAGE_MARGIN
+        };
+
         Self {
             page_width,
             page_height,
+            margin: initial_margin,
+            margin_top: initial_margin,
+            margin_bottom: initial_margin,
+            margin_left: initial_margin,
+            margin_right: initial_margin,
             boards_per_page: args.boards_per_page,
+            margin_preset: args.margins,
             layout: args.layout,
             show_bidding: args.show_bidding(),
             show_play: args.show_play(),
             show_commentary: args.show_commentary(),
             show_hcp: args.show_hcp(),
+            debug_boxes: args.debug_boxes,
+            title_override: args.title.clone(),
             ..Default::default()
         }
     }
@@ -119,12 +153,17 @@ impl Settings {
             self.boards_per_page = bpp;
         }
 
-        if let Some(ref margins) = metadata.layout.margins {
-            self.margin_top = margins.top;
-            self.margin_bottom = margins.bottom;
-            self.margin_left = margins.left;
-            self.margin_right = margins.right;
-            self.margin = margins.left; // Use left margin as general margin for backward compatibility
+        // Apply PBN margins only if:
+        // 1. No CLI margin override was specified, AND
+        // 2. Layout is Analysis (bidding sheets ignores embedded margins)
+        if self.margin_preset.is_none() && self.layout == Layout::Analysis {
+            if let Some(ref margins) = metadata.layout.margins {
+                self.margin_top = margins.top;
+                self.margin_bottom = margins.bottom;
+                self.margin_left = margins.left;
+                self.margin_right = margins.right;
+                self.margin = margins.left; // Use left margin as general margin for backward compatibility
+            }
         }
 
         // Apply font sizes from metadata
@@ -158,7 +197,20 @@ impl Settings {
             self.justify = true;
         }
 
+        // Store title from metadata (HRTitleEvent)
+        self.title_from_metadata = metadata.title_event.clone();
+
         self
+    }
+
+    /// Get the effective title for display
+    /// Returns None if title should be hidden, Some(title) otherwise
+    pub fn effective_title(&self) -> Option<&str> {
+        match &self.title_override {
+            Some(t) if t.is_empty() => None, // --title with no value hides title
+            Some(t) => Some(t.as_str()),     // --title "value" uses that value
+            None => self.title_from_metadata.as_deref(), // Use metadata if no override
+        }
     }
 
     /// Get the usable content area width

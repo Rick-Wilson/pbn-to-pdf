@@ -37,14 +37,18 @@ pbn-to-pdf [OPTIONS] <INPUT>
 | Option | Description |
 |--------|-------------|
 | `-o, --output <OUTPUT>` | Output PDF file path (defaults to input with .pdf extension) |
+| `-l, --layout <LAYOUT>` | Output layout style: analysis, bidding-sheets (default: analysis) |
 | `-n, --boards-per-page <N>` | Number of boards per page: 1, 2, or 4 (default: 1) |
 | `-s, --page-size <SIZE>` | Page size: letter, a4, legal (default: letter) |
 | `--orientation <O>` | Page orientation: portrait, landscape (default: portrait) |
+| `-m, --margins <PRESET>` | Page margins: narrow (1/4"), standard (1/2"), wide (1") |
 | `--no-bidding` | Hide bidding table |
 | `--no-play` | Hide play sequence |
 | `--no-commentary` | Hide commentary text |
 | `--no-hcp` | Hide HCP point counts |
 | `-b, --boards <RANGE>` | Board range to include (e.g., "1-16" or "5,8,12") |
+| `-t, --title [TITLE]` | Title for bidding sheets banner (overrides %HRTitleEvent; use with no value to hide) |
+| `--debug-boxes` | Draw debug boxes around layout regions |
 | `-v, --verbose` | Increase verbosity (-v, -vv, -vvv) |
 | `-h, --help` | Print help |
 | `-V, --version` | Print version |
@@ -72,6 +76,18 @@ pbn-to-pdf hands.pbn -b "1,5,9,13"
 
 # Verbose output for debugging
 pbn-to-pdf hands.pbn -vv
+
+# Generate bidding practice sheets
+pbn-to-pdf hands.pbn -l bidding-sheets -o practice.pdf
+
+# Bidding sheets with wide margins
+pbn-to-pdf hands.pbn -l bidding-sheets -m wide
+
+# Bidding sheets with custom title
+pbn-to-pdf hands.pbn -l bidding-sheets -t "My Practice Session"
+
+# Bidding sheets with no title
+pbn-to-pdf hands.pbn -l bidding-sheets -t
 ```
 
 ## PBN Format Support

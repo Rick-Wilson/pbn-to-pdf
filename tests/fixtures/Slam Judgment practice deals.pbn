@@ -1,0 +1,396 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.65
+%Created: Mon Sep 11 15:18:40 2017 -0700
+%BCOptions Float Justify NoHRStats PageHeader ShowHCP STBorder STShade
+%BidAndCardSpacing Hair
+%BoardsPerPage 1
+%CardTableColors #008000,#ffffff,#aaaaaa
+%EventSpacing 12
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Arial",12,400,0
+%Font:Diagram "Arial",12,400,0
+%Font:Event "Arial",18,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%GutterSize 500,500
+%HRTitleDate 2017.09.11
+%HRTitleEvent "Slam Judgment"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite "Walnut Creek Recreation"
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,1000,1000
+%PageFooter:0,0 "%D\\n%s"
+%PageFooter:0,1 "Presented by\\nGrant Robinson"
+%PageFooter:0,2 "%n"
+%PageFooterFirstPageNumber 7
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SelectedBoard 0
+%ShowBoardLabels 1
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "Deal %"
+[Event "Slam Judgment"]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.03.25"]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KJT.A987.2.Q9632 A98765.6.AQT53.4 32.QJT4.J987.T87 Q4.K532.K64.AKJ5"]
+[Scoring ""]
+[Declarer "E"]
+[Contract "4S"]
+[Result ""]
+{<b>Bidding. </b>Holding 13 points (10 high-cad points plus three length points) East
+opens 1\S. West's 3NT response in standard bidding shows 15–17 high-card
+points, no five-card suit, with a doubleton in opener's suit. Opener knows
+there is an eight-card fit in spades, but bids diamonds because slam is
+possible.
+
+Knowing that East holds spades and diamonds, West knows that the value of his
+secondary honors in other suits is diminished greatly. The \HK and \CK J will
+likely be of little value to East. West shows a doubleton spade honor by
+bidding 4\S. East has bid strongly enough, and passes.
+
+<b>Defense. </b>South leads \HQ, highest of a solid sequence. Unless the \HK is
+played, North encourages with the \H9 for South to continue with the \HJ. A
+trump lead also has merit, aiming to cut down on diamond ruffs in dummy.
+
+<b>Declarer play. </b>Declarer (East) sees that 4\S is quite high enough. There are
+six sure winners. Spades can provide three or four additional winners by
+finessing and length, and diamonds may provide two more length winners.
+
+The opening lead marks North with the \HA, so declarer ducks the opening lead
+in dummy and ruffs the heart continuation.
+
+There is nothing more important to do than tackle trumps. Declarer finesses in
+spades, leading a low spade from hand and playing the \SQ from dummy (unless
+South plays the king). This loses to North, who will find continuing with the
+\SJ the most attractive option. Declarer wins the \SA and starts on diamonds,
+leaving the high trump outstanding.
+
+The best way to tackle diamonds is to play the \DA then the \DK, which might
+reveal that North started with \DJ x x x and now can be finessed. The second
+round of diamonds actually reveals the bad break the other way. Is nothing
+falling declarer's way? Needing one more trick, but unable to afford conceding
+a diamond to get a length trick, declarer may consider finessing in clubs. <i>Is
+there a better</i> <i>option?</i>
+
+A better plan is to first lead a spade. North has to win this, and will have
+the unhappy choice of leading a low heart or a club into dummy, or the \HA
+which declarer can ruff, promoting the \HK in dummy. North is <i>endplayed</i>, as
+long as declarer didn't squander the \HK early on.}
+[BCFlags "1f"]
+[Auction "N"]
+Pass 1S Pass 3NT
+Pass 4D Pass 4S
+AP
+[Play "S"]
+HQ
+
+[Event ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "NS"]
+[Deal "E:J96.T632.KJ3.QT6 K8432.K84.T95.A3 5.J975.872.J9752 AQT7.AQ.AQ64.K84"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "6S"]
+[Result ""]
+{<b>Bidding. </b>North holds 21 points and opens 2NT. Holding 11 points and five
+spades, South responds with 3\H, a <i>Jacoby Transfer</i> to show five spades and to
+get opener, the stronger hand, to bid spades since any contract usually will
+play better by the stronger hand.
+
+Opener holds excellent spade support and reevaluates as declarer, adding a
+point for the doubleton heart. At maximum strength, and more, for his previous
+bidding, opener can jump to 4\S, a super-acceptance of responder's transfer
+bid.
+
+As dummy, South reevaluates upward by a point for the doubleton club but no
+longer counts for length. Still at 11 points, South knows that the combined
+points are 32, very close to slam. However, her honors are all useful. There is
+not a questionable value in South's hand. This makes South's hand worth more
+than 11 points
+
+South opts to move toward slam. She uses the 4NT <i>Blackwood</i> convention to ensure
+that the partnership isn't missing two aces before bidding 6\S.
+
+<b>Defense. </b>East has no obvious lead. A safe lead of a small spade probably is
+best, keeping in mind that West will hold very little. An attacking lead of a
+diamond could work out on some hands, but is risky as it is into a very strong
+hand.
+
+<b>Declarer play. </b>On a spade lead, North counts eleven sure winners. The diamond
+finesse might provide a twelfth, but South's \D10 9 offer a sure way to make
+the slam.
+
+North should pull trump, play \HA-Q, \CA-K and ruff a club, and the \HK,
+discarding a diamond from hand. Now, the lead of the \D 10 leaves the defenders
+with no recourse. When East wins the \D J, East will either have to lead a
+diamond into the A Q, or another suit for declarer to ruff in his hand for his
+twelfth trick. East is <i>endplayed</i>. And, if West covers the \D10, declarer will
+be able to promote a twelfth trick in diamonds.
+
+Stripping the hand and leading the \D5 to the queen accomplishes the same
+endplay. Also note that <u>South</u> cannot make 6\S if West hits upon the lead of a
+diamond. Yeah, transfers!}
+[BCFlags "1f"]
+[Auction "E"]
+Pass Pass Pass 2NT =1=
+Pass 3H =2= Pass 4S =3=
+Pass 4NT $1 Pass 5S =4=
+Pass 6S AP
+[Note "1:20–21"]
+[Note "2:Jacoby transfer bid showing five or more spades"]
+[Note "3:Four spades, maximum values"]
+[Note "4:Three aces"]
+[Play "E"]
+S6
+
+[Event ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "EW"]
+[Deal "S:6.J6543.AT987.43 92.9872.KQJ4.AKJ AT853..532.T9876 KQJ74.AKQT.6.Q52"]
+[Scoring ""]
+[Declarer "W"]
+[Contract "3NT"]
+[Result ""]
+{<b>Bidding. </b>After West limits the hand by rebidding 1 NT, new suits by East are
+not forcing unless a reverse or jump-shift. East must jump-shift to 3\H to
+compel West to bid again.
+
+West holds four hearts, but his holding in East's suits are otherwise abysmal
+while his minor-suit holdings are very strong. West should not raise hearts,
+but indicate the nature of his hand by rebidding notrump. If West raises
+hearts, East will try for slam quicker than you can say “Blackwood,” and the
+final contract of 5 \H (missing two aces) will be in jeopardy.
+
+<b>Defense. </b>North starts with the \C10, highest of a solid sequence. Leading
+spades, East's suit, would be a poor shot.
+
+<b>Declarer play. </b>Declarer (West) counts six sure winners. Two more can be
+promoted in spades, and another two in diamonds. Hearts will provide another if
+the \H J falls.
+
+Declarer should win the opening club lead in hand the the \CA or \CK for
+maximum flexibility of using clubs as entries later. Declarer next lead a spade
+to dummy's king. It is better to lead toward potential winners. When the \SK
+wins, declarer leads a diamond to the king in hand, and another spade to
+dummy's queen. Now with two spades in the bag, West should try dummy's hearts.
+When hearts don't work, West should use clubs to enter the hand twice to get
+another trick in diamonds.
+
+West must mind entries to hand. The club opening lead removes one, but winning
+the second club with the jack preserves the king to overtake the queen and
+provide a third entry.
+
+South has had to discard a heart and a diamond on tricks in spades and clubs.
+After securing a second trick in diamonds, declarer actually can endplay South
+in diamonds to take eleven tricks in all, losing just two diamonds.}
+[BCFlags "1f"]
+[Auction "S"]
+Pass 1D Pass 1S
+Pass 1NT Pass 3H
+Pass 3NT $1 AP
+[Play "N"]
+CT
+
+[Event ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:842.8.AT972.QT98 AKJ63.QT5.QJ.764 QT95.732.K843.52 7.AKJ964.65.AKJ3"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "5H"]
+[Result ""]
+{<b>Bidding. </b>South's 2\H response promises five, so North can raise with only
+three. Once North raises hearts, South adds four points for shortness (but not
+also two for heart length) and knows that North-South are in the slam zone.
+However, South's two small diamonds are troubling, and North may hold a hand
+unsuitable for slam.
+
+South explores for slam by first bidding clubs to show the ace there. North
+deprecates the \SJ and \DQ J, minor honors in side suits, and so has no reason
+to go beyond game. South can make one more try for slam by bidding 4\S (5\C or
+5 \H also works), which shows a control in spades and puts the focus squarely
+on diamonds. However, North cannot control diamonds, and besides is now certain
+that the \DQ J are worthless to South. North signs off in 5\H.
+
+<b>Defense. </b>West leads the \DA. Leading an ace without the king is unusual against
+a suit contract, but the auction has pinpointed the weakness of North-South in
+diamonds. East should encourage with the \D8. After winning the \DK, East
+should shift to a club up to weakness to give declarer no help.
+
+South counts 10 sure winners. The eleventh can come from a finesse in spades or
+clubs. Better is to try to establish a length trick in spades since it can be
+done without risk.
+
+South should win the \CA and start spades immediately by playing the \SA and
+ruffing a spade. Then the \HA and a heart to dummy's queen to ruff a second
+spade. Noting the even break in spades, South now leads a heart to the ten in
+dummy, pulling the defender's last trump, to play \SK and another, discarding
+two clubs on these to fulfill the contract.
+
+Note that South needed three entries to dummy — two to ruff spades and one to
+take the established spades. Declarer uses the \SA, \HQ and \H10 for the
+purpose.}
+[BCFlags "1f"]
+[Auction "W"]
+Pass 1S Pass 2H
+Pass 3H Pass 4C
+Pass 4H Pass 4S
+Pass 5H AP
+[Play "W"]
+DA
+
+[Event ""]
+[Date ""]
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "NS"]
+[Deal "N:KJT2.T52.9654.94 5.KQ98.AKT87.J82 874.AJ764.2.QT65 AQ963.3.QJ3.AK73"]
+[Scoring ""]
+[Declarer "E"]
+[Contract "4NT"]
+[Result ""]
+{<b>Bidding. </b>East has an awkward rebid after 1\S. East holds insufficient strength
+to “reverse” into 2\H, and would like a sixth diamond to rebid 2\D. 1NT, 2\C,
+or 2\D are all compromise possibilities. I give the nod to 2\D because the
+diamonds are strong while the clubs are weak.
+
+West's 3\C “high reverse” should promise the values for game since it compels
+South to bid at the three-level with no certainty of a fit.
+
+After East bids 3NT, West holds quite a nice hand for suit play and makes a try
+for slam by belatedly raising diamonds to show support.
+
+East infers that West is short in hearts for having bid the other three suits.
+Just as with <i>Jacoby 2NT</i> shortness bids, East's \HK Q are not valuable for slam
+purposes so East signs off in notrump. 5\D will make, but notrump scores
+better.
+
+<b>Defense. </b>South leads the fourth-best heart, the unbid suit. North should play
+the \H 10, third hand high, so that East does not win an undeserved trick with
+the \H 9.
+
+<b>Declarer play. </b>Declarer (East) counts eight sure winners and another from the
+heart lead. A tenth might come from the spade finesse or club finesse, but
+there is a sure way.
+
+Declarer's strong hearts are good enough to promote a second trick there.
+Declarer can win the opening heart lead and play another heart. Then, a third
+round of hearts will promote a second heart trick.
+
+Declarer will have to navigate a couple of pitfalls. If South wins a heart and
+shifts to a spade, declarer should play the \S 9 from dummy, not the \SQ, to
+prevent the defenders from developing two spade tricks. Also, East needs two
+entries to hand: one to play a third round of hearts and one to take the
+established heart. These entries must come from diamonds, so declarer must play
+the \D Q from dummy and overtake in his hand (or low to the \D10) to play a
+second heart. Later, declarer can take the \D J and three more diamonds to land
+the contract.}
+[BCFlags "1f"]
+[Auction "N"]
+Pass 1D Pass 1S
+Pass 2D $2 Pass 3C
+Pass 3NT Pass 4D
+Pass 4NT AP
+[Play "S"]
+H6
+
+[Event ""]
+[Date ""]
+[Board "6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "EW"]
+[Deal "E:832.6.763.KT9543 AKQ7.AK542.T54.8 J.JT983.KQJ8.QJ2 T9654.Q7.A92.A76"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "6S"]
+[Result ""]
+{<b>Bidding. </b>When North responds 1\S, South reassesses as dummy in a spade
+contract. South now holds 16 high-card points and four points for the singleton
+club. Now in the zone of maximum strength for an opening hand (19–21) points,
+South jumps to game in spades.
+
+North reassesses as declarer once spades are raised, but there's no improvement
+to North's 11 points. However, every card is pulling its weight — two aces are
+sure values, and the \HQ will help fill out South's hearts. North drives to
+slam, using 4NT Blackwood to check if two aces are missing before bidding slam.
+
+<b>Defense. </b>East has no clear-cut lead. I would lead a club to try to create a
+trick there, but it could cost a trick, too. The lead of a singleton heart in
+dummy's first-bid suit leaves me cold, but could work. Leading a trump is
+another good shot. Who would guess that a diamond lead makes declarer's life
+difficult?
+
+<b>Declarer play. </b>Declarer (North) counts eight sure winners and hopes for two
+more from spade length. Two more can come from ruffing clubs in dummy, or
+perhaps by establishing heart length. The problem with ruffing clubs is that
+the second club must be ruffed with a high spade, which may be needed to pull
+trumps. On the other hand, if East has led a heart, this should be read as a
+singleton so that West holds five hearts and no extra trick can be developed in
+hearts.
+
+It may seem as if North can cash two high spades before ruffing clubs, but
+should consider how to return to hand after ruffing the second club. Best is to
+cash just one round of spades.
+
+When the \SJ falls, declarer is nearly certain to make. Declarer can ruff both
+clubs <i>high</i> in dummy, using the \CA and \DA as entries, then lead the \S7 from
+dummy to high trumps and claim.
+
+If North tries to win a second round of hearts before pulling trumps, the
+contract may may fail.}
+[BCFlags "1f"]
+[Auction "E"]
+Pass 1H Pass 1S
+Pass 4S Pass 4NT
+Pass 5H =1= Pass 6S
+AP
+[Note "1:Two aces"]
+[Play "E"]
++

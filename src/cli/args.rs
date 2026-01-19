@@ -53,9 +53,44 @@ pub struct Args {
     #[arg(short = 'b', long)]
     pub boards: Option<String>,
 
+    /// Page margins (overrides PBN %Margins)
+    #[arg(short = 'm', long, value_enum)]
+    pub margins: Option<MarginPreset>,
+
+    /// Draw debug boxes around layout regions
+    #[arg(long)]
+    pub debug_boxes: bool,
+
+    /// Title for bidding sheets banner. Overrides %HRTitleEvent.
+    /// Use --title with no value to hide the title.
+    #[arg(short = 't', long, num_args = 0..=1, default_missing_value = "")]
+    pub title: Option<String>,
+
     /// Verbosity level (-v, -vv, -vvv)
     #[arg(short, long, action = clap::ArgAction::Count)]
     pub verbose: u8,
+}
+
+/// Preset margin sizes
+#[derive(Copy, Clone, Debug, PartialEq, Eq, ValueEnum)]
+pub enum MarginPreset {
+    /// Narrow margins (1/4 inch = 6.35mm)
+    Narrow,
+    /// Standard margins (1/2 inch = 12.7mm)
+    Standard,
+    /// Wide margins (1 inch = 25.4mm)
+    Wide,
+}
+
+impl MarginPreset {
+    /// Get the margin size in mm
+    pub fn size_mm(&self) -> f32 {
+        match self {
+            MarginPreset::Narrow => 6.35,   // 1/4 inch
+            MarginPreset::Standard => 12.7, // 1/2 inch
+            MarginPreset::Wide => 25.4,     // 1 inch
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, ValueEnum)]
@@ -207,6 +242,9 @@ mod tests {
             no_commentary: false,
             no_hcp: false,
             boards: None,
+            margins: None,
+            debug_boxes: false,
+            title: None,
             verbose: 0,
         };
 

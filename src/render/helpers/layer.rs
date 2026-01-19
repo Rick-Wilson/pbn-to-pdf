@@ -144,4 +144,32 @@ impl LayerBuilder {
     pub fn restore_graphics_state(&mut self) {
         self.ops.push(Op::RestoreGraphicsState);
     }
+
+    /// Draw a line from (x1, y1) to (x2, y2)
+    pub fn add_line(&mut self, x1: Mm, y1: Mm, x2: Mm, y2: Mm) {
+        let points = vec![
+            LinePoint {
+                p: Point {
+                    x: x1.into(),
+                    y: y1.into(),
+                },
+                bezier: false,
+            },
+            LinePoint {
+                p: Point {
+                    x: x2.into(),
+                    y: y2.into(),
+                },
+                bezier: false,
+            },
+        ];
+
+        let polygon = Polygon {
+            rings: vec![PolygonRing { points }],
+            mode: PaintMode::Stroke,
+            winding_order: WindingOrder::NonZero,
+        };
+
+        self.ops.push(Op::DrawPolygon { polygon });
+    }
 }

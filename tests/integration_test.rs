@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
+use std::process::Command;
 
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::parser::parse_pbn;
@@ -113,5 +114,92 @@ fn test_auction_parsing() {
                 board.number.unwrap_or(0)
             );
         }
+    }
+}
+
+fn output_path() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/output")
+}
+
+#[test]
+fn test_generate_all_pdfs() {
+    // Ensure output directory exists
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Get all PBN files in fixtures
+    let fixtures = fixtures_path();
+    let pbn_files: Vec<_> = fs::read_dir(&fixtures)
+        .expect("Failed to read fixtures directory")
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| {
+            entry
+                .path()
+                .extension()
+                .map(|ext| ext == "pbn")
+                .unwrap_or(false)
+        })
+        .collect();
+
+    assert!(!pbn_files.is_empty(), "No PBN files found in fixtures");
+
+    // Build the binary first
+    let build_status = Command::new("cargo")
+        .args(["build", "--release"])
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .status()
+        .expect("Failed to build project");
+    assert!(build_status.success(), "Failed to build project");
+
+    let binary = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("target/release/pbn-to-pdf");
+
+    for entry in pbn_files {
+        let pbn_path = entry.path();
+        let stem = pbn_path.file_stem().unwrap().to_string_lossy();
+
+        // Generate analysis PDF (default layout)
+        let analysis_output = output_dir.join(format!("{}.pdf", stem));
+        let status = Command::new(&binary)
+            .args([
+                "--layout", "analysis",
+                pbn_path.to_str().unwrap(),
+                "-o", analysis_output.to_str().unwrap(),
+            ])
+            .status()
+            .expect("Failed to run pbn-to-pdf for analysis");
+        assert!(
+            status.success(),
+            "Failed to generate analysis PDF for {}",
+            stem
+        );
+        assert!(
+            analysis_output.exists(),
+            "Analysis PDF not created for {}",
+            stem
+        );
+
+        // Generate bidding sheets PDF
+        let bidding_output = output_dir.join(format!("{} - Bidding Sheets.pdf", stem));
+        let status = Command::new(&binary)
+            .args([
+                "--layout", "bidding-sheets",
+                pbn_path.to_str().unwrap(),
+                "-o", bidding_output.to_str().unwrap(),
+            ])
+            .status()
+            .expect("Failed to run pbn-to-pdf for bidding-sheets");
+        assert!(
+            status.success(),
+            "Failed to generate bidding sheets PDF for {}",
+            stem
+        );
+        assert!(
+            bidding_output.exists(),
+            "Bidding sheets PDF not created for {}",
+            stem
+        );
+
+        println!("Generated PDFs for: {}", stem);
     }
 }

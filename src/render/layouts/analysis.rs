@@ -18,7 +18,7 @@ const DEBUG_BOX_COLOR: Rgb = Rgb {
     b: 0.7,
     icc_profile: None,
 };
-const DEBUG_BOXES: bool = false;
+// Debug boxes are now controlled via settings.debug_boxes
 
 /// Main document renderer
 pub struct DocumentRenderer {
@@ -68,7 +68,7 @@ impl DocumentRenderer {
 
     /// Draw a debug outline box
     fn draw_debug_box(&self, layer: &mut LayerBuilder, x: f32, y: f32, w: f32, h: f32) {
-        if !DEBUG_BOXES {
+        if !self.settings.debug_boxes {
             return;
         }
         // y is top of box, draw from bottom-left to top-right

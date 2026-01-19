@@ -16,7 +16,7 @@ use crate::model::{AnnotatedCall, Auction, BidSuit, Board, Call, Direction, Hand
 use crate::render::helpers::colors::{SuitColors, BLACK, WHITE};
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
-use crate::render::helpers::text_metrics::get_measurer;
+use crate::render::helpers::text_metrics::{get_measurer, get_sans_bold_measurer, get_serif_measurer, TextMeasure};
 
 /// Light gray color for debug boxes
 const DEBUG_BOX_COLOR: Rgb = Rgb {
@@ -25,12 +25,12 @@ const DEBUG_BOX_COLOR: Rgb = Rgb {
     b: 0.7,
     icc_profile: None,
 };
-const DEBUG_BOXES: bool = true;
+// Debug boxes are now controlled via settings.debug_boxes
 
 /// Font sizes for bidding sheets
-const PRACTICE_FONT_SIZE: f32 = 14.0;
-const ANSWERS_FONT_SIZE: f32 = 11.0;
-const HEADER_FONT_SIZE: f32 = 16.0;
+const PRACTICE_FONT_SIZE: f32 = 16.0;
+const ANSWERS_FONT_SIZE: f32 = 12.0;
+const HEADER_FONT_SIZE: f32 = 17.0;
 
 /// Line height multiplier
 const LINE_HEIGHT_MULTIPLIER: f32 = 1.4;
@@ -52,21 +52,192 @@ const HAND_COLUMN_WIDTH: f32 = 35.0;
 /// Row spacing
 const ROW_GAP: f32 = 5.0;
 
+/// Separator line thickness for practice pages (thick, in middle of gap)
+const PRACTICE_SEPARATOR_THICKNESS: f32 = 2.0;
+/// Separator line thickness for answers pages (thin, overlaid on gap)
+const ANSWERS_SEPARATOR_THICKNESS: f32 = 1.0;
+
 /// Bidding sheets renderer
 pub struct BiddingSheetsRenderer {
     settings: Settings,
 }
 
+/// Measured heights for a board on different page types
+struct BoardHeights {
+    practice: f32,
+    answers: f32,
+}
+
+/// Blue color for page margin debug box
+const DEBUG_MARGIN_COLOR: Rgb = Rgb {
+    r: 0.0,
+    g: 0.0,
+    b: 1.0,
+    icc_profile: None,
+};
+
 impl BiddingSheetsRenderer {
     /// Draw a debug outline box
     fn draw_debug_box(&self, layer: &mut LayerBuilder, x: f32, y: f32, w: f32, h: f32) {
-        if !DEBUG_BOXES {
+        if !self.settings.debug_boxes {
             return;
         }
         // y is top of box, draw from bottom-left to top-right
         layer.set_outline_color(Color::Rgb(DEBUG_BOX_COLOR));
         layer.set_outline_thickness(0.25);
         layer.add_rect(Mm(x), Mm(y - h), Mm(x + w), Mm(y), PaintMode::Stroke);
+    }
+
+    /// Draw the page margin boundary (content area)
+    fn draw_margin_debug_box(&self, layer: &mut LayerBuilder) {
+        if !self.settings.debug_boxes {
+            return;
+        }
+        let margin_left = self.settings.margin_left;
+        let margin_right = self.settings.margin_right;
+        let margin_top = self.settings.margin_top;
+        let margin_bottom = self.settings.margin_bottom;
+        let page_width = self.settings.page_width;
+        let page_height = self.settings.page_height;
+
+        let x = margin_left;
+        let y = margin_bottom;
+        let w = page_width - margin_left - margin_right;
+        let h = page_height - margin_top - margin_bottom;
+
+        layer.set_outline_color(Color::Rgb(DEBUG_MARGIN_COLOR));
+        layer.set_outline_thickness(0.5);
+        layer.add_rect(Mm(x), Mm(y), Mm(x + w), Mm(y + h), PaintMode::Stroke);
+    }
+
+    /// Draw a horizontal separator line from margin to margin
+    fn draw_separator_line(&self, layer: &mut LayerBuilder, y: f32, thickness: f32, color: Rgb) {
+        let margin_left = self.settings.margin_left;
+        let margin_right = self.settings.margin_right;
+        let page_width = self.settings.page_width;
+        let x_end = page_width - margin_right;
+
+        layer.set_outline_color(Color::Rgb(color));
+        layer.set_outline_thickness(thickness);
+        layer.add_line(Mm(margin_left), Mm(y), Mm(x_end), Mm(y));
+    }
+
+    /// Render the banner with left text and optional right-aligned title
+    #[allow(clippy::too_many_arguments)]
+    fn render_banner(
+        &self,
+        layer: &mut LayerBuilder,
+        left_text: &str,
+        left_text_short: &str,  // Shortened version without "(Practice Page)" etc
+        title: Option<&str>,
+        header_color: Rgb,
+        font: &FontId,
+        measurer: &dyn TextMeasure,
+    ) {
+        let margin_left = self.settings.margin_left;
+        let content_width = self.settings.content_width();
+        let page_top = self.settings.page_height - self.settings.margin_top;
+        let banner_padding = 3.0;
+
+        // Draw filled rectangle banner
+        layer.set_fill_color(Color::Rgb(header_color.clone()));
+        layer.add_rect(
+            Mm(margin_left),
+            Mm(page_top - BANNER_HEIGHT),
+            Mm(margin_left + content_width),
+            Mm(page_top),
+            PaintMode::Fill,
+        );
+
+        // Calculate text position
+        let text_y = page_top - banner_padding - measurer.cap_height_mm(HEADER_FONT_SIZE);
+        layer.set_fill_color(Color::Rgb(WHITE));
+
+        // Draw left text
+        layer.use_text(
+            left_text,
+            HEADER_FONT_SIZE,
+            Mm(margin_left + banner_padding),
+            Mm(text_y),
+            font,
+        );
+
+        // Draw title on right if present
+        if let Some(title) = title {
+            let left_text_width = measurer.measure_text(left_text, HEADER_FONT_SIZE);
+            let min_gap = measurer.measure_text("     ", HEADER_FONT_SIZE); // 5 char gap
+            let available_for_title = content_width - left_text_width - min_gap - 2.0 * banner_padding;
+
+            if available_for_title > 0.0 {
+                let title_width = measurer.measure_text(title, HEADER_FONT_SIZE);
+
+                let (final_title, final_width) = if title_width <= available_for_title {
+                    // Full title fits
+                    (title.to_string(), title_width)
+                } else {
+                    // Try with shorter left text
+                    let short_left_width = measurer.measure_text(left_text_short, HEADER_FONT_SIZE);
+                    let available_with_short = content_width - short_left_width - min_gap - 2.0 * banner_padding;
+
+                    if title_width <= available_with_short {
+                        // Title fits with shorter left text - but we already drew full left text
+                        // For simplicity, just truncate the title
+                        self.truncate_title(title, available_for_title, measurer)
+                    } else {
+                        // Truncate title to fit
+                        self.truncate_title(title, available_for_title, measurer)
+                    }
+                };
+
+                if !final_title.is_empty() {
+                    let title_x = margin_left + content_width - banner_padding - final_width;
+                    layer.use_text(
+                        &final_title,
+                        HEADER_FONT_SIZE,
+                        Mm(title_x),
+                        Mm(text_y),
+                        font,
+                    );
+                }
+            }
+        }
+    }
+
+    /// Truncate title to fit within available width, adding ellipsis
+    fn truncate_title(
+        &self,
+        title: &str,
+        available_width: f32,
+        measurer: &dyn TextMeasure,
+    ) -> (String, f32) {
+        let ellipsis = "...";
+        let ellipsis_width = measurer.measure_text(ellipsis, HEADER_FONT_SIZE);
+
+        if available_width <= ellipsis_width {
+            return (String::new(), 0.0);
+        }
+
+        let target_width = available_width - ellipsis_width;
+        let mut truncated = String::new();
+        let mut width = 0.0;
+
+        for ch in title.chars() {
+            let ch_str = ch.to_string();
+            let ch_width = measurer.measure_text(&ch_str, HEADER_FONT_SIZE);
+            if width + ch_width > target_width {
+                break;
+            }
+            truncated.push(ch);
+            width += ch_width;
+        }
+
+        if truncated.is_empty() {
+            (String::new(), 0.0)
+        } else {
+            truncated.push_str(ellipsis);
+            let final_width = measurer.measure_text(&truncated, HEADER_FONT_SIZE);
+            (truncated, final_width)
+        }
     }
 }
 
@@ -90,8 +261,11 @@ impl BiddingSheetsRenderer {
 
         let mut pages = Vec::new();
 
-        // Group boards into sets that fit on a page
-        let board_sets = self.group_boards(boards);
+        // Measure actual board heights by doing a dry-run render
+        let board_heights = self.measure_board_heights(boards, &fonts);
+
+        // Group boards into sets that fit on a page using actual measured heights
+        let board_sets = self.group_boards_with_heights(boards, &board_heights);
 
         for board_set in board_sets {
             // North practice page
@@ -148,48 +322,114 @@ impl BiddingSheetsRenderer {
         page_height - margin_top - margin_bottom - BANNER_HEIGHT - AFTER_BANNER_GAP
     }
 
-    /// Calculate height needed for a board on a practice page
-    /// This must match exactly how render_practice_page advances current_y
-    fn practice_board_height(&self, _board: &Board) -> f32 {
-        let line_height = PRACTICE_FONT_SIZE * LINE_HEIGHT_MULTIPLIER * 0.4;
+    /// Count the number of lines in the auction setup for practice pages
+    fn count_auction_setup_lines(&self, board: &Board, player: Direction) -> usize {
+        // 1 line for "who bids first"
+        let who_first_lines = 1;
 
-        // Practice page uses: row_height = max of column heights, then advances by row_height + ROW_GAP
-        // All columns are 4 lines
-        4.0 * line_height
-        // Note: ROW_GAP is between boards, not after the last one
+        // Count opposition bidding lines
+        let opp_lines = self.format_opposition_bidding(board, player).len();
+
+        who_first_lines + opp_lines
     }
 
-    /// Calculate height needed for a board on an answers page
-    /// This must match exactly how render_answers_page advances current_y
-    fn answers_board_height(&self, board: &Board) -> f32 {
+    /// Measure actual board heights by doing a dry-run render of the auction tables
+    fn measure_board_heights(&self, boards: &[Board], fonts: &FontManager) -> Vec<BoardHeights> {
         let line_height = ANSWERS_FONT_SIZE * LINE_HEIGHT_MULTIPLIER * 0.4;
+        let practice_line_height = PRACTICE_FONT_SIZE * LINE_HEIGHT_MULTIPLIER * 0.4;
 
-        // Answers page uses: row_height = max of column heights, then advances by row_height + ROW_GAP
-        // Context: 6 lines, Hands: 5 lines (label + 4 suits), Auction: variable
-        let context_height = 6.0 * line_height;
-        let hand_height = 5.0 * line_height;
-        let auction_height = self.calculate_auction_height(board, ANSWERS_FONT_SIZE);
+        let text_font = &fonts.serif.regular;
+        let bold_font = &fonts.serif.bold;
+        let symbol_font = &fonts.sans.regular;
+        let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
 
-        context_height.max(hand_height).max(auction_height)
-        // Note: ROW_GAP is between boards, not after the last one
+        boards
+            .iter()
+            .map(|board| {
+                // Practice page columns:
+                // - Context: 4 lines (board#, dealer, vul, HCP)
+                // - Hand: 4 lines (4 suits)
+                // - Auction setup: variable (who bids first + opponent actions)
+                let context_lines: f32 = 4.0;
+                let hand_lines: f32 = 4.0;
+                // Measure for both North and South, take the max
+                let north_setup_lines = self.count_auction_setup_lines(board, Direction::North) as f32;
+                let south_setup_lines = self.count_auction_setup_lines(board, Direction::South) as f32;
+                let setup_lines = north_setup_lines.max(south_setup_lines);
+
+                let practice_height = context_lines
+                    .max(hand_lines)
+                    .max(setup_lines)
+                    * practice_line_height;
+
+                // Answers page: measure actual auction height
+                let (auction_height, _) = if let Some(ref auction) = board.auction {
+                    // Do a dry-run render to get actual height
+                    let mut dummy_layer = LayerBuilder::new();
+                    let height = self.render_auction_table(
+                        &mut dummy_layer,
+                        auction,
+                        0.0, // x doesn't matter for height
+                        0.0, // y doesn't matter for height calculation
+                        ANSWERS_FONT_SIZE,
+                        text_font,
+                        bold_font,
+                        symbol_font,
+                        &colors,
+                    );
+                    height
+                } else {
+                    (line_height, line_height)
+                };
+
+                let answers_context_height = 6.0 * line_height;
+                let answers_hand_height = 5.0 * line_height;
+                let answers_height = answers_context_height.max(answers_hand_height).max(auction_height);
+
+                eprintln!(
+                    "  measure board {}: practice={:.2} (setup_lines={:.0}), answers={:.2}",
+                    board.number.unwrap_or(0),
+                    practice_height,
+                    setup_lines,
+                    answers_height,
+                );
+
+                BoardHeights {
+                    practice: practice_height,
+                    answers: answers_height,
+                }
+            })
+            .collect()
     }
 
-    /// Group boards into sets that fit on a page
-    /// Uses the answers page height (which is larger) as the constraint
-    fn group_boards<'a>(&self, boards: &'a [Board]) -> Vec<&'a [Board]> {
+    /// Group boards into sets that fit on a page using pre-measured heights
+    fn group_boards_with_heights<'a>(
+        &self,
+        boards: &'a [Board],
+        heights: &[BoardHeights],
+    ) -> Vec<&'a [Board]> {
         let available_height = self.available_content_height();
+        eprintln!("=== Page break calculations ===");
+        eprintln!("Page height: {}", self.settings.page_height);
+        eprintln!("Margin top: {}, bottom: {}", self.settings.margin_top, self.settings.margin_bottom);
+        eprintln!("Banner height: {}, after banner gap: {}", BANNER_HEIGHT, AFTER_BANNER_GAP);
+        eprintln!("Available content height: {}", available_height);
+        eprintln!("ROW_GAP between boards: {}", ROW_GAP);
+        eprintln!();
+
         let mut sets = Vec::new();
         let mut start = 0;
 
         while start < boards.len() {
             let mut current_height = 0.0;
             let mut end = start;
+            eprintln!("--- Starting new page set at board index {} ---", start);
 
             // Add boards until we run out of space
             while end < boards.len() {
-                // Calculate heights for this board on all page types
-                let practice_height = self.practice_board_height(&boards[end]);
-                let answers_height = self.answers_board_height(&boards[end]);
+                // Use pre-measured heights
+                let practice_height = heights[end].practice;
+                let answers_height = heights[end].answers;
 
                 // Use the maximum height (answers page typically needs more space)
                 let board_height = practice_height.max(answers_height);
@@ -201,8 +441,23 @@ impl BiddingSheetsRenderer {
                     board_height + ROW_GAP
                 };
 
+                let would_be_height = current_height + height_needed;
+                eprintln!(
+                    "Board {}: practice_h={:.2}, answers_h={:.2}, board_h={:.2}, height_needed={:.2}, current={:.2}, would_be={:.2}, available={:.2}, fits={}",
+                    boards[end].number.unwrap_or(0),
+                    practice_height,
+                    answers_height,
+                    board_height,
+                    height_needed,
+                    current_height,
+                    would_be_height,
+                    available_height,
+                    would_be_height <= available_height || end == start
+                );
+
                 if current_height + height_needed > available_height && end > start {
                     // This board won't fit, but we have at least one board
+                    eprintln!("  -> Board {} does not fit, breaking page", boards[end].number.unwrap_or(0));
                     break;
                 }
 
@@ -215,6 +470,8 @@ impl BiddingSheetsRenderer {
                 end = start + 1;
             }
 
+            eprintln!("Page set contains boards {} to {} (total height: {:.2})", start, end - 1, current_height);
+            eprintln!();
             sets.push(&boards[start..end]);
             start = end;
         }
@@ -230,21 +487,21 @@ impl BiddingSheetsRenderer {
         player: Direction,
         fonts: &FontManager,
     ) {
+        // Draw page margin boundary for debugging
+        self.draw_margin_debug_box(layer);
+
         let margin_left = self.settings.margin_left;
         let margin_top = self.settings.margin_top;
         let page_top = self.settings.page_height - margin_top;
         let content_width = self.settings.content_width();
         let measurer = get_measurer();
+        let sans_bold_measurer = get_sans_bold_measurer();
 
         let text_font = &fonts.serif.regular;
         let bold_font = &fonts.serif.bold;
         let sans_bold_font = &fonts.sans.bold;
         let symbol_font = &fonts.sans.regular;
         let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
-
-        // Header banner - full width colored rectangle with white sans-serif text
-        let header_text = format!("{} hands (Practice Page)", player);
-        let banner_padding = 3.0; // Padding inside banner
 
         // Color for player identification
         let header_color = match player {
@@ -253,25 +510,22 @@ impl BiddingSheetsRenderer {
             _ => Rgb::new(0.5, 0.5, 0.5, None),
         };
 
-        // Draw filled rectangle banner
-        layer.set_fill_color(Color::Rgb(header_color));
-        layer.add_rect(
-            Mm(margin_left),
-            Mm(page_top - BANNER_HEIGHT),
-            Mm(margin_left + content_width),
-            Mm(page_top),
-            PaintMode::Fill,
-        );
-
-        // Draw white text inside banner (sans-serif bold)
-        let text_y = page_top - banner_padding - measurer.cap_height_mm(HEADER_FONT_SIZE);
-        layer.set_fill_color(Color::Rgb(WHITE));
-        layer.use_text(
+        // Header banner with title
+        // Use short version (without "Practice Page") when title is present to make room
+        let title = self.settings.effective_title();
+        let header_text = if title.is_some() {
+            format!("{} hands", player)
+        } else {
+            format!("{} hands (Practice Page)", player)
+        };
+        self.render_banner(
+            layer,
             &header_text,
-            HEADER_FONT_SIZE,
-            Mm(margin_left + banner_padding),
-            Mm(text_y),
+            &header_text, // Same text since we already shortened it when title present
+            title,
+            header_color.clone(),
             sans_bold_font,
+            sans_bold_measurer,
         );
 
         // Start content below banner
@@ -279,35 +533,44 @@ impl BiddingSheetsRenderer {
 
         let line_height = PRACTICE_FONT_SIZE * LINE_HEIGHT_MULTIPLIER * 0.4;
 
-        for board in boards {
+        let board_count = boards.len();
+        for (i, board) in boards.iter().enumerate() {
             let row_start_y = current_y;
 
+            // Calculate actual row height based on content
+            let context_height = 4.0 * line_height; // 4 lines: Board, Dealer, Vul, HCP
+            let hand_height = 4.0 * line_height; // 4 suits
+            let setup_lines = self.count_auction_setup_lines(board, player) as f32;
+            let setup_height = setup_lines * line_height;
+            let row_height = context_height.max(hand_height).max(setup_height);
+
             // Debug boxes for each column
-            // Text is rendered at baseline (current_y), so box top should be at baseline + cap_height
-            // Box height: cap_height (first line above baseline) + 3 * line_height (to 4th baseline)
             let cap_height = measurer.cap_height_mm(PRACTICE_FONT_SIZE);
+            let descender = measurer.descender_mm(PRACTICE_FONT_SIZE);
             let box_top = current_y + cap_height;
-            let row_height = cap_height + 3.0 * line_height;
+            let box_height = cap_height + row_height - line_height + descender;
+            let setup_col_width = content_width - CONTEXT_COLUMN_WIDTH - HAND_COLUMN_WIDTH;
+
             self.draw_debug_box(
                 layer,
                 margin_left,
                 box_top,
                 CONTEXT_COLUMN_WIDTH,
-                row_height,
+                box_height,
             );
             self.draw_debug_box(
                 layer,
                 margin_left + CONTEXT_COLUMN_WIDTH,
                 box_top,
                 HAND_COLUMN_WIDTH,
-                row_height,
+                box_height,
             );
             self.draw_debug_box(
                 layer,
                 margin_left + CONTEXT_COLUMN_WIDTH + HAND_COLUMN_WIDTH,
                 box_top,
-                80.0,
-                row_height,
+                setup_col_width,
+                box_height,
             );
 
             // Column 1: Board context
@@ -351,23 +614,31 @@ impl BiddingSheetsRenderer {
                 &colors,
             );
 
-            // Calculate row height (max of all columns)
-            let context_height = 4.0 * line_height; // 4 lines: Board, Dealer, Vul, HCP
-            let hand_height = 4.0 * line_height; // 4 suits
-            let setup_height = 4.0 * line_height; // Opposition + who bids first
+            // Draw separator line in the middle of the gap (except after the last board)
+            // The visual bottom of content is at box_top - box_height
+            // The gap runs from visual bottom to the next board's baseline
+            if i < board_count - 1 {
+                let visual_bottom = box_top - box_height;
+                let next_board_top = row_start_y - row_height - ROW_GAP + cap_height;
+                let line_y = (visual_bottom + next_board_top) / 2.0;
+                self.draw_separator_line(layer, line_y, PRACTICE_SEPARATOR_THICKNESS, header_color.clone());
+            }
 
-            let row_height = context_height.max(hand_height).max(setup_height);
             current_y = row_start_y - row_height - ROW_GAP;
         }
     }
 
     /// Render an answers page (shows both hands + auction)
     fn render_answers_page(&self, layer: &mut LayerBuilder, boards: &[Board], fonts: &FontManager) {
+        // Draw page margin boundary for debugging
+        self.draw_margin_debug_box(layer);
+
         let margin_left = self.settings.margin_left;
         let margin_top = self.settings.margin_top;
         let page_top = self.settings.page_height - margin_top;
         let content_width = self.settings.content_width();
         let measurer = get_measurer();
+        let sans_bold_measurer = get_sans_bold_measurer();
 
         let text_font = &fonts.serif.regular;
         let bold_font = &fonts.serif.bold;
@@ -375,30 +646,16 @@ impl BiddingSheetsRenderer {
         let symbol_font = &fonts.sans.regular;
         let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
 
-        // Header banner - full width dark gray rectangle with white sans-serif text
-        let header_text = "Both hands (Answers Page)";
-        let banner_padding = 3.0; // Padding inside banner
-        let header_color = Rgb::new(0.3, 0.3, 0.3, None); // Dark gray for answers
-
-        // Draw filled rectangle banner
-        layer.set_fill_color(Color::Rgb(header_color));
-        layer.add_rect(
-            Mm(margin_left),
-            Mm(page_top - BANNER_HEIGHT),
-            Mm(margin_left + content_width),
-            Mm(page_top),
-            PaintMode::Fill,
-        );
-
-        // Draw white text inside banner (sans-serif bold)
-        let text_y = page_top - banner_padding - measurer.cap_height_mm(HEADER_FONT_SIZE);
-        layer.set_fill_color(Color::Rgb(WHITE));
-        layer.use_text(
-            header_text,
-            HEADER_FONT_SIZE,
-            Mm(margin_left + banner_padding),
-            Mm(text_y),
+        // Header banner - dark gray for answers (no title on answers page since it's the back of practice page)
+        let header_color = Rgb::new(0.3, 0.3, 0.3, None);
+        self.render_banner(
+            layer,
+            "Both hands (Answers Page)",
+            "Both hands",
+            None, // No title on answers page
+            header_color.clone(),
             sans_bold_font,
+            sans_bold_measurer,
         );
 
         // Start content below banner
@@ -406,7 +663,8 @@ impl BiddingSheetsRenderer {
 
         let line_height = ANSWERS_FONT_SIZE * LINE_HEIGHT_MULTIPLIER * 0.4;
 
-        for board in boards {
+        let board_count = boards.len();
+        for (i, board) in boards.iter().enumerate() {
             let row_start_y = current_y;
 
             // Column 1: Board context (with both HCPs and contract)
@@ -523,13 +781,25 @@ impl BiddingSheetsRenderer {
                 HAND_COLUMN_WIDTH,
                 box_height,
             );
+            // Auction column extends to right margin
+            let auction_col_width = content_width - CONTEXT_COLUMN_WIDTH - 2.0 * HAND_COLUMN_WIDTH;
             self.draw_debug_box(
                 layer,
                 margin_left + CONTEXT_COLUMN_WIDTH + 2.0 * HAND_COLUMN_WIDTH,
                 box_top,
-                60.0,
+                auction_col_width,
                 box_height,
             );
+
+            // Draw thin separator line overlaid on center of gap (except after last board)
+            // The visual bottom of content is at box_top - box_height
+            // The gap runs from visual bottom to the next board's baseline
+            if i < board_count - 1 {
+                let visual_bottom = box_top - box_height;
+                let next_board_top = row_start_y - row_height - ROW_GAP + cap_height;
+                let line_y = (visual_bottom + next_board_top) / 2.0;
+                self.draw_separator_line(layer, line_y, ANSWERS_SEPARATOR_THICKNESS, header_color.clone());
+            }
 
             current_y = row_start_y - row_height - ROW_GAP;
         }
@@ -593,11 +863,18 @@ impl BiddingSheetsRenderer {
         );
         current_y -= line_height;
 
-        // HCP (for single player)
+        // HCP (for single player) with length points
         if let Some(player) = player {
-            let hcp = board.deal.hand(player).total_hcp();
+            let hand = board.deal.hand(player);
+            let hcp = hand.total_hcp();
+            let length_pts = hand.length_points();
+            let hcp_str = if length_pts > 0 {
+                format!("HCP: {}+{}", hcp, length_pts)
+            } else {
+                format!("HCP: {}", hcp)
+            };
             layer.use_text(
-                format!("HCP: {}", hcp),
+                hcp_str,
                 font_size,
                 Mm(x),
                 Mm(current_y),
@@ -666,10 +943,16 @@ impl BiddingSheetsRenderer {
         );
         current_y -= line_height;
 
-        // North HCP
+        // North HCP with length points
         let north_hcp = board.deal.north.total_hcp();
+        let north_length = board.deal.north.length_points();
+        let north_hcp_str = if north_length > 0 {
+            format!("North HCP: {}+{}", north_hcp, north_length)
+        } else {
+            format!("North HCP: {}", north_hcp)
+        };
         layer.use_text(
-            format!("North HCP: {}", north_hcp),
+            north_hcp_str,
             font_size,
             Mm(x),
             Mm(current_y),
@@ -677,10 +960,16 @@ impl BiddingSheetsRenderer {
         );
         current_y -= line_height;
 
-        // South HCP
+        // South HCP with length points
         let south_hcp = board.deal.south.total_hcp();
+        let south_length = board.deal.south.length_points();
+        let south_hcp_str = if south_length > 0 {
+            format!("South HCP: {}+{}", south_hcp, south_length)
+        } else {
+            format!("South HCP: {}", south_hcp)
+        };
         layer.use_text(
-            format!("South HCP: {}", south_hcp),
+            south_hcp_str,
             font_size,
             Mm(x),
             Mm(current_y),
@@ -810,7 +1099,7 @@ impl BiddingSheetsRenderer {
         }
     }
 
-    /// Render auction setup (opposition bidding + who bids first)
+    /// Render auction setup (who bids first + opposition bidding)
     #[allow(clippy::too_many_arguments)]
     fn render_auction_setup(
         &self,
@@ -827,9 +1116,14 @@ impl BiddingSheetsRenderer {
         let line_height = font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
         let mut current_y = y;
 
+        // Who bids first (at the top)
+        let who_first = self.who_bids_first(board, player);
+        layer.set_fill_color(Color::Rgb(BLACK));
+        layer.use_text(&who_first, font_size, Mm(x), Mm(current_y), text_font);
+        current_y -= line_height;
+
         // Opposition bidding
-        let opp_lines =
-            self.format_opposition_bidding(board, text_font, symbol_font, colors, font_size);
+        let opp_lines = self.format_opposition_bidding(board, player);
         for line in &opp_lines {
             self.render_mixed_text(
                 layer,
@@ -843,25 +1137,10 @@ impl BiddingSheetsRenderer {
             );
             current_y -= line_height;
         }
-
-        // Add gap
-        current_y -= line_height * 0.5;
-
-        // Who bids first
-        let who_first = self.who_bids_first(board, player);
-        layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text(&who_first, font_size, Mm(x), Mm(current_y), text_font);
     }
 
-    /// Format opposition bidding as text lines
-    fn format_opposition_bidding(
-        &self,
-        board: &Board,
-        _text_font: &FontId,
-        _symbol_font: &FontId,
-        _colors: &SuitColors,
-        _font_size: f32,
-    ) -> Vec<MixedText> {
+    /// Format opposition bidding as text lines with LHO/RHO labels
+    fn format_opposition_bidding(&self, board: &Board, player: Direction) -> Vec<MixedText> {
         let mut lines = Vec::new();
 
         let Some(ref auction) = board.auction else {
@@ -869,33 +1148,48 @@ impl BiddingSheetsRenderer {
             return lines;
         };
 
+        // Determine LHO and RHO relative to player
+        let lho = player.next();
+        let rho = player.next().next().next(); // 3 steps around = RHO
+
         let mut current_seat = auction.dealer;
         let mut is_opening_bid = true;
         let mut prev_bid: Option<(u8, BidSuit)> = None;
         let mut found_opp_bid = false;
 
         for annotated in &auction.calls {
-            let is_opponent = matches!(current_seat, Direction::East | Direction::West);
+            let is_opponent = current_seat == lho || current_seat == rho;
 
             if is_opponent {
+                // Determine position label (LHO or RHO)
+                let position = if current_seat == lho { "LHO" } else { "RHO" };
+
                 match &annotated.call {
                     Call::Bid { level, suit } => {
-                        let action = if is_opening_bid { "Opens" } else { "Bids" };
-                        lines.push(MixedText::bid_action(current_seat, action, *level, *suit));
+                        let action = if is_opening_bid { "opens" } else { "bids" };
+                        lines.push(MixedText::bid_action_with_position(
+                            current_seat,
+                            position,
+                            action,
+                            *level,
+                            *suit,
+                        ));
                         is_opening_bid = false;
                         prev_bid = Some((*level, *suit));
                         found_opp_bid = true;
                     }
                     Call::Double => {
                         if let Some((level, suit)) = prev_bid {
-                            lines.push(MixedText::double_action(current_seat, level, suit));
+                            lines.push(MixedText::double_action_with_position(
+                                current_seat, position, level, suit,
+                            ));
                         }
                         found_opp_bid = true;
                     }
                     Call::Redouble => {
                         lines.push(MixedText::plain(&format!(
-                            "{} Redoubles if possible.",
-                            current_seat
+                            "{} ({}) Redoubles if possible.",
+                            current_seat, position
                         )));
                         found_opp_bid = true;
                     }
@@ -926,22 +1220,17 @@ impl BiddingSheetsRenderer {
         };
 
         let partner = player.partner();
+        let rho = player.next().next().next(); // 3 steps = RHO
 
-        // Player bids first if dealer is player or RHO
-        let rho = match player {
-            Direction::North => Direction::West,
-            Direction::East => Direction::North,
-            Direction::South => Direction::East,
-            Direction::West => Direction::South,
-        };
-
-        if dealer == player || dealer == rho {
-            "You bid first.".to_string()
+        if dealer == player {
+            "You are dealer.".to_string()
+        } else if dealer == rho {
+            "RHO is dealer. You bid second.".to_string()
         } else if dealer == partner {
-            "Partner bids first.".to_string()
+            "Partner is dealer.".to_string()
         } else {
-            // LHO deals, so RHO acts before you but partner is still before you
-            "Partner bids first.".to_string()
+            // LHO is dealer
+            "LHO is dealer.".to_string()
         }
     }
 
@@ -958,7 +1247,10 @@ impl BiddingSheetsRenderer {
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
-        let measurer = get_measurer();
+        // Use serif measurer for text (matches text_font which is serif)
+        // and sans measurer for symbols (matches symbol_font which is sans)
+        let text_measurer = get_serif_measurer();
+        let symbol_measurer = get_measurer();
         let mut current_x = x;
 
         for segment in &text.segments {
@@ -966,14 +1258,14 @@ impl BiddingSheetsRenderer {
                 TextSegment::Plain(s) => {
                     layer.set_fill_color(Color::Rgb(BLACK));
                     layer.use_text(s, font_size, Mm(current_x), Mm(y), text_font);
-                    current_x += measurer.measure_width_mm(s, font_size);
+                    current_x += text_measurer.measure_width_mm(s, font_size);
                 }
                 TextSegment::Suit(suit) => {
                     let suit_color = colors.for_bid_suit(suit);
                     layer.set_fill_color(Color::Rgb(suit_color));
                     let symbol = suit.symbol();
                     layer.use_text(symbol, font_size, Mm(current_x), Mm(y), symbol_font);
-                    current_x += measurer.measure_width_mm(symbol, font_size);
+                    current_x += symbol_measurer.measure_width_mm(symbol, font_size);
                 }
             }
         }
@@ -1025,19 +1317,32 @@ impl BiddingSheetsRenderer {
         let mut col = start_col;
         let mut row_y = current_y;
 
-        // Add dashes for positions before dealer
-        for i in 0..start_col {
-            layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(
-                "\u{2014}",
-                font_size,
-                Mm(x + i as f32 * col_width),
-                Mm(row_y),
-                text_font,
-            );
-        }
+        // Leave positions before dealer blank (no dashes)
 
-        for annotated in &auction.calls {
+        // Check for special cases: passed out (4 passes) or ending with "All Pass" (3+ passes)
+        let all_passes = auction.calls.iter().all(|c| matches!(c.call, Call::Pass));
+        let is_passed_out = all_passes && auction.calls.len() == 4;
+
+        // Count trailing passes to detect "All Pass" ending
+        let trailing_passes = auction
+            .calls
+            .iter()
+            .rev()
+            .take_while(|c| matches!(c.call, Call::Pass))
+            .count();
+        let has_all_pass_ending = trailing_passes >= 3 && !is_passed_out;
+
+        // Calculate how many calls to render normally (excluding the 3 trailing passes if All Pass)
+        let calls_to_render = if has_all_pass_ending {
+            auction.calls.len() - 3
+        } else if is_passed_out {
+            0 // We'll render "Pass Out" specially
+        } else {
+            auction.calls.len()
+        };
+
+        // Render normal calls
+        for annotated in auction.calls.iter().take(calls_to_render) {
             let col_x = x + col as f32 * col_width;
 
             self.render_annotated_call(
@@ -1058,6 +1363,30 @@ impl BiddingSheetsRenderer {
             }
         }
 
+        // Handle special endings
+        if is_passed_out {
+            // Four passes: show "Pass Out" in dealer's column
+            let col_x = x + start_col as f32 * col_width;
+            layer.set_fill_color(Color::Rgb(BLACK));
+            layer.use_text("Pass Out", font_size, Mm(col_x), Mm(row_y), text_font);
+            col = start_col + 1;
+            if col >= 4 {
+                col = 0;
+                row_y -= line_height;
+            }
+        } else if has_all_pass_ending {
+            // Show "All Pass" in the position of the first of the three passes
+            let col_x = x + col as f32 * col_width;
+            layer.set_fill_color(Color::Rgb(BLACK));
+            layer.use_text("All Pass", font_size, Mm(col_x), Mm(row_y), text_font);
+            col += 1;
+            if col >= 4 {
+                col = 0;
+                row_y -= line_height;
+            }
+            // Leave the remaining two pass positions blank
+        }
+
         // Track the last line height used (for correct box calculation)
         let mut last_line_height = line_height;
 
@@ -1069,7 +1398,7 @@ impl BiddingSheetsRenderer {
             }
             row_y -= line_height * 0.5; // Gap before notes
 
-            let note_font_size = font_size * 0.85;
+            let note_font_size = font_size * 0.90;
             let note_line_height = note_font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
 
             // Get sorted note numbers
@@ -1185,46 +1514,6 @@ impl BiddingSheetsRenderer {
         }
     }
 
-    /// Calculate auction height for layout - must match render_auction_table exactly
-    fn calculate_auction_height(&self, board: &Board, font_size: f32) -> f32 {
-        let line_height = font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
-
-        let Some(ref auction) = board.auction else {
-            return line_height;
-        };
-
-        // Starting column based on dealer (same as render_auction_table)
-        let start_col = auction.dealer.table_position();
-
-        // Header row
-        let mut height = line_height;
-
-        // Calculate how many full rows of calls we have
-        // Total positions used = start_col + calls.len()
-        // Number of rows = ceil(total_positions / 4)
-        let total_positions = start_col + auction.calls.len();
-        let call_rows = total_positions.div_ceil(4);
-        height += call_rows as f32 * line_height;
-
-        // Account for notes if present
-        if !auction.notes.is_empty() {
-            // Final column position after all calls
-            let final_col = total_positions % 4;
-            // Extra line if last row of bids wasn't complete
-            if final_col > 0 {
-                height += line_height;
-            }
-            // Gap before notes
-            height += line_height * 0.5;
-
-            // Notes themselves (smaller font)
-            let note_font_size = font_size * 0.85;
-            let note_line_height = note_font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
-            height += auction.notes.len() as f32 * note_line_height;
-        }
-
-        height
-    }
 }
 
 /// Mixed text with plain text and suit symbols
@@ -1244,20 +1533,35 @@ impl MixedText {
         }
     }
 
-    fn bid_action(seat: Direction, action: &str, level: u8, suit: BidSuit) -> Self {
+    /// Format: "East (LHO) Opens 1♠ if possible."
+    fn bid_action_with_position(
+        seat: Direction,
+        position: &str,
+        action: &str,
+        level: u8,
+        suit: BidSuit,
+    ) -> Self {
         Self {
             segments: vec![
-                TextSegment::Plain(format!("{} {} {}", seat, action, level)),
+                TextSegment::Plain(format!("{} ({}) {} ", seat, position, action)),
+                TextSegment::Plain(format!("{}", level)),
                 TextSegment::Suit(suit),
-                TextSegment::Plain(".".to_string()),
+                TextSegment::Plain(" if possible.".to_string()),
             ],
         }
     }
 
-    fn double_action(seat: Direction, level: u8, suit: BidSuit) -> Self {
+    /// Format: "East (LHO) Doubles 1♠ if possible."
+    fn double_action_with_position(
+        seat: Direction,
+        position: &str,
+        level: u8,
+        suit: BidSuit,
+    ) -> Self {
         Self {
             segments: vec![
-                TextSegment::Plain(format!("{} Doubles {}", seat, level)),
+                TextSegment::Plain(format!("{} ({}) Doubles ", seat, position)),
+                TextSegment::Plain(format!("{}", level)),
                 TextSegment::Suit(suit),
                 TextSegment::Plain(" if possible.".to_string()),
             ],

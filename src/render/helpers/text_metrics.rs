@@ -5,6 +5,18 @@
 
 use rustybuzz::{Face, UnicodeBuffer};
 
+/// Trait for text measurement operations
+pub trait TextMeasure {
+    /// Measure text width in mm at a given font size
+    fn measure_text(&self, text: &str, font_size: f32) -> f32;
+
+    /// Get cap height in mm for a given font size
+    fn cap_height_mm(&self, font_size: f32) -> f32;
+
+    /// Get descender depth in mm (positive value)
+    fn descender_mm(&self, font_size: f32) -> f32;
+}
+
 // Embed fonts for measurement (same as in fonts.rs)
 const DEJAVU_SANS: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans.ttf");
 const DEJAVU_SANS_BOLD: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Bold.ttf");
@@ -141,6 +153,20 @@ impl TextMeasurer {
     /// Get the recommended line height in mm
     pub fn line_height_mm(&self, font_size: f32) -> f32 {
         self.metrics.line_height_mm(font_size)
+    }
+}
+
+impl TextMeasure for TextMeasurer {
+    fn measure_text(&self, text: &str, font_size: f32) -> f32 {
+        self.measure_width_mm(text, font_size)
+    }
+
+    fn cap_height_mm(&self, font_size: f32) -> f32 {
+        self.metrics.cap_height_mm(font_size)
+    }
+
+    fn descender_mm(&self, font_size: f32) -> f32 {
+        self.metrics.descender_mm(font_size)
     }
 }
 
