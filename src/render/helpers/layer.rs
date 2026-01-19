@@ -4,8 +4,8 @@
 //! but collects operations into a `Vec<Op>` for the new printpdf 0.8 API.
 
 use printpdf::{
-    Color, FontId, LinePoint, Mm, Op, PaintMode, Point, Polygon, PolygonRing, Pt, TextItem,
-    WindingOrder,
+    Color, CurTransMat, FontId, LinePoint, Mm, Op, PaintMode, PdfFontHandle, Point, Polygon,
+    PolygonRing, Pt, TextItem, WindingOrder, XObjectId, XObjectTransform,
 };
 
 /// A builder that collects PDF operations
@@ -75,13 +75,12 @@ impl LayerBuilder {
                 y: y.into(),
             },
         });
-        self.ops.push(Op::SetFontSize {
+        self.ops.push(Op::SetFont {
             size: Pt(font_size),
-            font: font.clone(),
+            font: PdfFontHandle::External(font.clone()),
         });
-        self.ops.push(Op::WriteText {
+        self.ops.push(Op::ShowText {
             items: vec![TextItem::Text(text_str)],
-            font: font.clone(),
         });
         self.ops.push(Op::EndTextSection);
     }
@@ -145,6 +144,14 @@ impl LayerBuilder {
         self.ops.push(Op::RestoreGraphicsState);
     }
 
+    /// Set the current transformation matrix
+    ///
+    /// This applies a transformation to all subsequent drawing operations
+    /// until the graphics state is restored.
+    pub fn set_transform(&mut self, matrix: CurTransMat) {
+        self.ops.push(Op::SetTransformationMatrix { matrix });
+    }
+
     /// Draw a line from (x1, y1) to (x2, y2)
     pub fn add_line(&mut self, x1: Mm, y1: Mm, x2: Mm, y2: Mm) {
         let points = vec![
@@ -171,5 +178,68 @@ impl LayerBuilder {
         };
 
         self.ops.push(Op::DrawPolygon { polygon });
+    }
+
+    /// Place an XObject (SVG/image) with the given transform
+    ///
+    /// The transform specifies position, scale, rotation, etc.
+    /// Use `PdfDocument::add_xobject()` to register an SVG and get the XObjectId.
+    pub fn use_xobject(&mut self, id: XObjectId, transform: XObjectTransform) {
+        self.ops.push(Op::UseXobject { id, transform });
+    }
+
+    /// Begin a rectangular clipping region
+    ///
+    /// All drawing operations after this call will be clipped to the specified rectangle.
+    /// Call `end_clip()` to restore the previous graphics state and end clipping.
+    pub fn begin_clip_rect(&mut self, x: Mm, y: Mm, width: Mm, height: Mm) {
+        self.save_graphics_state();
+
+        // Create rectangular clipping path
+        let points = vec![
+            LinePoint {
+                p: Point {
+                    x: x.into(),
+                    y: y.into(),
+                },
+                bezier: false,
+            },
+            LinePoint {
+                p: Point {
+                    x: (Mm(x.0 + width.0)).into(),
+                    y: y.into(),
+                },
+                bezier: false,
+            },
+            LinePoint {
+                p: Point {
+                    x: (Mm(x.0 + width.0)).into(),
+                    y: (Mm(y.0 + height.0)).into(),
+                },
+                bezier: false,
+            },
+            LinePoint {
+                p: Point {
+                    x: x.into(),
+                    y: (Mm(y.0 + height.0)).into(),
+                },
+                bezier: false,
+            },
+        ];
+
+        let polygon = Polygon {
+            rings: vec![PolygonRing { points }],
+            mode: PaintMode::Clip,
+            winding_order: WindingOrder::NonZero,
+        };
+
+        self.ops.push(Op::DrawPolygon { polygon });
+    }
+
+    /// End a clipping region
+    ///
+    /// Restores the graphics state to before `begin_clip_rect()` was called.
+    pub fn end_clip(&mut self) {
+        self.restore_graphics_state();
     }
 }

@@ -3,8 +3,12 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use pbn_to_pdf::config::Settings;
+use pbn_to_pdf::model::{Hand, Holding, Rank, Suit};
 use pbn_to_pdf::parser::parse_pbn;
+use pbn_to_pdf::render::components::{DummyRenderer, FanRenderer};
 use pbn_to_pdf::render::generate_pdf;
+use pbn_to_pdf::render::helpers::{CardAssets, LayerBuilder};
+use printpdf::{Mm, PdfDocument, PdfPage, PdfSaveOptions, PdfWarnMsg};
 
 fn fixtures_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures")
@@ -205,4 +209,332 @@ fn test_generate_all_pdfs() {
 
         println!("Generated PDFs for: {}", stem);
     }
+}
+
+/// Create a test hand with known cards
+fn create_test_hand() -> Hand {
+    // AKQ of spades, KQJ2 of hearts, A of diamonds, QJT98 of clubs
+    Hand::from_holdings(
+        Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]),
+        Holding::from_ranks([Rank::King, Rank::Queen, Rank::Jack, Rank::Two]),
+        Holding::from_ranks([Rank::Ace]),
+        Holding::from_ranks([Rank::Queen, Rank::Jack, Rank::Ten, Rank::Nine, Rank::Eight]),
+    )
+}
+
+/// Create a hand with void suits for testing edge cases
+fn create_hand_with_voids() -> Hand {
+    // 7 spades, 0 hearts, 3 diamonds, 3 clubs
+    Hand::from_holdings(
+        Holding::from_ranks([
+            Rank::Ace,
+            Rank::King,
+            Rank::Queen,
+            Rank::Jack,
+            Rank::Ten,
+            Rank::Nine,
+            Rank::Eight,
+        ]),
+        Holding::new(), // void in hearts
+        Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]),
+        Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]),
+    )
+}
+
+#[test]
+fn test_dummy_renderer_generates_pdf() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Create test hand
+    let hand = create_test_hand();
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Dummy Renderer Test");
+
+    // Load card assets
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+
+    // Create renderer and layer - spades first with alternating colors, 20% overlap
+    let renderer = DummyRenderer::with_overlap(&card_assets, 0.5, 0.20).first_suit(Suit::Spades);
+    let mut layer = LayerBuilder::new();
+
+    // Render the hand
+    let height = renderer.render(&mut layer, &hand, (Mm(50.0), Mm(250.0)));
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(210.0), Mm(297.0), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 1000, "PDF should have reasonable size");
+    assert!(height > 0.0, "Rendered height should be positive");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("dummy_test.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!("Dummy renderer test PDF written to: {:?}", output_path);
+}
+
+#[test]
+fn test_fan_renderer_generates_pdf() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Create test hand
+    let hand = create_test_hand();
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Fan Renderer Test");
+
+    // Load card assets
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+
+    // Create renderer and layer - with 45 degree arc for natural hand appearance
+    let renderer = FanRenderer::new(&card_assets, 0.4).arc(45.0);
+    let mut layer = LayerBuilder::new();
+
+    // Render the hand
+    let width = renderer.render(&mut layer, &hand, (Mm(20.0), Mm(180.0)));
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(297.0), Mm(210.0), layer.into_ops()); // Landscape for fan
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 1000, "PDF should have reasonable size");
+    assert!(width > 0.0, "Rendered width should be positive");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("fan_test.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!("Fan renderer test PDF written to: {:?}", output_path);
+}
+
+#[test]
+fn test_dummy_with_void_suits() {
+    // Create test hand with voids
+    let hand = create_hand_with_voids();
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Dummy Void Test");
+
+    // Load card assets
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+
+    // Create renderer and layer - clubs first with alternating colors
+    let renderer = DummyRenderer::new(&card_assets, 0.5).first_suit(Suit::Clubs);
+    let mut layer = LayerBuilder::new();
+
+    // Render the hand (should handle void suit gracefully)
+    let height = renderer.render(&mut layer, &hand, (Mm(50.0), Mm(250.0)));
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(210.0), Mm(297.0), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(
+        height > 0.0,
+        "Rendered height should be positive even with voids"
+    );
+
+    // Write to output for visual verification
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+    let output_path = output_dir.join("dummy_void_test.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+}
+
+#[test]
+fn test_card_renderer_dimensions() {
+    // Create PDF document just to load assets
+    let mut doc = PdfDocument::new("Dimensions Test");
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+
+    let hand = create_test_hand();
+
+    // Test DummyRenderer dimensions
+    let dummy_renderer = DummyRenderer::new(&card_assets, 0.5);
+    let (dummy_width, dummy_height) = dummy_renderer.dimensions(&hand);
+    assert!(dummy_width > 0.0, "Dummy width should be positive");
+    assert!(dummy_height > 0.0, "Dummy height should be positive");
+
+    // Test FanRenderer dimensions
+    let fan_renderer = FanRenderer::new(&card_assets, 0.4);
+    let (fan_width, fan_height) = fan_renderer.dimensions(&hand);
+    assert!(fan_width > 0.0, "Fan width should be positive");
+    assert!(fan_height > 0.0, "Fan height should be positive");
+
+    // Fan should be wider than tall, dummy should be taller than wide
+    assert!(
+        fan_width > fan_height,
+        "Fan layout should be wider than tall"
+    );
+    // Note: dummy may or may not be taller than wide depending on hand shape
+}
+
+/// Create a full deal (4 hands with all 52 cards distributed)
+fn create_full_deal() -> (Hand, Hand, Hand, Hand) {
+    // North: A-K of each suit (8 cards) + Q-J-T of spades (3 cards) + 9-8 of hearts (2 cards) = 13 cards
+    let north = Hand::from_holdings(
+        Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]),
+        Holding::from_ranks([Rank::Ace, Rank::King, Rank::Nine, Rank::Eight]),
+        Holding::from_ranks([Rank::Ace, Rank::King]),
+        Holding::from_ranks([Rank::Ace, Rank::King]),
+    );
+
+    // East: 9-8-7 of spades, Q-J-T of hearts, Q-J-T-9-8 of diamonds, Q-J of clubs = 13 cards
+    let east = Hand::from_holdings(
+        Holding::from_ranks([Rank::Nine, Rank::Eight, Rank::Seven]),
+        Holding::from_ranks([Rank::Queen, Rank::Jack, Rank::Ten]),
+        Holding::from_ranks([Rank::Queen, Rank::Jack, Rank::Ten, Rank::Nine, Rank::Eight]),
+        Holding::from_ranks([Rank::Queen, Rank::Jack]),
+    );
+
+    // South: 6-5-4 of spades, 7-6-5-4 of hearts, 7-6 of diamonds, T-9-8-7 of clubs = 13 cards
+    let south = Hand::from_holdings(
+        Holding::from_ranks([Rank::Six, Rank::Five, Rank::Four]),
+        Holding::from_ranks([Rank::Seven, Rank::Six, Rank::Five, Rank::Four]),
+        Holding::from_ranks([Rank::Seven, Rank::Six]),
+        Holding::from_ranks([Rank::Ten, Rank::Nine, Rank::Eight, Rank::Seven]),
+    );
+
+    // West: 3-2 of spades, 3-2 of hearts, 5-4-3-2 of diamonds, 6-5-4-3-2 of clubs = 13 cards
+    let west = Hand::from_holdings(
+        Holding::from_ranks([Rank::Three, Rank::Two]),
+        Holding::from_ranks([Rank::Three, Rank::Two]),
+        Holding::from_ranks([Rank::Five, Rank::Four, Rank::Three, Rank::Two]),
+        Holding::from_ranks([Rank::Six, Rank::Five, Rank::Four, Rank::Three, Rank::Two]),
+    );
+
+    (north, east, south, west)
+}
+
+#[test]
+fn test_full_deck_compass_layout() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Create the four hands
+    let (north, east, south, west) = create_full_deal();
+
+    // Verify we have exactly 52 cards
+    let total_cards =
+        north.card_count() + east.card_count() + south.card_count() + west.card_count();
+    assert_eq!(total_cards, 52, "Should have exactly 52 cards in the deal");
+
+    // Create PDF document (landscape A4 for better layout)
+    let mut doc = PdfDocument::new("Full Deck Compass Layout");
+
+    // Load card assets
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+
+    // Create layer
+    let mut layer = LayerBuilder::new();
+
+    // Page dimensions (landscape A4)
+    let page_width = 297.0;
+    let page_height = 210.0;
+    let center_x = page_width / 2.0;
+    let center_y = page_height / 2.0;
+
+    let dummy_scale = 0.35;
+    let fan_scale = 0.42; // 20% larger than dummy
+    let arc = 30.0;
+
+    // Card dimensions for positioning calculations (at fan scale)
+    let card_width = 58.94 * fan_scale; // CARD_WIDTH_MM * scale
+    let card_height = 85.61 * fan_scale; // CARD_HEIGHT_MM * scale
+
+    // Suit symbol width is roughly 1/6 of card width
+    let suit_symbol_width = card_width / 6.0;
+
+    // North: Dummy style at top center
+    let dummy_renderer = DummyRenderer::with_overlap(&card_assets, dummy_scale, 0.20)
+        .first_suit(Suit::Spades)
+        .show_bounds(true);
+    let (dummy_width, _) = dummy_renderer.dimensions(&north);
+    let north_x = center_x - dummy_width / 2.0;
+    let north_y = page_height - 15.0; // Near top
+    dummy_renderer.render(&mut layer, &north, (Mm(north_x), Mm(north_y)));
+
+    // South: Fan style at bottom center (facing up, like holding cards)
+    // Scale the south fan to match the dummy width
+    let temp_south_renderer = FanRenderer::new(&card_assets, 1.0).arc(arc);
+    let (temp_south_width, _) = temp_south_renderer.dimensions(&south);
+    let south_scale = dummy_width / temp_south_width;
+    let south_renderer = FanRenderer::new(&card_assets, south_scale)
+        .arc(arc)
+        .show_bounds(true);
+    let (south_width, south_height) = south_renderer.dimensions(&south);
+    let south_x = center_x - south_width / 2.0;
+    let south_y = 15.0 + south_height + 4.0 * suit_symbol_width; // Move up by 4 suit symbol widths
+    south_renderer.render(&mut layer, &south, (Mm(south_x), Mm(south_y)));
+
+    // West: Fan style rotated 90° clockwise (-90° CCW), on the left
+    // Origin is now the CENTER of the rotated fan
+    let west_renderer = FanRenderer::new(&card_assets, fan_scale)
+        .arc(arc)
+        .rotation(-90.0)
+        .show_bounds(true);
+    let west_x = 10.0 + 2.0 * card_height;
+    let west_y = center_y + 2.0 * suit_symbol_width; // Move up by 2 suit symbol widths
+    west_renderer.render(&mut layer, &west, (Mm(west_x), Mm(west_y)));
+
+    // East: Fan style rotated 90° counter-clockwise (90° CCW), on the right
+    // Origin is now the CENTER of the rotated fan - same Y as West for alignment
+    let east_renderer = FanRenderer::new(&card_assets, fan_scale)
+        .arc(arc)
+        .rotation(90.0)
+        .show_bounds(true);
+    let east_x = page_width - 10.0 - 2.0 * card_height;
+    let east_y = center_y + 2.0 * suit_symbol_width; // Move up by 2 suit symbol widths
+    east_renderer.render(&mut layer, &east, (Mm(east_x), Mm(east_y)));
+
+    // Create page with the rendered content (landscape A4)
+    let page = PdfPage::new(Mm(page_width), Mm(page_height), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 5000, "PDF should have reasonable size");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("full_deck_compass.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!(
+        "Full deck compass layout test PDF written to: {:?}",
+        output_path
+    );
 }

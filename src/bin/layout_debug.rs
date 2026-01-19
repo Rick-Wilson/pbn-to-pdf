@@ -4,8 +4,8 @@
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::render::get_measurer;
 use printpdf::{
-    Color, FontId, Line, LinePoint, Mm, Op, PaintMode, ParsedFont, PdfDocument, PdfPage,
-    PdfSaveOptions, Point, Polygon, PolygonRing, Pt, Rgb, TextItem, WindingOrder,
+    Color, FontId, Line, LinePoint, Mm, Op, PaintMode, ParsedFont, PdfDocument, PdfFontHandle,
+    PdfPage, PdfSaveOptions, Point, Polygon, PolygonRing, Pt, Rgb, TextItem, WindingOrder,
 };
 use std::fs::File;
 use std::io::BufWriter;
@@ -310,13 +310,12 @@ fn add_text_ops(ops: &mut Vec<Op>, text: &str, font_size: f32, x: f32, y: f32, f
             y: Mm(y).into(),
         },
     });
-    ops.push(Op::SetFontSize {
+    ops.push(Op::SetFont {
         size: Pt(font_size),
-        font: font.clone(),
+        font: PdfFontHandle::External(font.clone()),
     });
-    ops.push(Op::WriteText {
+    ops.push(Op::ShowText {
         items: vec![TextItem::Text(text.to_string())],
-        font: font.clone(),
     });
     ops.push(Op::EndTextSection);
 }
