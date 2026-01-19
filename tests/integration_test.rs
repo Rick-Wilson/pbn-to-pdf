@@ -151,8 +151,7 @@ fn test_generate_all_pdfs() {
         .expect("Failed to build project");
     assert!(build_status.success(), "Failed to build project");
 
-    let binary = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("target/release/pbn-to-pdf");
+    let binary = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target/release/pbn-to-pdf");
 
     for entry in pbn_files {
         let pbn_path = entry.path();
@@ -162,9 +161,11 @@ fn test_generate_all_pdfs() {
         let analysis_output = output_dir.join(format!("{}.pdf", stem));
         let status = Command::new(&binary)
             .args([
-                "--layout", "analysis",
+                "--layout",
+                "analysis",
                 pbn_path.to_str().unwrap(),
-                "-o", analysis_output.to_str().unwrap(),
+                "-o",
+                analysis_output.to_str().unwrap(),
             ])
             .status()
             .expect("Failed to run pbn-to-pdf for analysis");
@@ -183,9 +184,11 @@ fn test_generate_all_pdfs() {
         let bidding_output = output_dir.join(format!("{} - Bidding Sheets.pdf", stem));
         let status = Command::new(&binary)
             .args([
-                "--layout", "bidding-sheets",
+                "--layout",
+                "bidding-sheets",
                 pbn_path.to_str().unwrap(),
-                "-o", bidding_output.to_str().unwrap(),
+                "-o",
+                bidding_output.to_str().unwrap(),
             ])
             .status()
             .expect("Failed to run pbn-to-pdf for bidding-sheets");

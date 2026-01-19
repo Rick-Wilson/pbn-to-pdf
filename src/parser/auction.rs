@@ -178,21 +178,43 @@ mod tests {
     fn test_auction_with_note_references() {
         // Test =N= style annotations (as in Slam Judgment file)
         // =N= annotations are separate tokens, not counted as calls
-        let auction = parse_auction(Direction::East, "Pass Pass Pass 2NT =1= Pass 3H =2= Pass 4S").unwrap();
+        let auction = parse_auction(
+            Direction::East,
+            "Pass Pass Pass 2NT =1= Pass 3H =2= Pass 4S",
+        )
+        .unwrap();
         // 8 calls: Pass Pass Pass 2NT Pass 3H Pass 4S (=N= are annotations, not calls)
         assert_eq!(auction.calls.len(), 8);
         // 2NT (index 3) should have annotation "1"
-        assert_eq!(auction.calls[3].call, Call::Bid { level: 2, suit: BidSuit::NoTrump });
+        assert_eq!(
+            auction.calls[3].call,
+            Call::Bid {
+                level: 2,
+                suit: BidSuit::NoTrump
+            }
+        );
         assert_eq!(auction.calls[3].annotation, Some("1".to_string()));
         // 3H (index 5) should have annotation "2"
-        assert_eq!(auction.calls[5].call, Call::Bid { level: 3, suit: BidSuit::Hearts });
+        assert_eq!(
+            auction.calls[5].call,
+            Call::Bid {
+                level: 3,
+                suit: BidSuit::Hearts
+            }
+        );
         assert_eq!(auction.calls[5].annotation, Some("2".to_string()));
     }
 
     #[test]
     fn test_extract_annotation() {
-        assert_eq!(extract_annotation("1C!"), ("1C".to_string(), Some("!".to_string())));
-        assert_eq!(extract_annotation("2H=1="), ("2H".to_string(), Some("1".to_string())));
+        assert_eq!(
+            extract_annotation("1C!"),
+            ("1C".to_string(), Some("!".to_string()))
+        );
+        assert_eq!(
+            extract_annotation("2H=1="),
+            ("2H".to_string(), Some("1".to_string()))
+        );
         assert_eq!(extract_annotation("3NT"), ("3NT".to_string(), None));
         assert_eq!(extract_annotation("Pass$1"), ("Pass".to_string(), None));
     }

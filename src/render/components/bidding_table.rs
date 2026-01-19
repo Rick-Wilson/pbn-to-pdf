@@ -157,7 +157,8 @@ impl<'a> BiddingTableRenderer<'a> {
 
         // Render notes if present
         if !auction.notes.is_empty() {
-            let notes_height = self.render_notes(layer, auction, (ox, Mm(oy.0 - (row as f32 * row_height))));
+            let notes_height =
+                self.render_notes(layer, auction, (ox, Mm(oy.0 - (row as f32 * row_height))));
             row += (notes_height / row_height).ceil() as usize;
         }
 
@@ -166,13 +167,18 @@ impl<'a> BiddingTableRenderer<'a> {
     }
 
     /// Render an annotated call (call with optional superscript annotation)
-    fn render_annotated_call(&self, layer: &mut LayerBuilder, annotated: &AnnotatedCall, pos: (Mm, Mm)) {
+    fn render_annotated_call(
+        &self,
+        layer: &mut LayerBuilder,
+        annotated: &AnnotatedCall,
+        pos: (Mm, Mm),
+    ) {
         let call_width = self.render_call(layer, &annotated.call, pos);
 
         // If there's an annotation, render it as superscript
         if let Some(ref annotation) = annotated.annotation {
-            let sup_x = Mm(pos.0.0 + call_width);
-            let sup_y = Mm(pos.1.0 + (self.settings.body_font_size * SUPERSCRIPT_RISE * 0.352778)); // Convert pt to mm
+            let sup_x = Mm(pos.0 .0 + call_width);
+            let sup_y = Mm(pos.1 .0 + (self.settings.body_font_size * SUPERSCRIPT_RISE * 0.352778)); // Convert pt to mm
             let sup_size = self.settings.body_font_size * SUPERSCRIPT_RATIO;
 
             layer.set_fill_color(Color::Rgb(BLACK));

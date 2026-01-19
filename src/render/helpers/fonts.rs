@@ -4,11 +4,14 @@ use printpdf::{FontId, ParsedFont, PdfDocument};
 // Embed full fonts at compile time - printpdf 0.8 handles subsetting automatically
 const DEJAVU_SANS_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans.ttf");
 const DEJAVU_SANS_BOLD_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Bold.ttf");
-const DEJAVU_SANS_OBLIQUE_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Oblique.ttf");
-const DEJAVU_SANS_BOLD_OBLIQUE_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-BoldOblique.ttf");
+const DEJAVU_SANS_OBLIQUE_FULL: &[u8] =
+    include_bytes!("../../../assets/fonts/DejaVuSans-Oblique.ttf");
+const DEJAVU_SANS_BOLD_OBLIQUE_FULL: &[u8] =
+    include_bytes!("../../../assets/fonts/DejaVuSans-BoldOblique.ttf");
 
 // TeX Gyre Termes - Times New Roman clone for professional typesetting
-const TERMES_REGULAR_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-regular.ttf");
+const TERMES_REGULAR_FULL: &[u8] =
+    include_bytes!("../../../assets/fonts/texgyretermes-regular.ttf");
 const TERMES_BOLD_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-bold.ttf");
 const TERMES_ITALIC_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-italic.ttf");
 const TERMES_BOLD_ITALIC_FULL: &[u8] =
@@ -80,11 +83,15 @@ impl FontManager {
         let sans_bold = doc.add_font(&sans_bold_font);
 
         let sans_oblique_font = ParsedFont::from_bytes(DEJAVU_SANS_OBLIQUE_FULL, 0, &mut warnings)
-            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-Oblique".to_string()))?;
+            .ok_or_else(|| {
+                RenderError::FontLoad("Failed to parse DejaVuSans-Oblique".to_string())
+            })?;
         let sans_italic = doc.add_font(&sans_oblique_font);
 
-        let sans_bold_oblique_font = ParsedFont::from_bytes(DEJAVU_SANS_BOLD_OBLIQUE_FULL, 0, &mut warnings)
-            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-BoldOblique".to_string()))?;
+        let sans_bold_oblique_font =
+            ParsedFont::from_bytes(DEJAVU_SANS_BOLD_OBLIQUE_FULL, 0, &mut warnings).ok_or_else(
+                || RenderError::FontLoad("Failed to parse DejaVuSans-BoldOblique".to_string()),
+            )?;
         let sans_bold_italic = doc.add_font(&sans_bold_oblique_font);
 
         // Load TeX Gyre Termes family (serif)

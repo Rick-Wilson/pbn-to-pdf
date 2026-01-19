@@ -11,12 +11,16 @@ use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOption
 
 use crate::config::Settings;
 use crate::error::RenderError;
-use crate::model::{AnnotatedCall, Auction, BidSuit, Board, Call, Direction, Hand, Suit, Vulnerability};
+use crate::model::{
+    AnnotatedCall, Auction, BidSuit, Board, Call, Direction, Hand, Suit, Vulnerability,
+};
 
 use crate::render::helpers::colors::{SuitColors, BLACK, WHITE};
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
-use crate::render::helpers::text_metrics::{get_measurer, get_sans_bold_measurer, get_serif_measurer, TextMeasure};
+use crate::render::helpers::text_metrics::{
+    get_measurer, get_sans_bold_measurer, get_serif_measurer, TextMeasure,
+};
 
 /// Light gray color for debug boxes
 const DEBUG_BOX_COLOR: Rgb = Rgb {
@@ -128,7 +132,7 @@ impl BiddingSheetsRenderer {
         &self,
         layer: &mut LayerBuilder,
         left_text: &str,
-        left_text_short: &str,  // Shortened version without "(Practice Page)" etc
+        left_text_short: &str, // Shortened version without "(Practice Page)" etc
         title: Option<&str>,
         header_color: Rgb,
         font: &FontId,
@@ -166,7 +170,8 @@ impl BiddingSheetsRenderer {
         if let Some(title) = title {
             let left_text_width = measurer.measure_text(left_text, HEADER_FONT_SIZE);
             let min_gap = measurer.measure_text("     ", HEADER_FONT_SIZE); // 5 char gap
-            let available_for_title = content_width - left_text_width - min_gap - 2.0 * banner_padding;
+            let available_for_title =
+                content_width - left_text_width - min_gap - 2.0 * banner_padding;
 
             if available_for_title > 0.0 {
                 let title_width = measurer.measure_text(title, HEADER_FONT_SIZE);
@@ -177,7 +182,8 @@ impl BiddingSheetsRenderer {
                 } else {
                     // Try with shorter left text
                     let short_left_width = measurer.measure_text(left_text_short, HEADER_FONT_SIZE);
-                    let available_with_short = content_width - short_left_width - min_gap - 2.0 * banner_padding;
+                    let available_with_short =
+                        content_width - short_left_width - min_gap - 2.0 * banner_padding;
 
                     if title_width <= available_with_short {
                         // Title fits with shorter left text - but we already drew full left text
@@ -353,20 +359,21 @@ impl BiddingSheetsRenderer {
                 let context_lines: f32 = 4.0;
                 let hand_lines: f32 = 4.0;
                 // Measure for both North and South, take the max
-                let north_setup_lines = self.count_auction_setup_lines(board, Direction::North) as f32;
-                let south_setup_lines = self.count_auction_setup_lines(board, Direction::South) as f32;
+                let north_setup_lines =
+                    self.count_auction_setup_lines(board, Direction::North) as f32;
+                let south_setup_lines =
+                    self.count_auction_setup_lines(board, Direction::South) as f32;
                 let setup_lines = north_setup_lines.max(south_setup_lines);
 
-                let practice_height = context_lines
-                    .max(hand_lines)
-                    .max(setup_lines)
-                    * practice_line_height;
+                let practice_height =
+                    context_lines.max(hand_lines).max(setup_lines) * practice_line_height;
 
                 // Answers page: measure actual auction height
                 let (auction_height, _) = if let Some(ref auction) = board.auction {
                     // Do a dry-run render to get actual height
                     let mut dummy_layer = LayerBuilder::new();
-                    let height = self.render_auction_table(
+
+                    self.render_auction_table(
                         &mut dummy_layer,
                         auction,
                         0.0, // x doesn't matter for height
@@ -376,15 +383,16 @@ impl BiddingSheetsRenderer {
                         bold_font,
                         symbol_font,
                         &colors,
-                    );
-                    height
+                    )
                 } else {
                     (line_height, line_height)
                 };
 
                 let answers_context_height = 6.0 * line_height;
                 let answers_hand_height = 5.0 * line_height;
-                let answers_height = answers_context_height.max(answers_hand_height).max(auction_height);
+                let answers_height = answers_context_height
+                    .max(answers_hand_height)
+                    .max(auction_height);
 
                 eprintln!(
                     "  measure board {}: practice={:.2} (setup_lines={:.0}), answers={:.2}",
@@ -411,8 +419,14 @@ impl BiddingSheetsRenderer {
         let available_height = self.available_content_height();
         eprintln!("=== Page break calculations ===");
         eprintln!("Page height: {}", self.settings.page_height);
-        eprintln!("Margin top: {}, bottom: {}", self.settings.margin_top, self.settings.margin_bottom);
-        eprintln!("Banner height: {}, after banner gap: {}", BANNER_HEIGHT, AFTER_BANNER_GAP);
+        eprintln!(
+            "Margin top: {}, bottom: {}",
+            self.settings.margin_top, self.settings.margin_bottom
+        );
+        eprintln!(
+            "Banner height: {}, after banner gap: {}",
+            BANNER_HEIGHT, AFTER_BANNER_GAP
+        );
         eprintln!("Available content height: {}", available_height);
         eprintln!("ROW_GAP between boards: {}", ROW_GAP);
         eprintln!();
@@ -457,7 +471,10 @@ impl BiddingSheetsRenderer {
 
                 if current_height + height_needed > available_height && end > start {
                     // This board won't fit, but we have at least one board
-                    eprintln!("  -> Board {} does not fit, breaking page", boards[end].number.unwrap_or(0));
+                    eprintln!(
+                        "  -> Board {} does not fit, breaking page",
+                        boards[end].number.unwrap_or(0)
+                    );
                     break;
                 }
 
@@ -470,7 +487,12 @@ impl BiddingSheetsRenderer {
                 end = start + 1;
             }
 
-            eprintln!("Page set contains boards {} to {} (total height: {:.2})", start, end - 1, current_height);
+            eprintln!(
+                "Page set contains boards {} to {} (total height: {:.2})",
+                start,
+                end - 1,
+                current_height
+            );
             eprintln!();
             sets.push(&boards[start..end]);
             start = end;
@@ -621,7 +643,12 @@ impl BiddingSheetsRenderer {
                 let visual_bottom = box_top - box_height;
                 let next_board_top = row_start_y - row_height - ROW_GAP + cap_height;
                 let line_y = (visual_bottom + next_board_top) / 2.0;
-                self.draw_separator_line(layer, line_y, PRACTICE_SEPARATOR_THICKNESS, header_color.clone());
+                self.draw_separator_line(
+                    layer,
+                    line_y,
+                    PRACTICE_SEPARATOR_THICKNESS,
+                    header_color.clone(),
+                );
             }
 
             current_y = row_start_y - row_height - ROW_GAP;
@@ -725,21 +752,22 @@ impl BiddingSheetsRenderer {
 
             // Column 4: Auction table - capture actual height and last line height
             let col4_x = margin_left + CONTEXT_COLUMN_WIDTH + 2.0 * HAND_COLUMN_WIDTH;
-            let (auction_height, auction_last_line_height) = if let Some(ref auction) = board.auction {
-                self.render_auction_table(
-                    layer,
-                    auction,
-                    col4_x,
-                    current_y,
-                    ANSWERS_FONT_SIZE,
-                    text_font,
-                    bold_font,
-                    symbol_font,
-                    &colors,
-                )
-            } else {
-                (line_height, line_height)
-            };
+            let (auction_height, auction_last_line_height) =
+                if let Some(ref auction) = board.auction {
+                    self.render_auction_table(
+                        layer,
+                        auction,
+                        col4_x,
+                        current_y,
+                        ANSWERS_FONT_SIZE,
+                        text_font,
+                        bold_font,
+                        symbol_font,
+                        &colors,
+                    )
+                } else {
+                    (line_height, line_height)
+                };
 
             // Calculate row height using actual auction height
             let context_height = 6.0 * line_height; // More lines on answers page
@@ -747,11 +775,12 @@ impl BiddingSheetsRenderer {
             let row_height = context_height.max(hand_height).max(auction_height);
 
             // Determine which column is tallest and use its last line height
-            let last_line_height = if auction_height >= context_height && auction_height >= hand_height {
-                auction_last_line_height
-            } else {
-                line_height
-            };
+            let last_line_height =
+                if auction_height >= context_height && auction_height >= hand_height {
+                    auction_last_line_height
+                } else {
+                    line_height
+                };
 
             // Draw debug boxes using actual heights
             let cap_height = measurer.cap_height_mm(ANSWERS_FONT_SIZE);
@@ -798,7 +827,12 @@ impl BiddingSheetsRenderer {
                 let visual_bottom = box_top - box_height;
                 let next_board_top = row_start_y - row_height - ROW_GAP + cap_height;
                 let line_y = (visual_bottom + next_board_top) / 2.0;
-                self.draw_separator_line(layer, line_y, ANSWERS_SEPARATOR_THICKNESS, header_color.clone());
+                self.draw_separator_line(
+                    layer,
+                    line_y,
+                    ANSWERS_SEPARATOR_THICKNESS,
+                    header_color.clone(),
+                );
             }
 
             current_y = row_start_y - row_height - ROW_GAP;
@@ -873,13 +907,7 @@ impl BiddingSheetsRenderer {
             } else {
                 format!("HCP: {}", hcp)
             };
-            layer.use_text(
-                hcp_str,
-                font_size,
-                Mm(x),
-                Mm(current_y),
-                text_font,
-            );
+            layer.use_text(hcp_str, font_size, Mm(x), Mm(current_y), text_font);
         }
     }
 
@@ -951,13 +979,7 @@ impl BiddingSheetsRenderer {
         } else {
             format!("North HCP: {}", north_hcp)
         };
-        layer.use_text(
-            north_hcp_str,
-            font_size,
-            Mm(x),
-            Mm(current_y),
-            text_font,
-        );
+        layer.use_text(north_hcp_str, font_size, Mm(x), Mm(current_y), text_font);
         current_y -= line_height;
 
         // South HCP with length points
@@ -968,13 +990,7 @@ impl BiddingSheetsRenderer {
         } else {
             format!("South HCP: {}", south_hcp)
         };
-        layer.use_text(
-            south_hcp_str,
-            font_size,
-            Mm(x),
-            Mm(current_y),
-            text_font,
-        );
+        layer.use_text(south_hcp_str, font_size, Mm(x), Mm(current_y), text_font);
         current_y -= line_height;
 
         // Contract (if available)
@@ -1181,7 +1197,10 @@ impl BiddingSheetsRenderer {
                     Call::Double => {
                         if let Some((level, suit)) = prev_bid {
                             lines.push(MixedText::double_action_with_position(
-                                current_seat, position, level, suit,
+                                current_seat,
+                                position,
+                                level,
+                                suit,
                             ));
                         }
                         found_opp_bid = true;
@@ -1434,7 +1453,16 @@ impl BiddingSheetsRenderer {
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
-        let call_width = self.render_call(layer, &annotated.call, x, y, font_size, text_font, symbol_font, colors);
+        let call_width = self.render_call(
+            layer,
+            &annotated.call,
+            x,
+            y,
+            font_size,
+            text_font,
+            symbol_font,
+            colors,
+        );
 
         // If there's an annotation, render it as superscript
         if let Some(ref annotation) = annotated.annotation {
@@ -1513,7 +1541,6 @@ impl BiddingSheetsRenderer {
             }
         }
     }
-
 }
 
 /// Mixed text with plain text and suit symbols

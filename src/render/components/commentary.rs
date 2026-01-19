@@ -2,12 +2,12 @@ use crate::config::Settings;
 use crate::model::{CommentaryBlock, FormattedText, Suit, TextSpan};
 use printpdf::{Color, FontId, Mm};
 
+use crate::model::card::Rank;
 use crate::render::helpers::colors::{SuitColors, BLACK};
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::{
     get_measurer, get_sans_bold_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer,
 };
-use crate::model::card::Rank;
 
 /// Parameters for floating layout
 #[derive(Debug, Clone)]
@@ -129,20 +129,19 @@ fn tokenize_spans(
     let mut in_card_list = false;
 
     // Helper to flush the current word group
-    let flush_group =
-        |tokens: &mut Vec<RenderToken>,
-         group: &mut Vec<RenderFragment>,
-         width: &mut f32,
-         in_card_list: &mut bool| {
-            if !group.is_empty() {
-                tokens.push(RenderToken::WordGroup(WordGroup {
-                    fragments: std::mem::take(group),
-                    width: *width,
-                }));
-                *width = 0.0;
-            }
-            *in_card_list = false;
-        };
+    let flush_group = |tokens: &mut Vec<RenderToken>,
+                       group: &mut Vec<RenderFragment>,
+                       width: &mut f32,
+                       in_card_list: &mut bool| {
+        if !group.is_empty() {
+            tokens.push(RenderToken::WordGroup(WordGroup {
+                fragments: std::mem::take(group),
+                width: *width,
+            }));
+            *width = 0.0;
+        }
+        *in_card_list = false;
+    };
 
     for span in spans {
         match span {
@@ -224,8 +223,8 @@ fn tokenize_spans(
                 // Don't forget remaining characters in current_word
                 if !current_word.is_empty() {
                     // Check if this is a rank character
-                    let is_rank =
-                        current_word.len() == 1 && is_rank_char(current_word.chars().next().unwrap());
+                    let is_rank = current_word.len() == 1
+                        && is_rank_char(current_word.chars().next().unwrap());
                     let w = measurer.measure_width_mm(&current_word, font_size);
                     current_group.push(RenderFragment::Text {
                         text: current_word,
@@ -467,7 +466,11 @@ impl<'a> CommentaryRenderer<'a> {
             }
 
             // Calculate total space units needed (sum of all space counts between words)
-            let total_space_units: usize = line_groups.iter().skip(1).map(|(_, count)| (*count).max(1)).sum();
+            let total_space_units: usize = line_groups
+                .iter()
+                .skip(1)
+                .map(|(_, count)| (*count).max(1))
+                .sum();
 
             // Calculate space width for justification
             let space_width = if justify && !is_paragraph_end && total_space_units > 0 {

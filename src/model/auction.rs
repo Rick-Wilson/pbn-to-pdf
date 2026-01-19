@@ -137,10 +137,7 @@ impl Auction {
     }
 
     pub fn add_annotated_call(&mut self, call: Call, annotation: Option<String>) {
-        self.calls.push(AnnotatedCall {
-            call,
-            annotation,
-        });
+        self.calls.push(AnnotatedCall { call, annotation });
     }
 
     pub fn final_contract(&self) -> Option<Contract> {
