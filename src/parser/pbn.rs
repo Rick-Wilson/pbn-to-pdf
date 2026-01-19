@@ -8,6 +8,16 @@ use super::header::parse_headers;
 use super::play::parse_play;
 use super::tags::{parse_tag_pair, TagPair};
 
+/// Parse a note value in format "N:text" where N is the note number
+/// Returns (note_number, note_text) if successful
+fn parse_note_value(value: &str) -> Option<(u8, String)> {
+    let colon_pos = value.find(':')?;
+    let num_str = &value[..colon_pos];
+    let text = &value[colon_pos + 1..];
+    let num = num_str.parse::<u8>().ok()?;
+    Some((num, text.to_string()))
+}
+
 /// Result of parsing a PBN file
 #[derive(Debug)]
 pub struct PbnFile {
@@ -265,6 +275,16 @@ fn process_tag(
             *in_auction = false;
             if let Some(dir) = tag.value.chars().next().and_then(Direction::from_char) {
                 *play_leader = Some(dir);
+            }
+        }
+        "Note" => {
+            // Parse note in format "N:text" where N is the note number
+            if let Some(ref mut board) = current_board {
+                if let Some((num, text)) = parse_note_value(&tag.value) {
+                    if let Some(ref mut auction) = board.auction {
+                        auction.add_note(num, text);
+                    }
+                }
             }
         }
         _ => {

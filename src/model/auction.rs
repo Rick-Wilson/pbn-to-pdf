@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 
 use super::deal::Direction;
@@ -113,6 +114,8 @@ pub struct Auction {
     pub dealer: Direction,
     pub calls: Vec<AnnotatedCall>,
     pub is_passed_out: bool,
+    /// Notes/alerts referenced by =N= in the auction
+    pub notes: HashMap<u8, String>,
 }
 
 impl Auction {
@@ -121,11 +124,23 @@ impl Auction {
             dealer,
             calls: Vec::new(),
             is_passed_out: false,
+            notes: HashMap::new(),
         }
+    }
+
+    pub fn add_note(&mut self, number: u8, text: String) {
+        self.notes.insert(number, text);
     }
 
     pub fn add_call(&mut self, call: Call) {
         self.calls.push(AnnotatedCall::new(call));
+    }
+
+    pub fn add_annotated_call(&mut self, call: Call, annotation: Option<String>) {
+        self.calls.push(AnnotatedCall {
+            call,
+            annotation,
+        });
     }
 
     pub fn final_contract(&self) -> Option<Contract> {

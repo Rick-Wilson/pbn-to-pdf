@@ -2,15 +2,17 @@ use crate::error::RenderError;
 use printpdf::{FontId, ParsedFont, PdfDocument};
 
 // Embed full fonts at compile time - printpdf 0.8 handles subsetting automatically
-const DEJAVU_SANS_FULL: &[u8] = include_bytes!("../../assets/fonts/DejaVuSans.ttf");
-const DEJAVU_SANS_BOLD_FULL: &[u8] = include_bytes!("../../assets/fonts/DejaVuSans-Bold.ttf");
+const DEJAVU_SANS_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans.ttf");
+const DEJAVU_SANS_BOLD_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Bold.ttf");
+const DEJAVU_SANS_OBLIQUE_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Oblique.ttf");
+const DEJAVU_SANS_BOLD_OBLIQUE_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-BoldOblique.ttf");
 
 // TeX Gyre Termes - Times New Roman clone for professional typesetting
-const TERMES_REGULAR_FULL: &[u8] = include_bytes!("../../assets/fonts/texgyretermes-regular.ttf");
-const TERMES_BOLD_FULL: &[u8] = include_bytes!("../../assets/fonts/texgyretermes-bold.ttf");
-const TERMES_ITALIC_FULL: &[u8] = include_bytes!("../../assets/fonts/texgyretermes-italic.ttf");
+const TERMES_REGULAR_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-regular.ttf");
+const TERMES_BOLD_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-bold.ttf");
+const TERMES_ITALIC_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-italic.ttf");
 const TERMES_BOLD_ITALIC_FULL: &[u8] =
-    include_bytes!("../../assets/fonts/texgyretermes-bolditalic.ttf");
+    include_bytes!("../../../assets/fonts/texgyretermes-bolditalic.ttf");
 
 /// Font family for a font set
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -77,8 +79,13 @@ impl FontManager {
             .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-Bold".to_string()))?;
         let sans_bold = doc.add_font(&sans_bold_font);
 
-        // Sans italic - use regular as fallback (DejaVu Sans Oblique not included)
-        let sans_italic = sans_regular.clone();
+        let sans_oblique_font = ParsedFont::from_bytes(DEJAVU_SANS_OBLIQUE_FULL, 0, &mut warnings)
+            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-Oblique".to_string()))?;
+        let sans_italic = doc.add_font(&sans_oblique_font);
+
+        let sans_bold_oblique_font = ParsedFont::from_bytes(DEJAVU_SANS_BOLD_OBLIQUE_FULL, 0, &mut warnings)
+            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-BoldOblique".to_string()))?;
+        let sans_bold_italic = doc.add_font(&sans_bold_oblique_font);
 
         // Load TeX Gyre Termes family (serif)
         let serif_regular_font = ParsedFont::from_bytes(TERMES_REGULAR_FULL, 0, &mut warnings)
@@ -110,7 +117,7 @@ impl FontManager {
                 regular: sans_regular.clone(),
                 bold: sans_bold.clone(),
                 italic: sans_italic.clone(),
-                bold_italic: sans_italic.clone(), // Sans doesn't have bold-italic
+                bold_italic: sans_bold_italic,
             },
             serif: FontSet {
                 regular: serif_regular.clone(),
@@ -162,10 +169,10 @@ impl FontManager {
 /// Convert a suit to its display character
 pub fn suit_char(suit: &crate::model::Suit) -> char {
     match suit {
-        crate::model::Suit::Spades => '\u{2660}',   // ♠ BLACK SPADE SUIT
-        crate::model::Suit::Hearts => '\u{2665}',   // ♥ BLACK HEART SUIT
+        crate::model::Suit::Spades => '\u{2660}', // ♠ BLACK SPADE SUIT
+        crate::model::Suit::Hearts => '\u{2665}', // ♥ BLACK HEART SUIT
         crate::model::Suit::Diamonds => '\u{2666}', // ♦ BLACK DIAMOND SUIT
-        crate::model::Suit::Clubs => '\u{2663}',    // ♣ BLACK CLUB SUIT
+        crate::model::Suit::Clubs => '\u{2663}',  // ♣ BLACK CLUB SUIT
     }
 }
 

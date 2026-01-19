@@ -1,0 +1,390 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.116
+%Created: Mon Jan 12 12:30:58 2026 -0800
+%BCOptions Float Justify NoHRStats PageHeader STBorder STShade ShowHCP
+%BidAndCardSpacing Hair
+%BoardsPerPage fit,1
+%CardTableColors #008000,#ffffff,#aaaaaa
+%DDAFormat 0
+%DefaultPagination 0
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Arial",12,400,0
+%Font:Diagram "Arial",12,400,0
+%Font:Event "Arial",18,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%GutterSize 500,500
+%HRTitleDate 2017.06.26
+%HRTitleEvent "The Negative Double"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite ""
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,500,750
+%PageFooter:0,0 "%D\\n%s"
+%PageFooter:0,1 "Presented by\\nGrant Robinson"
+%PageFooter:0,2 "%n"
+%PageFooterFirstPageNumber 7
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SectionSpacing 12,0,0
+%SelectedBoard 0
+%ShowBoardLabels 1
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "Deal %"
+[Event "The Negative Double"]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.03.04"]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:63.K532.K2.AKJ63 AJT75.QJ7.QJ4.Q2 K82.AT84.A97.T98 Q94.96.T8653.754"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "4H"]
+[Result ""]
+{<b>Bidding. </b>South uses a negative double to show that he would have responded
+1\H. He should hold five hearts and at least 11 points to respond 2\H. South is
+prepared to bid 2NT if North rebids 2\D.
+
+North bids 2\H (13–16 support points), just as he would have done had South
+responded 1\H.
+
+South holds game-invitational strength, so bids once more. North holds a
+maximum for the previous bidding and continues to game.
+
+<b>Defense. </b>East holds unattractive holdings for leading spades, hearts, or clubs.
+West cannot be expected to hold many values. The \DQ seems best. West can
+encourage with the \D8 since she holds the \D10, an equivalent honor to East's
+presumed \DJ.
+
+<b>Declarer play. </b>Declarer counts six sure winners. Declarer hopes for a winning
+spade finesse (very likely to work), a length trick from hearts, and two or
+three additional tricks from clubs.
+
+Declarer should duck one round of hearts to maintain control should they divide
+4-1. She can then play \HK-A (unless East proves to hold four hearts) before
+taking the club finesse.
+
+Declarer should end up with at least 10 tricks for plus 420.
+
+<b>Key point.</b> Bidding your own suit at the two-level or higher after an overcall
+promises five cards. Double of a 1\S overcall shows four (or more) hearts and
+eight or more points.  After making a negative double, responder may be
+prepared to bid 2NT or 3NT if a major-suit fit isn't revealed.}
+[BCFlags "1f"]
+[RotationNote "Board 1, chOption: N, chBasis: N, basisKind:Declarer, nOption:0, nBasis: 0, nRot: 0, useStandardVul: false"]
+[ScoreTable "Section\1L;PairId_NS\2R;PairId_EW\2R;Contract\4L;Declarer\1L;Lead\2L;Result\2R;Score_NS\5R;Score_EW\5R;MP_NS\4R;MP_EW\4R;Names_NS;Names_EW"]
+[Auction "N"]
+1C 1S X =1= Pass
+2H Pass 3H Pass
+4H AP
+[Note "1:Negative double showing four hearts"]
+[Play "E"]
+DQ
+
+[Event ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "EW"]
+[Deal "S:AJ3.AK632.J83.95 KQ974.Q98.KT.Q43 T6.T5.A964.AJT72 852.J74.Q752.K86"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "1NT"]
+[Result ""]
+{<b>Bidding. </b>North uses a negative double to show both minors. North isn't strong
+enough to bid 2\C, though the good club suit is worth more than it looks.
+Unless South shows some extra values then game is out of reach.
+
+East should not raise spades. His spades are poor, he holds minimum values,
+and he has no shortness to gain tricks by ruffing.
+
+South does best to rebid 1NT with his decent spade holding. He should on no
+account pass the double for penalties unless holding four spades (1\S goes set
+only with perfect defense).
+
+<b>Defense. </b>West should start with his fourth-best \S7. When leading your own
+suit, lead an honor against a notrump contract only from a sequence. East
+cannot contribute the \S9 or higher, so should give count with the \S2.
+
+<b>Declarer play. </b>Declarer counts five sure winners. Clubs provide the best chance
+for more.
+
+Wanting to start clubs from her hand, declarer ducks the spade lead to his
+jack. This is also the best play if East should hold a high honor in spades.
+North then leads the \C9 (high card from the shorter side) for a double finesse,
+playing low from dummy unless West plays the queen.
+
+East will win the \CK and continue spades by playing the eight, highest of a
+remaining doubleton. Declarer can hold up her ace, but West will persist with
+spades.
+
+Declarer now leads the \C5 for a second finesse of clubs. This wins, and the
+\CA draws the queen. Declarer now has no fewer than nine tricks for plus 150.
+Perhaps North should have bid more strongly!
+
+<b>Key point.</b> Double of a 1\S overcall shows four (or more) hearts and eight or
+more points. Opener rebids as if partner had responded 1\H.}
+[BCFlags "1f"]
+[RotationNote "Board 2, chOption: S, chBasis: E, basisKind:Declarer, nOption:2, nBasis: 1, nRot: 1, useStandardVul: false"]
+[Auction "S"]
+1H 1S X =1= Pass
+1NT AP
+[Note "1:Negative double showing both minors"]
+[Play "W"]
+S7
+
+[Event ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "EW"]
+[Deal "N:8.A542.KQT87.KJ7 KQJ96.983.A6.QT8 542.KQT6.95.A942 AT73.J7.J432.653"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "4H"]
+[Result ""]
+{<b>Bidding. </b>South uses a negative double to show that he would have responded
+1\H. South also holds the other unbid suit, clubs.
+
+West should raise the spade overcall to 2\S or 3\S (weak). If West bids only
+2\S, North holds 16 points in support of hearts, and stretches a point to rebid
+3 \H. South holds enough to make game a good proposition.
+
+If West bids 3\S, North should pass and South might double again to show extra
+values.. North should then bid game in hearts. Note how West's preemptive
+action can make it more difficult for South-North to reach game. 3\S goes set
+one trick, so perhaps should be bid only if not vulnerable.
+
+<b>Defense. </b>East should lead the \SK, highest of touching honors against a suit
+contract, and should continue spades from the solid sequence.
+
+<b>Declarer play. </b>Declarer counts five sure tricks. Declarer hopes for one more
+from heart length, and can get three or four more from diamonds. If necessary,
+the club finesse will have to be risked.
+
+Declarer ruffs the second spade. Declarer wants to start diamonds from dummy,
+so leads a low heart to the king. He then makes the key play of the \D 9,
+playing low from his hand. When this draws the \D A, the rest should be easy.
+
+Playing diamonds this way is indicated because East surely holds the \D A for
+the overcall since she does not hold the \S A, and may well be short in
+diamonds. Taking advantage of the \D 9 picks up the \D J x x x from West.
+
+Declarer can finish with 11 tricks for plus 450.
+
+<b>Key point.</b> In a competitive auction, jump raises of opening bids and overcalls
+are weak based on a nine-card fit and less than constructive values (4-7
+support points).}
+[BCFlags "1f"]
+[RotationNote "Board 3, chOption: N, chBasis: S, basisKind:Declarer, nOption:0, nBasis: 2, nRot: 2, useStandardVul: false"]
+[Auction "N"]
+1D 1S X =1= 2S $2
+3H Pass 4H AP
+[Note "1:Negative double showing four hearts"]
+[Play "E"]
+SK
+
+[Event ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "All"]
+[Deal "S:KT74.AJ5.92.AQ53 62.KQT98.KJT.872 AJ53.76.AQ64.K96 Q98.432.8753.JT4"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4S"]
+[Result ""]
+{<b>Bidding. </b>West's 1\H overcall does not keep North from responding 1\S. Most
+would instead use a negative double to show exactly four spades, reserving a
+1\S response to show five or more.
+
+South raises spades,¹ just as she would have done had North responded 1\S. North
+holds enough to bid game.
+
+¹ Some would bid 2\S, as if responder bid 1\S, to show four spades and obstruct
+overcaller's rebid.
+
+<b>Defense. </b>West should lead the \HK, highest of touching honors against a suit
+contract. East does not hold an equivalent honor (ace or jack) and so
+discourages with the \H2.
+
+West should note East's discouraging \H2 and switch to a passive club, the
+\C8 (top of nothing) to deny strength in the suit.
+
+<b>Declarer play. </b>Declarer counts seven sure winners and needs three more. One
+additional trick might come from a successful spade finesse, and another from
+spade length. A successful diamond finesse and a 3-3 division of clubs are two
+additional chances, and perhaps a heart or club can be ruffed in dummy.
+
+South should begin by ducking the opening lead of the \HK. Declarer has no
+immediate discard for a heart loser, and the duck keeps West from continuing
+hearts lest declarer score an undeserved trick with the \HJ.
+
+Declarer can take the spade finesse either way. He would prefer to keep East
+from leading a heart through his jack, so plays \SA and a low spade to the 10.
+If West could win this trick, she still could not lead a second heart
+productively.
+
+When the spade finesse wins, declarer can play the \SK to draw the remaining
+trump. Declarer now has ten tricks (with inevitable ruff in dummy), and can try
+the diamond finesse for an overtrick. When the diamond finesse wins and the
+clubs divide 3-3, declarer finishes with no fewer then 12 tricks for plus 680.
+Some days everything works!
+
+<b>Key point.</b> Double of a 1\H overcall shows exactly four spades. Bidding 1\S
+shows five or more, which simplifies subsequent bidding decisions.}
+[BCFlags "1f"]
+[RotationNote "Board 4, chOption: S, chBasis: W, basisKind:Declarer, nOption:2, nBasis: 3, nRot: 3, useStandardVul: false"]
+[Auction "S"]
+1C 1H X =1= Pass
+1S Pass 4S AP
+[Note "1:Negative showing exactly four spades"]
+[Play "W"]
+HK
+
+[Event ""]
+[Date ""]
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "NS"]
+[Deal "N:AKJ2.AK762.J9.96 7.QJT3.AKQT5.Q52 Q543.5.8643.AK74 T986.984.72.JT83"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "4S"]
+[Result ""]
+{<b>Bidding. </b>South uses a negative double to show that she would have responded
+1\S. South also holds the other unbid suit, clubs.
+
+North jumps in spades to show extra values (17–18 support points).
+
+South reevaluates to 12 points, well enough to bid game.
+
+<b>Defense. </b>East starts with the \DA, West encouraging with the seven since she
+desires a ruff. East continues with high diamonds, and West should discard a
+low heart on the third diamond. This preserves the club length to match that of
+dummy, and at the same time prepares West to ruff hearts.
+
+<b>Declarer play. </b>Declarer counts eight sure tricks. Declarer plans to develop
+more by ruffing hearts and by heart length.
+
+Declarer cannot draw trumps as they are required for ruffing hearts and for
+entries to hand. Declarer starts with the \HA-K and a third heart to ruff in
+dummy.
+
+Somewhat disappointingly, West ruffs the third heart. Don't panic, you're not
+set yet! West must return a club (or a trump). Declarer can now play a spade to
+her hand and ruff another heart with the \SQ so that West cannot overruff. Now
+the last spade from dummy allows declarer to pull trumps and enjoy her long
+heart for plus 620.
+
+<b>Key point.</b> Don't look down on shortness in opener's first suit when you're
+dummy for opener's second suit. Ruffs are tricks, and can be used to establish
+length winners.}
+[BCFlags "1f"]
+[RotationNote "Board 5, chOption: N, chBasis: N, basisKind:Declarer, nOption:0, nBasis: 0, nRot: 0, useStandardVul: false"]
+[Auction "N"]
+1H 2D X =1= Pass
+3S Pass 4S AP
+[Note "1:Negative double showing four spades"]
+[Play "E"]
+DA
+
+[Event ""]
+[Date ""]
+[Board "6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "NS"]
+[Deal "S:86.K2.AK6.AKJT98 AKQ94.983.Q5.642 753.AJ74.JT92.Q7 JT2.QT65.8743.53"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "5C"]
+[Result ""]
+{<b>Bidding. </b>North uses a negative double to show that she would have responded
+1\H. She also holds the other unbid suit, diamonds.
+
+South holds 20 points, too much to just jump to 3\C. 4\C is a possibility, but
+that goes past 3NT. Best is to cue-bid 2\S, a general forcing bid, to leave
+open the opportunity to play 3NT.
+
+North has no spade guard for notrump, and can do no better than to show four
+diamonds (in addition to the four hearts she already showed). South now shows
+his hand by bidding 4\C. With nothing wasted for South-North in spades, North bids
+game in clubs.
+
+<b>Defense. </b>West should start with the \SA (highest of touching honors against a
+suit contract), on which East should discourage with the two. Regardless,
+West should continue with high spades. Knowing that East can have very little
+given the bidding and her hand, West leaves it to declarer to find enough
+tricks.
+
+<b>Declarer play. </b>Declarer counts 10 sure tricks and needs one more. A successful
+finesse of diamonds or hearts will land the contract, but a losing finesse will
+sink the contract immediately.
+
+Since declarer can try only one finesse, declarer first plays the A-K in one of
+the suits to try to catch the queen.
+
+<i>Chance 1. </i>Declarer should pull trump, then play \DA-K to see if the queen
+drops. It does, declarer has eleven tricks for plus 600. South fulfills the
+contract even though neither finesse is working!
+
+<i>Chance 2. </i>Had the \DQ not fallen, only then would declarer have to risk the
+heart finesse by playing \HK and a heart to the \HJ.
+
+Why play off the high diamonds rather than the high hearts? A finesse is a
+50-50 proposition, but not so catching a doubleton queen. Holding more combined
+diamonds than hearts, it is more likely that a defender holds \DQ x than \HQ x.
+
+<b>Key point.</b> Hands with a long minor suit and 19–21 points are awkward to bid.
+After opening your suit, you may have to guess whether to jump to 3NT or make a
+“prepared” reverse or jump-shift in a three-card suit.  •  As declarer, look
+for ways to combine your various chances.}
+[BCFlags "1f"]
+[RotationNote "Board 6, chOption: S, chBasis: E, basisKind:Declarer, nOption:2, nBasis: 1, nRot: 1, useStandardVul: false"]
+[Auction "S"]
+1C 1S X =1= Pass
+2S =2= Pass 3D Pass
+4C Pass 5C AP
+[Note "1:Negative double showing four hearts"]
+[Note "2:Forcing"]
+[Play "W"]
+SA

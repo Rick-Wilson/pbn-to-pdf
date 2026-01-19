@@ -7,7 +7,7 @@ pub mod hand;
 pub mod metadata;
 pub mod play;
 
-pub use auction::{Auction, BidSuit, Call, Contract};
+pub use auction::{AnnotatedCall, Auction, BidSuit, Call, Contract};
 pub use board::{Board, Vulnerability};
 pub use card::{Card, Rank, Suit};
 pub use commentary::{CommentaryBlock, FormattedText, TextSpan};

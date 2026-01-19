@@ -60,6 +60,20 @@ impl FontSpec {
     pub fn is_bold(&self) -> bool {
         self.weight >= 700
     }
+
+    /// Returns true if this font spec indicates a sans-serif font
+    pub fn is_sans_serif(&self) -> bool {
+        let family_lower = self.family.to_lowercase();
+        // Common sans-serif fonts
+        family_lower.contains("arial")
+            || family_lower.contains("helvetica")
+            || family_lower.contains("sans")
+            || family_lower.contains("verdana")
+            || family_lower.contains("tahoma")
+            || family_lower.contains("trebuchet")
+            || family_lower.contains("calibri")
+            || family_lower.contains("segoe")
+    }
 }
 
 /// Font settings parsed from PBN header

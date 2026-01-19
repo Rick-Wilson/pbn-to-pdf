@@ -4,8 +4,8 @@
 //! but collects operations into a `Vec<Op>` for the new printpdf 0.8 API.
 
 use printpdf::{
-    Color, FontId, LinePoint, Mm, Op, PaintMode, Point, Polygon, PolygonRing, Pt, WindingOrder,
-    TextItem,
+    Color, FontId, LinePoint, Mm, Op, PaintMode, Point, Polygon, PolygonRing, Pt, TextItem,
+    WindingOrder,
 };
 
 /// A builder that collects PDF operations
@@ -49,15 +49,20 @@ impl LayerBuilder {
 
     /// Set the outline thickness
     pub fn set_outline_thickness(&mut self, thickness: f32) {
-        self.ops.push(Op::SetOutlineThickness {
-            pt: Pt(thickness),
-        });
+        self.ops.push(Op::SetOutlineThickness { pt: Pt(thickness) });
     }
 
     /// Draw text at a specific position
     ///
     /// This mimics the old `layer.use_text()` API
-    pub fn use_text<S: Into<String>>(&mut self, text: S, font_size: f32, x: Mm, y: Mm, font: &FontId) {
+    pub fn use_text<S: Into<String>>(
+        &mut self,
+        text: S,
+        font_size: f32,
+        x: Mm,
+        y: Mm,
+        font: &FontId,
+    ) {
         let text_str = text.into();
         if text_str.is_empty() {
             return;
@@ -85,16 +90,40 @@ impl LayerBuilder {
     ///
     /// Takes lower-left x, y and upper-right x, y coordinates with a paint mode
     pub fn add_rect(&mut self, x1: Mm, y1: Mm, x2: Mm, y2: Mm, mode: PaintMode) {
-        let ll = Point { x: x1.into(), y: y1.into() };
-        let lr = Point { x: x2.into(), y: y1.into() };
-        let ur = Point { x: x2.into(), y: y2.into() };
-        let ul = Point { x: x1.into(), y: y2.into() };
+        let ll = Point {
+            x: x1.into(),
+            y: y1.into(),
+        };
+        let lr = Point {
+            x: x2.into(),
+            y: y1.into(),
+        };
+        let ur = Point {
+            x: x2.into(),
+            y: y2.into(),
+        };
+        let ul = Point {
+            x: x1.into(),
+            y: y2.into(),
+        };
 
         let points = vec![
-            LinePoint { p: ll, bezier: false },
-            LinePoint { p: lr, bezier: false },
-            LinePoint { p: ur, bezier: false },
-            LinePoint { p: ul, bezier: false },
+            LinePoint {
+                p: ll,
+                bezier: false,
+            },
+            LinePoint {
+                p: lr,
+                bezier: false,
+            },
+            LinePoint {
+                p: ur,
+                bezier: false,
+            },
+            LinePoint {
+                p: ul,
+                bezier: false,
+            },
         ];
 
         let polygon = Polygon {

@@ -29,6 +29,10 @@ pub struct Args {
     #[arg(long, value_enum, default_value = "portrait")]
     pub orientation: Orientation,
 
+    /// Output layout style
+    #[arg(short = 'l', long, value_enum, default_value = "analysis")]
+    pub layout: Layout,
+
     /// Hide bidding table
     #[arg(long)]
     pub no_bidding: bool,
@@ -75,6 +79,16 @@ impl PageSize {
 pub enum Orientation {
     Portrait,
     Landscape,
+}
+
+/// Output layout style
+#[derive(Copy, Clone, Debug, PartialEq, Eq, ValueEnum, Default)]
+pub enum Layout {
+    /// Standard analysis layout with hand diagram, bidding, and commentary
+    #[default]
+    Analysis,
+    /// Bidding practice sheets for face-to-face practice
+    BiddingSheets,
 }
 
 impl Args {
@@ -187,6 +201,7 @@ mod tests {
             boards_per_page: 1,
             page_size: PageSize::Letter,
             orientation: Orientation::Portrait,
+            layout: Layout::Analysis,
             no_bidding: false,
             no_play: false,
             no_commentary: false,

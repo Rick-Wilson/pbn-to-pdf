@@ -3,13 +3,13 @@ use crate::error::RenderError;
 use crate::model::{BidSuit, Board};
 use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
-use super::bidding_table::BiddingTableRenderer;
-use super::colors::{SuitColors, BLACK};
-use super::commentary::{CommentaryRenderer, FloatLayout};
-use super::fonts::FontManager;
-use super::hand_diagram::HandDiagramRenderer;
-use super::layer::LayerBuilder;
-use super::text_metrics::get_measurer;
+use crate::render::components::bidding_table::BiddingTableRenderer;
+use crate::render::components::commentary::{CommentaryRenderer, FloatLayout};
+use crate::render::components::hand_diagram::HandDiagramRenderer;
+use crate::render::helpers::colors::{SuitColors, BLACK};
+use crate::render::helpers::fonts::FontManager;
+use crate::render::helpers::layer::LayerBuilder;
+use crate::render::helpers::text_metrics::get_measurer;
 
 /// Light gray color for debug boxes
 const DEBUG_BOX_COLOR: Rgb = Rgb {
@@ -78,12 +78,7 @@ impl DocumentRenderer {
     }
 
     /// Render a single board - Bridge Composer style layout
-    fn render_board(
-        &self,
-        layer: &mut LayerBuilder,
-        board: &Board,
-        fonts: &FontManager,
-    ) {
+    fn render_board(&self, layer: &mut LayerBuilder, board: &Board, fonts: &FontManager) {
         let margin_left = self.settings.margin_left;
         let margin_top = self.settings.margin_top;
         let page_top = self.settings.page_height - margin_top;
@@ -184,7 +179,8 @@ impl DocumentRenderer {
             &fonts.sans.regular,       // DejaVu Sans for suit symbols
             &self.settings,
         );
-        let diagram_height = hand_renderer.render_deal(layer, &board.deal, (Mm(diagram_x), Mm(diagram_y)));
+        let diagram_height =
+            hand_renderer.render_deal(layer, &board.deal, (Mm(diagram_x), Mm(diagram_y)));
 
         // Content below diagram
         let mut content_y = Mm(diagram_y - diagram_height - 5.0);
@@ -199,7 +195,8 @@ impl DocumentRenderer {
                     &fonts.sans.regular, // DejaVu Sans for suit symbols
                     &self.settings,
                 );
-                let table_height = bidding_renderer.render(layer, auction, (Mm(margin_left), content_y));
+                let table_height =
+                    bidding_renderer.render(layer, auction, (Mm(margin_left), content_y));
                 content_y = Mm(content_y.0 - table_height - 2.0);
 
                 // Render contract below auction (no label)

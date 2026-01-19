@@ -13,39 +13,51 @@ pub fn parse_auction(dealer: Direction, input: &str) -> Result<Auction, String> 
 
     // Split on whitespace
     let tokens: Vec<&str> = input.split_whitespace().collect();
+    let mut i = 0;
 
-    for token in tokens {
+    while i < tokens.len() {
+        let token = tokens[i];
+        i += 1;
+
         // Skip empty tokens
         if token.is_empty() {
             continue;
         }
 
         // Handle special tokens
-        match token.to_uppercase().as_str() {
-            "AP" => {
-                // All Pass - add 3 passes to end the auction
-                auction.add_call(Call::Pass);
-                auction.add_call(Call::Pass);
-                auction.add_call(Call::Pass);
-                auction.is_passed_out = false;
-                break;
-            }
-            "*" => {
-                // End of auction marker (incomplete auction)
-                break;
-            }
-            _ => {
-                // Try to parse as a call
-                // Handle annotations like "1C!" or "1C$1"
-                let clean_token = strip_annotations(token);
+        let upper = token.to_uppercase();
+        if upper == "AP" {
+            // All Pass - add 3 passes to end the auction
+            auction.add_call(Call::Pass);
+            auction.add_call(Call::Pass);
+            auction.add_call(Call::Pass);
+            auction.is_passed_out = false;
+            break;
+        } else if upper == "*" {
+            // End of auction marker (incomplete auction)
+            break;
+        }
 
-                if let Some(call) = Call::from_pbn(&clean_token) {
-                    auction.add_call(call);
-                } else {
-                    // Skip unrecognized tokens (might be annotations)
-                    log::debug!("Skipping unrecognized auction token: {}", token);
+        // Check if this token is a standalone annotation (=N=)
+        if token.starts_with('=') && token.ends_with('=') {
+            // This is an annotation for the previous call
+            if let Some(note_num) = parse_note_reference(token) {
+                if let Some(last_call) = auction.calls.last_mut() {
+                    last_call.annotation = Some(note_num.to_string());
                 }
             }
+            continue;
+        }
+
+        // Try to parse as a call
+        // Extract call and any inline annotation
+        let (clean_token, annotation) = extract_annotation(token);
+
+        if let Some(call) = Call::from_pbn(&clean_token) {
+            auction.add_annotated_call(call, annotation);
+        } else {
+            // Skip unrecognized tokens (might be NAG markers like $1)
+            log::debug!("Skipping unrecognized auction token: {}", token);
         }
     }
 
@@ -62,18 +74,49 @@ pub fn parse_auction(dealer: Direction, input: &str) -> Result<Auction, String> 
     Ok(auction)
 }
 
-/// Strip annotations from a call token
-/// e.g., "1C!" -> "1C", "2H$1" -> "2H"
-fn strip_annotations(token: &str) -> String {
-    let mut result = String::new();
-    for c in token.chars() {
-        match c {
-            '!' | '?' | '$' => break,       // NAG markers
-            '{' | '}' | '(' | ')' => break, // Comment markers
-            _ => result.push(c),
+/// Parse a note reference like "=1=" and return the note number
+fn parse_note_reference(token: &str) -> Option<u8> {
+    if token.starts_with('=') && token.ends_with('=') && token.len() >= 3 {
+        let inner = &token[1..token.len() - 1];
+        inner.parse::<u8>().ok()
+    } else {
+        None
+    }
+}
+
+/// Extract annotation from a call token
+/// Returns (clean_call, optional_annotation)
+/// e.g., "1C!" -> ("1C", Some("!"))
+/// e.g., "2H=1=" -> ("2H", Some("1"))
+/// e.g., "3NT" -> ("3NT", None)
+fn extract_annotation(token: &str) -> (String, Option<String>) {
+    // Check for =N= annotation at the end
+    if let Some(eq_pos) = token.find('=') {
+        let before = &token[..eq_pos];
+        let rest = &token[eq_pos..];
+        if rest.ends_with('=') && rest.len() >= 3 {
+            let note_num = &rest[1..rest.len() - 1];
+            if note_num.parse::<u8>().is_ok() {
+                return (before.to_string(), Some(note_num.to_string()));
+            }
         }
     }
-    result
+
+    // Check for ! or ? at the end (alert/question markers)
+    if token.ends_with('!') || token.ends_with('?') {
+        let marker = token.chars().last().unwrap();
+        let clean = &token[..token.len() - 1];
+        return (clean.to_string(), Some(marker.to_string()));
+    }
+
+    // Check for $N NAG marker
+    if let Some(dollar_pos) = token.find('$') {
+        let clean = &token[..dollar_pos];
+        return (clean.to_string(), None); // NAG markers are not displayed
+    }
+
+    // No annotation
+    (token.to_string(), None)
 }
 
 #[cfg(test)]
@@ -125,6 +168,33 @@ mod tests {
                 suit: BidSuit::Clubs
             }
         );
+        // Check that ! annotation is preserved
+        assert_eq!(auction.calls[0].annotation, Some("!".to_string()));
+        // $1 NAG marker should not produce an annotation
+        assert_eq!(auction.calls[2].annotation, None);
+    }
+
+    #[test]
+    fn test_auction_with_note_references() {
+        // Test =N= style annotations (as in Slam Judgment file)
+        // =N= annotations are separate tokens, not counted as calls
+        let auction = parse_auction(Direction::East, "Pass Pass Pass 2NT =1= Pass 3H =2= Pass 4S").unwrap();
+        // 8 calls: Pass Pass Pass 2NT Pass 3H Pass 4S (=N= are annotations, not calls)
+        assert_eq!(auction.calls.len(), 8);
+        // 2NT (index 3) should have annotation "1"
+        assert_eq!(auction.calls[3].call, Call::Bid { level: 2, suit: BidSuit::NoTrump });
+        assert_eq!(auction.calls[3].annotation, Some("1".to_string()));
+        // 3H (index 5) should have annotation "2"
+        assert_eq!(auction.calls[5].call, Call::Bid { level: 3, suit: BidSuit::Hearts });
+        assert_eq!(auction.calls[5].annotation, Some("2".to_string()));
+    }
+
+    #[test]
+    fn test_extract_annotation() {
+        assert_eq!(extract_annotation("1C!"), ("1C".to_string(), Some("!".to_string())));
+        assert_eq!(extract_annotation("2H=1="), ("2H".to_string(), Some("1".to_string())));
+        assert_eq!(extract_annotation("3NT"), ("3NT".to_string(), None));
+        assert_eq!(extract_annotation("Pass$1"), ("Pass".to_string(), None));
     }
 
     #[test]

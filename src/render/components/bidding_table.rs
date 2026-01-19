@@ -1,9 +1,15 @@
 use crate::config::Settings;
-use crate::model::{Auction, BidSuit, Call, Direction};
+use crate::model::{AnnotatedCall, Auction, BidSuit, Call, Direction};
 use printpdf::{Color, FontId, Mm};
 
-use super::colors::{SuitColors, BLACK};
-use super::layer::LayerBuilder;
+use crate::render::helpers::colors::{SuitColors, BLACK};
+use crate::render::helpers::layer::LayerBuilder;
+use crate::render::helpers::text_metrics;
+
+/// Size ratio for superscript text relative to body font
+const SUPERSCRIPT_RATIO: f32 = 0.65;
+/// Vertical offset for superscript as fraction of font size
+const SUPERSCRIPT_RISE: f32 = 0.4;
 
 /// Renderer for bidding tables
 pub struct BiddingTableRenderer<'a> {
@@ -14,6 +20,7 @@ pub struct BiddingTableRenderer<'a> {
     symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
+    use_sans_measurer: bool,
 }
 
 impl<'a> BiddingTableRenderer<'a> {
@@ -24,6 +31,14 @@ impl<'a> BiddingTableRenderer<'a> {
         symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
+        // Determine if we should use sans-serif measurement based on font settings
+        let use_sans_measurer = settings
+            .fonts
+            .hand_record
+            .as_ref()
+            .map(|f| f.is_sans_serif())
+            .unwrap_or(false);
+
         Self {
             font,
             bold_font,
@@ -31,6 +46,16 @@ impl<'a> BiddingTableRenderer<'a> {
             symbol_font,
             colors: SuitColors::new(settings.black_color, settings.red_color),
             settings,
+            use_sans_measurer,
+        }
+    }
+
+    /// Get the appropriate text measurer based on font type
+    fn get_measurer(&self) -> &'static text_metrics::TextMeasurer {
+        if self.use_sans_measurer {
+            text_metrics::get_measurer()
+        } else {
+            text_metrics::get_serif_measurer()
         }
     }
 
@@ -104,7 +129,7 @@ impl<'a> BiddingTableRenderer<'a> {
                 let x = ox.0 + (col as f32 * col_width);
                 let y = oy.0 - (row as f32 * row_height);
 
-                self.render_call(layer, &annotated.call, (Mm(x), Mm(y)));
+                self.render_annotated_call(layer, annotated, (Mm(x), Mm(y)));
 
                 col += 1;
                 if col >= 4 {
@@ -130,26 +155,51 @@ impl<'a> BiddingTableRenderer<'a> {
             }
         }
 
+        // Render notes if present
+        if !auction.notes.is_empty() {
+            let notes_height = self.render_notes(layer, auction, (ox, Mm(oy.0 - (row as f32 * row_height))));
+            row += (notes_height / row_height).ceil() as usize;
+        }
+
         // Return total height used
         ((row + 1) as f32) * row_height
     }
 
-    /// Render a single call
-    fn render_call(&self, layer: &mut LayerBuilder, call: &Call, pos: (Mm, Mm)) {
+    /// Render an annotated call (call with optional superscript annotation)
+    fn render_annotated_call(&self, layer: &mut LayerBuilder, annotated: &AnnotatedCall, pos: (Mm, Mm)) {
+        let call_width = self.render_call(layer, &annotated.call, pos);
+
+        // If there's an annotation, render it as superscript
+        if let Some(ref annotation) = annotated.annotation {
+            let sup_x = Mm(pos.0.0 + call_width);
+            let sup_y = Mm(pos.1.0 + (self.settings.body_font_size * SUPERSCRIPT_RISE * 0.352778)); // Convert pt to mm
+            let sup_size = self.settings.body_font_size * SUPERSCRIPT_RATIO;
+
+            layer.set_fill_color(Color::Rgb(BLACK));
+            layer.use_text(annotation, sup_size, sup_x, sup_y, self.font);
+        }
+    }
+
+    /// Render a single call and return the width used
+    fn render_call(&self, layer: &mut LayerBuilder, call: &Call, pos: (Mm, Mm)) -> f32 {
         let (x, y) = pos;
+        let measurer = self.get_measurer();
 
         match call {
             Call::Pass => {
                 layer.set_fill_color(Color::Rgb(BLACK));
                 layer.use_text("Pass", self.settings.body_font_size, x, y, self.font);
+                measurer.measure_width_mm("Pass", self.settings.body_font_size)
             }
             Call::Double => {
                 layer.set_fill_color(Color::Rgb(BLACK));
                 layer.use_text("Dbl", self.settings.body_font_size, x, y, self.font);
+                measurer.measure_width_mm("Dbl", self.settings.body_font_size)
             }
             Call::Redouble => {
                 layer.set_fill_color(Color::Rgb(BLACK));
                 layer.use_text("Rdbl", self.settings.body_font_size, x, y, self.font);
+                measurer.measure_width_mm("Rdbl", self.settings.body_font_size)
             }
             Call::Bid { level, suit } => {
                 // Render level
@@ -158,18 +208,44 @@ impl<'a> BiddingTableRenderer<'a> {
                 layer.use_text(&level_str, self.settings.body_font_size, x, y, self.font);
 
                 // Render suit symbol immediately after level (no gap)
-                let measurer = super::text_metrics::get_serif_measurer();
                 let level_width =
                     measurer.measure_width_mm(&level_str, self.settings.body_font_size);
                 let suit_x = Mm(x.0 + level_width);
-                self.render_bid_suit(layer, *suit, (suit_x, y));
+                let suit_width = self.render_bid_suit(layer, *suit, (suit_x, y));
+                level_width + suit_width
             }
         }
     }
 
-    /// Render a bid suit symbol
-    fn render_bid_suit(&self, layer: &mut LayerBuilder, suit: BidSuit, pos: (Mm, Mm)) {
+    /// Render notes below the bidding table
+    fn render_notes(&self, layer: &mut LayerBuilder, auction: &Auction, origin: (Mm, Mm)) -> f32 {
+        let (ox, oy) = origin;
+        let note_font_size = self.settings.body_font_size * 0.85; // Slightly smaller for notes
+        let line_height = note_font_size * 1.3 * 0.352778; // Convert pt to mm
+
+        // Get sorted note numbers
+        let mut note_nums: Vec<&u8> = auction.notes.keys().collect();
+        note_nums.sort();
+
+        let mut current_y = oy.0 - line_height; // Start below the origin with some spacing
+
+        for num in note_nums {
+            if let Some(text) = auction.notes.get(num) {
+                let note_text = format!("{}. {}", num, text);
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text(&note_text, note_font_size, ox, Mm(current_y), self.font);
+                current_y -= line_height;
+            }
+        }
+
+        // Return total height used
+        (oy.0 - current_y).max(0.0)
+    }
+
+    /// Render a bid suit symbol and return width used
+    fn render_bid_suit(&self, layer: &mut LayerBuilder, suit: BidSuit, pos: (Mm, Mm)) -> f32 {
         let (x, y) = pos;
+        let measurer = self.get_measurer();
 
         let (text, is_red, use_symbol_font) = match suit {
             BidSuit::Clubs => ("♣", false, true),
@@ -192,5 +268,13 @@ impl<'a> BiddingTableRenderer<'a> {
             self.font
         };
         layer.use_text(text, self.settings.body_font_size, x, y, font);
+
+        // Measure width (use sans for symbols, serif for NT)
+        if use_symbol_font {
+            let sans_measurer = text_metrics::get_measurer();
+            sans_measurer.measure_width_mm(text, self.settings.body_font_size)
+        } else {
+            measurer.measure_width_mm(text, self.settings.body_font_size)
+        }
     }
 }

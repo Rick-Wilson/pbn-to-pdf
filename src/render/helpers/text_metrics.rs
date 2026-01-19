@@ -6,9 +6,10 @@
 use rustybuzz::{Face, UnicodeBuffer};
 
 // Embed fonts for measurement (same as in fonts.rs)
-const DEJAVU_SANS: &[u8] = include_bytes!("../../assets/fonts/DejaVuSans.ttf");
-const TERMES_REGULAR: &[u8] = include_bytes!("../../assets/fonts/texgyretermes-regular.ttf");
-const TERMES_BOLD: &[u8] = include_bytes!("../../assets/fonts/texgyretermes-bold.ttf");
+const DEJAVU_SANS: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans.ttf");
+const DEJAVU_SANS_BOLD: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Bold.ttf");
+const TERMES_REGULAR: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-regular.ttf");
+const TERMES_BOLD: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-bold.ttf");
 
 /// Font family for measurement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -172,6 +173,17 @@ pub fn get_serif_bold_measurer() -> &'static TextMeasurer {
     MEASURER.get_or_init(|| {
         TextMeasurer::new(TERMES_BOLD)
             .expect("Failed to load embedded serif bold font for text measurement")
+    })
+}
+
+/// Global text measurer using the embedded DejaVu Sans Bold font (sans-serif bold)
+pub fn get_sans_bold_measurer() -> &'static TextMeasurer {
+    use std::sync::OnceLock;
+    static MEASURER: OnceLock<TextMeasurer> = OnceLock::new();
+
+    MEASURER.get_or_init(|| {
+        TextMeasurer::new(DEJAVU_SANS_BOLD)
+            .expect("Failed to load embedded sans bold font for text measurement")
     })
 }
 

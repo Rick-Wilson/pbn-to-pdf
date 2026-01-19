@@ -2,8 +2,9 @@ use crate::config::Settings;
 use crate::model::{Deal, Hand, Suit};
 use printpdf::{Color, FontId, Mm, PaintMode, Rgb};
 
-use super::colors::SuitColors;
-use super::layer::LayerBuilder;
+use crate::render::helpers::colors::{self, SuitColors};
+use crate::render::helpers::layer::LayerBuilder;
+use crate::render::helpers::text_metrics;
 
 /// Light gray color for debug boxes
 const DEBUG_BOX_COLOR: Rgb = Rgb {
@@ -56,7 +57,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Calculate the actual height of a hand block based on font metrics
     fn actual_hand_height(&self) -> f32 {
-        let measurer = super::text_metrics::get_measurer();
+        let measurer = text_metrics::get_measurer();
         let line_height = self.settings.line_height;
         let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
         let descender = measurer.descender_mm(self.settings.card_font_size);
@@ -70,7 +71,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Calculate the actual width of a hand by measuring all suit lines
     fn actual_hand_width(&self, hand: &Hand) -> f32 {
-        let measurer = super::text_metrics::get_measurer();
+        let measurer = text_metrics::get_measurer();
         let font_size = self.settings.card_font_size;
 
         Suit::all()
@@ -164,7 +165,13 @@ impl<'a> HandDiagramRenderer<'a> {
     }
 
     /// Render a single hand (used for backward compatibility)
-    pub fn render_hand(&self, layer: &mut LayerBuilder, hand: &Hand, origin: (Mm, Mm), _show_hcp: bool) {
+    pub fn render_hand(
+        &self,
+        layer: &mut LayerBuilder,
+        hand: &Hand,
+        origin: (Mm, Mm),
+        _show_hcp: bool,
+    ) {
         self.render_hand_cards(layer, hand, origin);
     }
 
@@ -175,7 +182,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let line_height = self.settings.line_height;
 
         // Use actual font metrics to get cap-height
-        let measurer = super::text_metrics::get_measurer();
+        let measurer = text_metrics::get_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
 
         // First baseline is below the top by cap-height
@@ -190,7 +197,13 @@ impl<'a> HandDiagramRenderer<'a> {
     }
 
     /// Render a single suit line (symbol + cards)
-    fn render_suit_line(&self, layer: &mut LayerBuilder, suit: Suit, holding: &crate::model::Holding, origin: (Mm, Mm)) {
+    fn render_suit_line(
+        &self,
+        layer: &mut LayerBuilder,
+        suit: Suit,
+        holding: &crate::model::Holding,
+        origin: (Mm, Mm),
+    ) {
         let (ox, oy) = origin;
 
         // Set color based on suit
@@ -208,7 +221,7 @@ impl<'a> HandDiagramRenderer<'a> {
         );
 
         // Render cards (in black) using regular font
-        layer.set_fill_color(Color::Rgb(super::colors::BLACK));
+        layer.set_fill_color(Color::Rgb(colors::BLACK));
 
         let cards_str = if holding.is_void() {
             "-".to_string()
@@ -234,7 +247,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Calculate compass box size based on font metrics
     fn compass_box_size(&self) -> f32 {
-        let measurer = super::text_metrics::get_measurer();
+        let measurer = text_metrics::get_measurer();
         let font_size = self.settings.compass_font_size;
 
         // Measure the widest letter (W is typically widest)
@@ -255,7 +268,7 @@ impl<'a> HandDiagramRenderer<'a> {
     /// Render compass rose with green filled box and white letters
     fn render_compass(&self, layer: &mut LayerBuilder, center: (Mm, Mm)) {
         let (cx, cy) = center;
-        let measurer = super::text_metrics::get_measurer();
+        let measurer = text_metrics::get_measurer();
         let font_size = self.settings.compass_font_size;
 
         let box_size = self.compass_box_size();
@@ -268,7 +281,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let e_width = measurer.measure_width_mm("E", font_size);
 
         // Draw filled green rectangle
-        layer.set_fill_color(Color::Rgb(super::colors::GREEN));
+        layer.set_fill_color(Color::Rgb(colors::GREEN));
         layer.add_rect(
             Mm(cx.0 - half_box),
             Mm(cy.0 - half_box),
@@ -278,7 +291,7 @@ impl<'a> HandDiagramRenderer<'a> {
         );
 
         // Draw white letters using compass font size
-        layer.set_fill_color(Color::Rgb(super::colors::WHITE));
+        layer.set_fill_color(Color::Rgb(colors::WHITE));
 
         let padding = 1.5;
 
@@ -321,7 +334,13 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Render HCP box with all four hands' point counts
     /// Origin is top-left of the box
-    fn render_hcp_box(&self, layer: &mut LayerBuilder, deal: &Deal, origin: (Mm, Mm), box_size: f32) {
+    fn render_hcp_box(
+        &self,
+        layer: &mut LayerBuilder,
+        deal: &Deal,
+        origin: (Mm, Mm),
+        box_size: f32,
+    ) {
         let (ox, oy) = origin;
         let half_box = box_size / 2.0;
         let center_x = ox.0 + half_box;
@@ -331,7 +350,7 @@ impl<'a> HandDiagramRenderer<'a> {
         self.draw_debug_box(layer, ox.0, oy.0, box_size, box_size);
 
         // Draw HCP values in compass positions
-        layer.set_fill_color(Color::Rgb(super::colors::BLACK));
+        layer.set_fill_color(Color::Rgb(colors::BLACK));
         let font_size = self.settings.card_font_size - 1.0;
 
         // Get HCP values
@@ -341,7 +360,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let west_hcp = deal.west.total_hcp();
 
         // Use bold measurer for HCP values
-        let bold_measurer = super::text_metrics::get_serif_bold_measurer();
+        let bold_measurer = text_metrics::get_serif_bold_measurer();
 
         // N (top center)
         let n_text = format!("{}", north_hcp);

@@ -1,4 +1,4 @@
-use crate::cli::Args;
+use crate::cli::{Args, Layout};
 use crate::model::{FontSettings, PbnMetadata};
 
 use super::defaults::*;
@@ -15,6 +15,9 @@ pub struct Settings {
     pub margin_left: f32,
     pub margin_right: f32,
     pub boards_per_page: u8,
+
+    // Layout style
+    pub layout: Layout,
 
     // Display options
     pub show_bidding: bool,
@@ -61,6 +64,8 @@ impl Default for Settings {
             margin_right: DEFAULT_PAGE_MARGIN,
             boards_per_page: 1,
 
+            layout: Layout::Analysis,
+
             show_bidding: true,
             show_play: true,
             show_commentary: true,
@@ -99,6 +104,7 @@ impl Settings {
             page_width,
             page_height,
             boards_per_page: args.boards_per_page,
+            layout: args.layout,
             show_bidding: args.show_bidding(),
             show_play: args.show_play(),
             show_commentary: args.show_commentary(),

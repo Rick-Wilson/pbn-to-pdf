@@ -4,8 +4,8 @@
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::render::get_measurer;
 use printpdf::{
-    Color, FontId, LinePoint, Mm, Op, PaintMode, ParsedFont, PdfDocument, PdfPage, PdfSaveOptions,
-    Point, Polygon, PolygonRing, Pt, Rgb, TextItem, WindingOrder, Line,
+    Color, FontId, Line, LinePoint, Mm, Op, PaintMode, ParsedFont, PdfDocument, PdfPage,
+    PdfSaveOptions, Point, Polygon, PolygonRing, Pt, Rgb, TextItem, WindingOrder,
 };
 use std::fs::File;
 use std::io::BufWriter;
@@ -26,8 +26,8 @@ fn main() {
 
     // Load font
     let mut warnings = Vec::new();
-    let parsed_font = ParsedFont::from_bytes(DEJAVU_SANS, 0, &mut warnings)
-        .expect("Failed to parse font");
+    let parsed_font =
+        ParsedFont::from_bytes(DEJAVU_SANS, 0, &mut warnings).expect("Failed to parse font");
     let font = doc.add_font(&parsed_font);
 
     // Layout constants (same as hand_diagram.rs)
@@ -162,18 +162,39 @@ fn main() {
     // Compass box (green)
     let compass_left = compass_center_x - compass_size / 2.0;
     let compass_top = compass_y + compass_size / 2.0;
-    add_rect_ops(&mut ops, compass_left, compass_top, compass_size, compass_size, &green);
+    add_rect_ops(
+        &mut ops,
+        compass_left,
+        compass_top,
+        compass_size,
+        compass_size,
+        &green,
+    );
 
     // East hand box (orange)
     add_rect_ops(&mut ops, east_x, row2_y, hand_w, hand_h, &orange);
 
     // HCP row (purple line)
-    ops.push(Op::SetOutlineColor { col: Color::Rgb(purple.clone()) });
+    ops.push(Op::SetOutlineColor {
+        col: Color::Rgb(purple.clone()),
+    });
     ops.push(Op::SetOutlineThickness { pt: Pt(0.5) });
     let hcp_line = Line {
         points: vec![
-            LinePoint { p: Point { x: Mm(ox).into(), y: Mm(hcp_row_y).into() }, bezier: false },
-            LinePoint { p: Point { x: Mm(ox + hand_w * 2.0 + compass_size).into(), y: Mm(hcp_row_y).into() }, bezier: false },
+            LinePoint {
+                p: Point {
+                    x: Mm(ox).into(),
+                    y: Mm(hcp_row_y).into(),
+                },
+                bezier: false,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(ox + hand_w * 2.0 + compass_size).into(),
+                    y: Mm(hcp_row_y).into(),
+                },
+                bezier: false,
+            },
         ],
         is_closed: false,
     };
@@ -184,7 +205,9 @@ fn main() {
 
     // Now render ACTUAL text at the same positions to see where it really goes
     // Using cap_height offset to align text tops with bounding box tops
-    ops.push(Op::SetFillColor { col: Color::Rgb(black.clone()) });
+    ops.push(Op::SetFillColor {
+        col: Color::Rgb(black.clone()),
+    });
 
     // North hand - render actual text
     let suits = ["♠ AKQ", "♥ JT9", "♦ 876", "♣ 5432"];
@@ -220,11 +243,7 @@ fn main() {
     }
 
     // Create page with operations
-    let page = PdfPage::new(
-        Mm(settings.page_width),
-        Mm(settings.page_height),
-        ops,
-    );
+    let page = PdfPage::new(Mm(settings.page_width), Mm(settings.page_height), ops);
     doc.with_pages(vec![page]);
 
     // Save
@@ -238,14 +257,40 @@ fn main() {
 
 fn add_rect_ops(ops: &mut Vec<Op>, x: f32, y: f32, w: f32, h: f32, color: &Rgb) {
     // Draw outline rectangle (y is top, so bottom = y - h)
-    ops.push(Op::SetOutlineColor { col: Color::Rgb(color.clone()) });
+    ops.push(Op::SetOutlineColor {
+        col: Color::Rgb(color.clone()),
+    });
     ops.push(Op::SetOutlineThickness { pt: Pt(0.5) });
 
     let points = vec![
-        LinePoint { p: Point { x: Mm(x).into(), y: Mm(y - h).into() }, bezier: false },
-        LinePoint { p: Point { x: Mm(x + w).into(), y: Mm(y - h).into() }, bezier: false },
-        LinePoint { p: Point { x: Mm(x + w).into(), y: Mm(y).into() }, bezier: false },
-        LinePoint { p: Point { x: Mm(x).into(), y: Mm(y).into() }, bezier: false },
+        LinePoint {
+            p: Point {
+                x: Mm(x).into(),
+                y: Mm(y - h).into(),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Mm(x + w).into(),
+                y: Mm(y - h).into(),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Mm(x + w).into(),
+                y: Mm(y).into(),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Mm(x).into(),
+                y: Mm(y).into(),
+            },
+            bezier: false,
+        },
     ];
 
     let polygon = Polygon {
@@ -260,7 +305,10 @@ fn add_rect_ops(ops: &mut Vec<Op>, x: f32, y: f32, w: f32, h: f32, color: &Rgb) 
 fn add_text_ops(ops: &mut Vec<Op>, text: &str, font_size: f32, x: f32, y: f32, font: &FontId) {
     ops.push(Op::StartTextSection);
     ops.push(Op::SetTextCursor {
-        pos: Point { x: Mm(x).into(), y: Mm(y).into() },
+        pos: Point {
+            x: Mm(x).into(),
+            y: Mm(y).into(),
+        },
     });
     ops.push(Op::SetFontSize {
         size: Pt(font_size),
@@ -275,12 +323,26 @@ fn add_text_ops(ops: &mut Vec<Op>, text: &str, font_size: f32, x: f32, y: f32, f
 
 fn add_baseline_marker_ops(ops: &mut Vec<Op>, x: f32, y: f32, color: &Rgb) {
     // Draw a small horizontal line to mark the baseline
-    ops.push(Op::SetOutlineColor { col: Color::Rgb(color.clone()) });
+    ops.push(Op::SetOutlineColor {
+        col: Color::Rgb(color.clone()),
+    });
     ops.push(Op::SetOutlineThickness { pt: Pt(0.3) });
     let line = Line {
         points: vec![
-            LinePoint { p: Point { x: Mm(x).into(), y: Mm(y).into() }, bezier: false },
-            LinePoint { p: Point { x: Mm(x + 1.5).into(), y: Mm(y).into() }, bezier: false },
+            LinePoint {
+                p: Point {
+                    x: Mm(x).into(),
+                    y: Mm(y).into(),
+                },
+                bezier: false,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(x + 1.5).into(),
+                    y: Mm(y).into(),
+                },
+                bezier: false,
+            },
         ],
         is_closed: false,
     };

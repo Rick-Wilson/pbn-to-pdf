@@ -2,10 +2,10 @@ use crate::config::Settings;
 use crate::model::{CommentaryBlock, FormattedText, Suit, TextSpan};
 use printpdf::{Color, FontId, Mm};
 
-use super::colors::{SuitColors, BLACK};
-use super::layer::LayerBuilder;
-use super::text_metrics::{
-    get_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer,
+use crate::render::helpers::colors::{SuitColors, BLACK};
+use crate::render::helpers::layer::LayerBuilder;
+use crate::render::helpers::text_metrics::{
+    get_measurer, get_sans_bold_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer,
 };
 use crate::model::card::Rank;
 
@@ -41,6 +41,7 @@ pub struct CommentaryRenderer<'a> {
     symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
+    use_sans_measurer: bool,
 }
 
 /// A fragment is an atomic piece of text with a specific style
@@ -73,6 +74,46 @@ enum RenderToken {
     LineBreak,
 }
 
+/// Check if a character is a valid card rank or placeholder in card lists.
+/// Matches:
+/// - Uppercase rank letters: A, K, Q, J, T
+/// - Digits: 2-9
+/// - Lowercase 'x' representing a low/unknown card
+fn is_card_char(c: char) -> bool {
+    c == 'x' || ((c.is_ascii_uppercase() || c.is_ascii_digit()) && Rank::from_pbn_char(c).is_some())
+}
+
+/// Check if a character is a valid card rank character for card lists in commentary.
+/// Only matches uppercase letters (A, K, Q, J, T), digits (2-9), and lowercase 'x'.
+/// Also checks that the character isn't followed by another letter (to avoid matching
+/// "Joker" as J-oker).
+fn is_rank_char_standalone(c: char, next_chars: &[char]) -> bool {
+    // Must be a valid card character
+    if !is_card_char(c) {
+        return false;
+    }
+
+    // Check if followed by another letter (indicating it's part of a word like "Joker")
+    // Look for the next non-whitespace character
+    for &next in next_chars {
+        if next.is_whitespace() {
+            continue;
+        }
+        // If next non-whitespace is a letter that's NOT a card char, this isn't a standalone rank
+        if next.is_alphabetic() && !is_card_char(next) {
+            return false;
+        }
+        break;
+    }
+
+    true
+}
+
+/// Simple check for rank character (used for checking current word)
+fn is_rank_char(c: char) -> bool {
+    is_card_char(c)
+}
+
 /// Parse spans into render tokens, grouping fragments that should stay together
 fn tokenize_spans(
     spans: &[TextSpan],
@@ -84,10 +125,15 @@ fn tokenize_spans(
     let mut tokens: Vec<RenderToken> = Vec::new();
     let mut current_group: Vec<RenderFragment> = Vec::new();
     let mut current_group_width: f32 = 0.0;
+    // Track if we're in a "card list" context (e.g., "♣K J 10")
+    let mut in_card_list = false;
 
     // Helper to flush the current word group
     let flush_group =
-        |tokens: &mut Vec<RenderToken>, group: &mut Vec<RenderFragment>, width: &mut f32| {
+        |tokens: &mut Vec<RenderToken>,
+         group: &mut Vec<RenderFragment>,
+         width: &mut f32,
+         in_card_list: &mut bool| {
             if !group.is_empty() {
                 tokens.push(RenderToken::WordGroup(WordGroup {
                     fragments: std::mem::take(group),
@@ -95,6 +141,7 @@ fn tokenize_spans(
                 }));
                 *width = 0.0;
             }
+            *in_card_list = false;
         };
 
     for span in spans {
@@ -111,43 +158,94 @@ fn tokenize_spans(
                     TextStyle::Bold => bold_measurer,
                 };
 
-                let chars = s.chars();
+                let chars: Vec<char> = s.chars().collect();
+                let mut i = 0;
                 let mut current_word = String::new();
 
-                for c in chars {
+                while i < chars.len() {
+                    let c = chars[i];
                     if c.is_whitespace() {
                         // Flush any accumulated word fragment
                         if !current_word.is_empty() {
+                            // Check if this word is a rank character to update card list state
+                            let is_rank = current_word.len() == 1
+                                && is_rank_char(current_word.chars().next().unwrap());
                             let w = measurer.measure_width_mm(&current_word, font_size);
                             current_group.push(RenderFragment::Text {
                                 text: std::mem::take(&mut current_word),
                                 style,
                             });
                             current_group_width += w;
+                            // Update card list state
+                            if is_rank && in_card_list {
+                                // Continue in card list mode
+                            } else {
+                                in_card_list = false;
+                            }
                         }
-                        // Flush the word group before the space
-                        flush_group(&mut tokens, &mut current_group, &mut current_group_width);
-                        // Add space token
-                        tokens.push(RenderToken::Space);
+
+                        // Check if we should stay in card list context
+                        let should_stay_in_card_list = in_card_list && {
+                            // Look ahead to see if the next non-space char is a standalone rank
+                            let rest = &chars[i + 1..];
+                            if let Some(pos) = rest.iter().position(|ch| !ch.is_whitespace()) {
+                                // Pass the characters after this position to check if it's standalone
+                                is_rank_char_standalone(rest[pos], &rest[pos + 1..])
+                            } else {
+                                false
+                            }
+                        };
+
+                        if should_stay_in_card_list {
+                            // Keep space in the group - add it as a text fragment
+                            let space_w = regular_measurer.measure_width_mm(" ", font_size);
+                            current_group.push(RenderFragment::Text {
+                                text: " ".to_string(),
+                                style,
+                            });
+                            current_group_width += space_w;
+                        } else {
+                            // Normal case: flush the word group before the space
+                            flush_group(
+                                &mut tokens,
+                                &mut current_group,
+                                &mut current_group_width,
+                                &mut in_card_list,
+                            );
+                            // Add space token
+                            tokens.push(RenderToken::Space);
+                        }
                     } else {
                         current_word.push(c);
                     }
+                    i += 1;
                 }
 
                 // Don't forget remaining characters in current_word
                 if !current_word.is_empty() {
+                    // Check if this is a rank character
+                    let is_rank =
+                        current_word.len() == 1 && is_rank_char(current_word.chars().next().unwrap());
                     let w = measurer.measure_width_mm(&current_word, font_size);
                     current_group.push(RenderFragment::Text {
                         text: current_word,
                         style,
                     });
                     current_group_width += w;
+                    // Update card list state
+                    if is_rank && in_card_list {
+                        // Continue in card list mode
+                    } else {
+                        in_card_list = false;
+                    }
                 }
             }
             TextSpan::SuitSymbol(suit) => {
                 let w = symbol_measurer.measure_width_mm(&suit.symbol().to_string(), font_size);
                 current_group.push(RenderFragment::SuitSymbol(*suit));
                 current_group_width += w;
+                // Start card list mode
+                in_card_list = true;
             }
             TextSpan::CardRef { suit, rank } => {
                 let symbol_w =
@@ -159,16 +257,28 @@ fn tokenize_spans(
                     rank: *rank,
                 });
                 current_group_width += symbol_w + rank_w;
+                // Start card list mode
+                in_card_list = true;
             }
             TextSpan::LineBreak => {
-                flush_group(&mut tokens, &mut current_group, &mut current_group_width);
+                flush_group(
+                    &mut tokens,
+                    &mut current_group,
+                    &mut current_group_width,
+                    &mut in_card_list,
+                );
                 tokens.push(RenderToken::LineBreak);
             }
         }
     }
 
     // Flush any remaining group
-    flush_group(&mut tokens, &mut current_group, &mut current_group_width);
+    flush_group(
+        &mut tokens,
+        &mut current_group,
+        &mut current_group_width,
+        &mut in_card_list,
+    );
 
     tokens
 }
@@ -181,6 +291,14 @@ impl<'a> CommentaryRenderer<'a> {
         symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
+        // Determine if we should use sans-serif measurement based on font settings
+        let use_sans_measurer = settings
+            .fonts
+            .commentary
+            .as_ref()
+            .map(|f| f.is_sans_serif())
+            .unwrap_or(false);
+
         Self {
             font,
             bold_font,
@@ -188,11 +306,36 @@ impl<'a> CommentaryRenderer<'a> {
             symbol_font,
             colors: SuitColors::new(settings.black_color, settings.red_color),
             settings,
+            use_sans_measurer,
+        }
+    }
+
+    /// Get the appropriate text measurer for regular text
+    fn get_regular_measurer(&self) -> &'static TextMeasurer {
+        if self.use_sans_measurer {
+            get_measurer()
+        } else {
+            get_serif_measurer()
+        }
+    }
+
+    /// Get the appropriate text measurer for bold text
+    fn get_bold_measurer(&self) -> &'static TextMeasurer {
+        if self.use_sans_measurer {
+            get_sans_bold_measurer()
+        } else {
+            get_serif_bold_measurer()
         }
     }
 
     /// Render a commentary block and return the height used
-    pub fn render(&self, layer: &mut LayerBuilder, block: &CommentaryBlock, origin: (Mm, Mm), max_width: f32) -> f32 {
+    pub fn render(
+        &self,
+        layer: &mut LayerBuilder,
+        block: &CommentaryBlock,
+        origin: (Mm, Mm),
+        max_width: f32,
+    ) -> f32 {
         self.render_formatted_text(layer, &block.content, origin, max_width, None)
             .height
     }
@@ -229,9 +372,10 @@ impl<'a> CommentaryRenderer<'a> {
         let line_height = self.settings.line_height;
         let justify = self.settings.justify;
 
-        // Use serif measurers for text (TeX Gyre Termes) and sans measurer for symbols (DejaVu Sans)
-        let regular_measurer = get_serif_measurer();
-        let bold_measurer = get_serif_bold_measurer();
+        // Use appropriate measurers based on font type (sans vs serif)
+        // Symbol font (DejaVu Sans) always uses sans measurer
+        let regular_measurer = self.get_regular_measurer();
+        let bold_measurer = self.get_bold_measurer();
         let symbol_measurer = get_measurer();
 
         let base_space_width = regular_measurer.measure_width_mm(" ", font_size);
@@ -269,9 +413,11 @@ impl<'a> CommentaryRenderer<'a> {
             }
 
             // Collect word groups for the current line using current max_width
-            let mut line_groups: Vec<&WordGroup> = Vec::new();
+            // Track (word_group, preceding_space_count) for each word
+            let mut line_groups: Vec<(&WordGroup, usize)> = Vec::new();
             let mut line_width: f32 = 0.0;
             let mut is_paragraph_end = false;
+            let mut pending_spaces: usize = 0;
 
             while token_idx < tokens.len() {
                 match &tokens[token_idx] {
@@ -280,22 +426,24 @@ impl<'a> CommentaryRenderer<'a> {
                         let space_needed = if line_groups.is_empty() {
                             0.0
                         } else {
-                            base_space_width
+                            base_space_width * pending_spaces.max(1) as f32
                         };
                         let new_width = line_width + space_needed + group.width;
 
                         if line_groups.is_empty() || new_width <= max_width {
                             // Word fits on this line
-                            line_groups.push(group);
+                            line_groups.push((group, pending_spaces));
                             line_width = new_width;
                             token_idx += 1;
+                            pending_spaces = 0;
                         } else {
                             // Word doesn't fit, break line here (don't consume this token)
                             break;
                         }
                     }
                     RenderToken::Space => {
-                        // Skip spaces (they're handled between word groups)
+                        // Count consecutive spaces
+                        pending_spaces += 1;
                         token_idx += 1;
                     }
                     RenderToken::LineBreak => {
@@ -318,19 +466,17 @@ impl<'a> CommentaryRenderer<'a> {
                 is_paragraph_end = true;
             }
 
+            // Calculate total space units needed (sum of all space counts between words)
+            let total_space_units: usize = line_groups.iter().skip(1).map(|(_, count)| (*count).max(1)).sum();
+
             // Calculate space width for justification
-            let space_count = if line_groups.len() > 1 {
-                line_groups.len() - 1
-            } else {
-                0
-            };
-            let space_width = if justify && !is_paragraph_end && space_count > 0 {
+            let space_width = if justify && !is_paragraph_end && total_space_units > 0 {
                 // Calculate total content width (word groups only, no spaces)
-                let total_word_width: f32 = line_groups.iter().map(|g| g.width).sum();
-                // Available space for distribution
+                let total_word_width: f32 = line_groups.iter().map(|(g, _)| g.width).sum();
+                // Available space for distribution (divided by total space units)
                 let available_space = max_width - total_word_width;
-                // Distribute among spaces
-                available_space / space_count as f32
+                // Each space unit gets this width
+                available_space / total_space_units as f32
             } else {
                 // Use base space width for paragraph-ending lines or when not justifying
                 base_space_width
@@ -339,10 +485,12 @@ impl<'a> CommentaryRenderer<'a> {
             // Render the line
             let mut x = current_line_start;
 
-            for (i, group) in line_groups.iter().enumerate() {
+            for (i, (group, space_count)) in line_groups.iter().enumerate() {
                 // Add space before word (except first word)
+                // Use the recorded space count, but at least 1 if not the first word
                 if i > 0 {
-                    x += space_width;
+                    let num_spaces = (*space_count).max(1);
+                    x += space_width * num_spaces as f32;
                 }
 
                 // Render all fragments in the group

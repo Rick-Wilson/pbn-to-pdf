@@ -1,13 +1,9 @@
-pub mod bidding_table;
-pub mod colors;
-pub mod commentary;
-pub mod document;
-pub mod fonts;
-pub mod hand_diagram;
-pub mod layer;
-pub mod layout;
-pub mod text_metrics;
+//! PDF rendering modules
 
-pub use document::generate_pdf;
-pub use layer::LayerBuilder;
-pub use text_metrics::{get_measurer, FontMetrics, TextMeasurer};
+pub mod components;
+pub mod helpers;
+pub mod layouts;
+
+// Re-export commonly used items for convenience
+pub use helpers::{get_measurer, FontMetrics, LayerBuilder, TextMeasurer};
+pub use layouts::{generate_pdf, BiddingSheetsRenderer};

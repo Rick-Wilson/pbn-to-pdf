@@ -149,7 +149,10 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
             }
         } else if remaining.starts_with('\n') || remaining.starts_with("\r\n") {
             // Single newline = soft line break (treat as space for word wrapping)
-            if !plain_buffer.is_empty() && !plain_buffer.ends_with(' ') {
+            // Always add a space unless the buffer already ends with one.
+            // If the buffer is empty but we've pushed non-text spans (like CardRef),
+            // we still need the space to separate from the next word.
+            if plain_buffer.is_empty() || !plain_buffer.ends_with(' ') {
                 plain_buffer.push(' ');
             }
             if remaining.starts_with("\r\n") {

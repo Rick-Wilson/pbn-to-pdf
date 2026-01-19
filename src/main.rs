@@ -2,10 +2,10 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use std::fs;
 
-use pbn_to_pdf::cli::{parse_board_range, Args};
+use pbn_to_pdf::cli::{parse_board_range, Args, Layout};
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::parser::parse_pbn;
-use pbn_to_pdf::render::generate_pdf;
+use pbn_to_pdf::render::{generate_pdf, BiddingSheetsRenderer};
 
 fn main() -> Result<()> {
     let args = Args::parse();
@@ -58,7 +58,17 @@ fn main() -> Result<()> {
     // Generate PDF
     let output_path = args.output_path();
 
-    let pdf_data = generate_pdf(&boards, &settings).with_context(|| "Failed to generate PDF")?;
+    let pdf_data = match settings.layout {
+        Layout::Analysis => {
+            generate_pdf(&boards, &settings).with_context(|| "Failed to generate PDF")?
+        }
+        Layout::BiddingSheets => {
+            let renderer = BiddingSheetsRenderer::new(settings);
+            renderer
+                .render(&boards)
+                .with_context(|| "Failed to generate bidding sheets PDF")?
+        }
+    };
 
     // Write output
     fs::write(&output_path, pdf_data)
