@@ -1,10 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
 `pbn-to-pdf` is a Rust CLI tool that converts PBN (Portable Bridge Notation) files to PDF documents with Bridge Composer-style formatting. It produces professional-quality bridge hand diagrams suitable for teaching materials and publications.
+
+See [README.md](README.md) for CLI usage, options, and examples.
 
 ## Build and Test Commands
 
@@ -15,20 +17,23 @@ cargo build
 # Build release version
 cargo build --release
 
-# Run tests
+# Run all tests
 cargo test
 
-# Run with a PBN file
-cargo run -- path/to/file.pbn
+# Run integration tests only (generates PDFs in tests/output/)
+cargo test --test integration_test
 
-# Run with output path
-cargo run -- input.pbn -o output.pdf
+# Run a specific integration test
+cargo test full_deck_compass --release
 
 # Check for clippy warnings
 cargo clippy
 
 # Format code
 cargo fmt
+
+# Run with a PBN file
+cargo run -- path/to/file.pbn -o output.pdf
 ```
 
 ## Architecture
@@ -41,38 +46,70 @@ CLI (src/cli/) → Parser (src/parser/) → Model (src/model/) → Render (src/r
                                                             Config (src/config/)
 ```
 
-### Key Modules
+### Source Structure
 
-- **src/parser/** - PBN file parsing using nom combinators
-  - `pbn.rs` - Main file parser
-  - `deal.rs` - Hand distribution parsing (N:AKQ.JT9.876.5432)
-  - `auction.rs` - Bidding sequence parsing
-  - `commentary.rs` - Formatted text with `<b>`, `<i>`, `\S`, `\H`, `\D`, `\C` codes
-  - `header.rs` - Bridge Composer `%` directives including BCOptions
+```
+src/
+├── main.rs              # Entry point
+├── lib.rs               # Library exports
+├── error.rs             # Error types
+├── cli/                 # Command-line argument parsing
+├── config/              # Runtime settings from CLI and PBN metadata
+├── parser/              # PBN file parsing (nom combinators)
+│   ├── pbn.rs           # Main file parser
+│   ├── deal.rs          # Hand distribution (N:AKQ.JT9.876.5432)
+│   ├── auction.rs       # Bidding sequence parsing
+│   ├── commentary.rs    # Formatted text with suit codes
+│   └── header.rs        # Bridge Composer % directives
+├── model/               # Data structures for bridge concepts
+│   ├── card.rs          # Suit, Rank, Card with Unicode symbols
+│   ├── hand.rs          # Holding, Hand with HCP calculation
+│   ├── auction.rs       # Call, Auction, Contract
+│   └── board.rs         # Complete game record
+└── render/              # PDF generation using printpdf
+    ├── layouts/         # Page layout orchestration
+    │   ├── analysis.rs      # Standard hand analysis layout
+    │   └── bidding_sheets.rs # Practice bidding sheets
+    ├── components/      # Reusable rendering components
+    │   ├── hand_diagram.rs  # Compass-rose hand display
+    │   ├── bidding_table.rs # Auction in W/N/E/S columns
+    │   ├── commentary.rs    # Justified text with floating
+    │   ├── fan.rs           # Fan-style card display (held cards)
+    │   └── dummy.rs         # Dummy-style card display (table layout)
+    └── helpers/         # Low-level rendering utilities
+        ├── fonts.rs         # Embedded fonts (DejaVu, TeX Gyre)
+        ├── text_metrics.rs  # Text measurement with rustybuzz
+        ├── layer.rs         # LayerBuilder for printpdf 0.8
+        ├── card_assets.rs   # SVG card images as XObjects
+        ├── colors.rs        # Color definitions
+        └── layout.rs        # Layout calculations
+```
 
-- **src/model/** - Data structures for bridge concepts
-  - `card.rs` - Suit, Rank, Card with Unicode symbols (♠♥♦♣)
-  - `hand.rs` - Holding, Hand with HCP calculation
-  - `auction.rs` - Call, Auction, Contract
-  - `board.rs` - Complete game record
+### Key Concepts
 
-- **src/render/** - PDF generation using printpdf
-  - `document.rs` - PDF orchestration and board layout
-  - `hand_diagram.rs` - Compass-rose hand rendering
-  - `bidding_table.rs` - Auction table in W/N/E/S columns
-  - `commentary.rs` - Text rendering with justification and floating layout
-  - `fonts.rs` - Embedded fonts (DejaVu Sans, TeX Gyre Termes)
-  - `text_metrics.rs` - Text measurement with rustybuzz
+- **Render hierarchy**: Layouts compose Components, which use Helpers
+- **LayerBuilder**: Collects PDF operations for printpdf 0.8's new API
+- **CardAssets**: Loads 52 SVG card images as reusable XObjects
+- **FanRenderer/DummyRenderer**: Card display with accurate bounding boxes
 
-- **src/config/** - Runtime settings from CLI args and PBN metadata
+## Tests
 
-## Embedded Fonts
+```
+tests/
+├── fixtures/            # Sample PBN files for testing
+├── integration_test.rs  # Integration tests for renderers
+└── output/              # Generated PDFs (gitignored)
+```
 
-Two font families are embedded for cross-platform consistency:
-- **DejaVu Sans** - Sans-serif with Unicode suit symbols
-- **TeX Gyre Termes** - Serif (Times New Roman clone) for professional typography
+Integration tests generate PDFs in `tests/output/` for visual verification:
+- `dummy_test.pdf` - Dummy renderer test
+- `fan_test.pdf` - Fan renderer test
+- `full_deck_compass.pdf` - Full 52-card compass layout
 
-Font selection is automatic based on PBN font specifications.
+## Embedded Assets
+
+- **Fonts**: DejaVu Sans, TeX Gyre Termes (embedded for cross-platform consistency)
+- **Card SVGs**: 52 playing cards in `assets/cards/` (58.94mm × 85.61mm at 300 DPI)
 
 ## PBN Format Notes
 
@@ -85,8 +122,8 @@ Key PBN elements the parser handles:
 
 ## Code Style
 
-- Use rustfmt for formatting
-- Run clippy before committing
+- Use `cargo fmt` for formatting
+- Run `cargo clippy` before committing
 - Prefer editing existing files over creating new ones
 - Keep functions focused and reasonably sized
 - Use descriptive variable names for bridge concepts
