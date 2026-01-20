@@ -124,14 +124,42 @@ pub enum Layout {
     Analysis,
     /// Bidding practice sheets for face-to-face practice
     BiddingSheets,
+    /// Declarer's plan practice sheets (4 deals per page)
+    DeclarersPlan,
+}
+
+impl Layout {
+    /// Get the suffix to append to output filename (without extension)
+    pub fn output_suffix(&self) -> Option<&'static str> {
+        match self {
+            Layout::Analysis => None,
+            Layout::BiddingSheets => Some(" - Bidding Sheets"),
+            Layout::DeclarersPlan => Some(" - Declarers Plan"),
+        }
+    }
 }
 
 impl Args {
-    /// Get the output path, defaulting to input with .pdf extension
+    /// Get the output path, defaulting to input with layout-specific suffix
     pub fn output_path(&self) -> PathBuf {
-        self.output
-            .clone()
-            .unwrap_or_else(|| self.input.with_extension("pdf"))
+        self.output.clone().unwrap_or_else(|| {
+            // Get the input file stem (name without extension)
+            let stem = self.input.file_stem().unwrap_or_default().to_string_lossy();
+
+            // Add layout-specific suffix if applicable
+            let new_name = if let Some(suffix) = self.layout.output_suffix() {
+                format!("{}{}.pdf", stem, suffix)
+            } else {
+                format!("{}.pdf", stem)
+            };
+
+            // Keep the same directory as the input file
+            if let Some(parent) = self.input.parent() {
+                parent.join(new_name)
+            } else {
+                PathBuf::from(new_name)
+            }
+        })
     }
 
     /// Get page dimensions in mm (width, height) accounting for orientation

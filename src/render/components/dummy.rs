@@ -157,7 +157,9 @@ impl<'a> DummyRenderer<'a> {
         // Draw bounding box if requested
         if self.show_bounds {
             let (width, height) = self.dimensions(hand);
-            layer.set_outline_color(printpdf::Color::Rgb(printpdf::Rgb::new(1.0, 0.0, 0.0, None)));
+            layer.set_outline_color(printpdf::Color::Rgb(printpdf::Rgb::new(
+                1.0, 0.0, 0.0, None,
+            )));
             layer.set_outline_thickness(1.0);
             layer.add_rect(
                 origin.0,

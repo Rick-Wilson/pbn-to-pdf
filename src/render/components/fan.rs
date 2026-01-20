@@ -290,10 +290,10 @@ impl<'a> FanRenderer<'a> {
 
         // Four corners relative to bottom-left (0,0)
         let corners_local = [
-            (0.0, 0.0),           // bottom-left
-            (width, 0.0),         // bottom-right
-            (width, height),      // top-right
-            (0.0, height),        // top-left
+            (0.0, 0.0),      // bottom-left
+            (width, 0.0),    // bottom-right
+            (width, height), // top-right
+            (0.0, height),   // top-left
         ];
 
         // Rotate each corner around origin, then translate to (x, y)
@@ -368,7 +368,9 @@ impl<'a> FanRenderer<'a> {
 
             // Draw bounding box if requested
             if self.show_bounds {
-                layer.set_outline_color(printpdf::Color::Rgb(printpdf::Rgb::new(1.0, 0.0, 0.0, None)));
+                layer.set_outline_color(printpdf::Color::Rgb(printpdf::Rgb::new(
+                    1.0, 0.0, 0.0, None,
+                )));
                 layer.set_outline_thickness(1.0);
                 layer.add_rect(
                     Mm(0.0),
@@ -394,7 +396,9 @@ impl<'a> FanRenderer<'a> {
             // The bounding box should be positioned at origin (top-left convention)
             // with the computed dimensions
             if self.show_bounds {
-                layer.set_outline_color(printpdf::Color::Rgb(printpdf::Rgb::new(1.0, 0.0, 0.0, None)));
+                layer.set_outline_color(printpdf::Color::Rgb(printpdf::Rgb::new(
+                    1.0, 0.0, 0.0, None,
+                )));
                 layer.set_outline_thickness(1.0);
                 layer.add_rect(
                     origin.0,

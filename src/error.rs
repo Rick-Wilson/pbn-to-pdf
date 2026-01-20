@@ -37,6 +37,9 @@ pub enum RenderError {
 
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+
+    #[error("Card asset loading error: {0}")]
+    CardAsset(String),
 }
 
 #[derive(Error, Debug)]

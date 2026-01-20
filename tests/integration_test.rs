@@ -3,10 +3,14 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use pbn_to_pdf::config::Settings;
-use pbn_to_pdf::model::{Hand, Holding, Rank, Suit};
+use pbn_to_pdf::model::{Card, Hand, Holding, Rank, Suit};
 use pbn_to_pdf::parser::parse_pbn;
-use pbn_to_pdf::render::components::{DummyRenderer, FanRenderer};
+use pbn_to_pdf::render::components::{
+    DeclarersPlanSmallRenderer, DummyRenderer, FanRenderer, LosersTableRenderer,
+    WinnersTableRenderer,
+};
 use pbn_to_pdf::render::generate_pdf;
+use pbn_to_pdf::render::helpers::{colors::SuitColors, FontManager};
 use pbn_to_pdf::render::helpers::{CardAssets, LayerBuilder};
 use printpdf::{Mm, PdfDocument, PdfPage, PdfSaveOptions, PdfWarnMsg};
 
@@ -204,6 +208,29 @@ fn test_generate_all_pdfs() {
         assert!(
             bidding_output.exists(),
             "Bidding sheets PDF not created for {}",
+            stem
+        );
+
+        // Generate declarer's plan PDF
+        let declarers_output = output_dir.join(format!("{} - Declarers Plan.pdf", stem));
+        let status = Command::new(&binary)
+            .args([
+                "--layout",
+                "declarers-plan",
+                pbn_path.to_str().unwrap(),
+                "-o",
+                declarers_output.to_str().unwrap(),
+            ])
+            .status()
+            .expect("Failed to run pbn-to-pdf for declarers-plan");
+        assert!(
+            status.success(),
+            "Failed to generate declarer's plan PDF for {}",
+            stem
+        );
+        assert!(
+            declarers_output.exists(),
+            "Declarer's plan PDF not created for {}",
             stem
         );
 
@@ -535,6 +562,240 @@ fn test_full_deck_compass_layout() {
     fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
     println!(
         "Full deck compass layout test PDF written to: {:?}",
+        output_path
+    );
+}
+
+#[test]
+fn test_losers_table_generates_pdf() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Losers Table Test");
+
+    // Load fonts using FontManager
+    let fonts = FontManager::new(&mut doc).expect("Failed to load fonts");
+
+    // Create renderer with default colors
+    let colors = SuitColors::default();
+    let renderer = LosersTableRenderer::new(
+        &fonts.serif.regular,
+        &fonts.serif.bold,
+        &fonts.sans.regular, // Sans for suit symbols
+        colors,
+    );
+
+    // Create layer and render
+    let mut layer = LayerBuilder::new();
+    let height = renderer.render(&mut layer, (Mm(50.0), Mm(250.0)));
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(210.0), Mm(297.0), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 1000, "PDF should have reasonable size");
+    assert!(height > 0.0, "Rendered height should be positive");
+
+    // Check dimensions
+    let (width, expected_height) = renderer.dimensions();
+    assert!(width > 0.0, "Table width should be positive");
+    assert!(expected_height > 0.0, "Table height should be positive");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("losers_table_test.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!("Losers table test PDF written to: {:?}", output_path);
+}
+
+#[test]
+fn test_winners_table_generates_pdf() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Winners Table Test");
+
+    // Load fonts using FontManager
+    let fonts = FontManager::new(&mut doc).expect("Failed to load fonts");
+
+    // Create renderer with default colors
+    let colors = SuitColors::default();
+    let renderer = WinnersTableRenderer::new(
+        &fonts.serif.regular,
+        &fonts.serif.bold,
+        &fonts.sans.regular, // Sans for suit symbols
+        colors,
+    );
+
+    // Create layer and render
+    let mut layer = LayerBuilder::new();
+    let height = renderer.render(&mut layer, (Mm(50.0), Mm(250.0)));
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(210.0), Mm(297.0), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 1000, "PDF should have reasonable size");
+    assert!(height > 0.0, "Rendered height should be positive");
+
+    // Check dimensions
+    let (width, expected_height) = renderer.dimensions();
+    assert!(width > 0.0, "Table width should be positive");
+    assert!(expected_height > 0.0, "Table height should be positive");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("winners_table_test.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!("Winners table test PDF written to: {:?}", output_path);
+}
+
+#[test]
+fn test_declarers_plan_small_generates_pdf() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Create test hands (North dummy, South declarer)
+    let north = Hand::from_holdings(
+        Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen, Rank::Jack]),
+        Holding::from_ranks([Rank::King, Rank::Queen, Rank::Jack]),
+        Holding::from_ranks([Rank::Ace, Rank::Queen]),
+        Holding::from_ranks([Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]),
+    );
+
+    let south = Hand::from_holdings(
+        Holding::from_ranks([Rank::Ten, Rank::Nine, Rank::Eight]),
+        Holding::from_ranks([Rank::Ace, Rank::Ten, Rank::Nine, Rank::Eight]),
+        Holding::from_ranks([Rank::King, Rank::Jack, Rank::Ten]),
+        Holding::from_ranks([Rank::Ace, Rank::Nine, Rank::Eight]),
+    );
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Declarer's Plan Small Test");
+
+    // Load card assets and fonts
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+    let fonts = FontManager::new(&mut doc).expect("Failed to load fonts");
+
+    // Create renderer with default colors
+    let colors = SuitColors::default();
+    let renderer = DeclarersPlanSmallRenderer::new(
+        &card_assets,
+        &fonts.serif.regular,
+        &fonts.serif.bold,
+        &fonts.sans.regular,
+        colors.clone(),
+    )
+    .show_bounds(true);
+
+    // Create layer
+    let mut layer = LayerBuilder::new();
+
+    // Test 1: Suit contract with opening lead (losers table)
+    let opening_lead = Some(Card::new(Suit::Hearts, Rank::King));
+    let height1 = renderer.render_with_info(
+        &mut layer,
+        &north,
+        &south,
+        false, // Suit contract
+        opening_lead,
+        Some(1),       // Deal 1
+        Some("4♥ South"), // Contract
+        (Mm(15.0), Mm(280.0)),
+    );
+
+    // Test 2: NT contract without opening lead (winners table) - top right
+    let height2 = renderer.render_with_info(
+        &mut layer,
+        &north,
+        &south,
+        true, // NT contract
+        None, // No opening lead
+        Some(2),        // Deal 2
+        Some("3NT South"), // Contract
+        (Mm(115.0), Mm(280.0)),
+    );
+
+    // Test 3: Suit contract with opening lead (losers table) - bottom left
+    let opening_lead3 = Some(Card::new(Suit::Spades, Rank::Ace));
+    let height3 = renderer.render_with_info(
+        &mut layer,
+        &north,
+        &south,
+        false, // Suit contract
+        opening_lead3,
+        Some(3),       // Deal 3
+        Some("4♠ South"), // Contract
+        (Mm(15.0), Mm(140.0)),
+    );
+
+    // Test 4: NT contract with opening lead (winners table) - bottom right
+    let opening_lead4 = Some(Card::new(Suit::Diamonds, Rank::Queen));
+    let height4 = renderer.render_with_info(
+        &mut layer,
+        &north,
+        &south,
+        true, // NT contract
+        opening_lead4,
+        Some(4),        // Deal 4
+        Some("1NT North"), // Contract
+        (Mm(115.0), Mm(140.0)),
+    );
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(210.0), Mm(297.0), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 1000, "PDF should have reasonable size");
+    assert!(
+        height1 > 0.0,
+        "Rendered height should be positive for deal 1"
+    );
+    assert!(
+        height2 > 0.0,
+        "Rendered height should be positive for deal 2"
+    );
+    assert!(
+        height3 > 0.0,
+        "Rendered height should be positive for deal 3"
+    );
+    assert!(
+        height4 > 0.0,
+        "Rendered height should be positive for deal 4"
+    );
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("declarers_plan_small_test.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!(
+        "Declarer's plan small test PDF written to: {:?}",
         output_path
     );
 }

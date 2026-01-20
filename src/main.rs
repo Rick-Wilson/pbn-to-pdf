@@ -5,7 +5,7 @@ use std::fs;
 use pbn_to_pdf::cli::{parse_board_range, Args, Layout};
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::parser::parse_pbn;
-use pbn_to_pdf::render::{generate_pdf, BiddingSheetsRenderer};
+use pbn_to_pdf::render::{generate_pdf, BiddingSheetsRenderer, DeclarersPlanRenderer};
 
 fn main() -> Result<()> {
     let args = Args::parse();
@@ -67,6 +67,12 @@ fn main() -> Result<()> {
             renderer
                 .render(&boards)
                 .with_context(|| "Failed to generate bidding sheets PDF")?
+        }
+        Layout::DeclarersPlan => {
+            let renderer = DeclarersPlanRenderer::new(settings);
+            renderer
+                .render(&boards)
+                .with_context(|| "Failed to generate declarer's plan PDF")?
         }
     };
 
