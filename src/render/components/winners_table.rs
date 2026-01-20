@@ -63,7 +63,7 @@ impl<'a> WinnersTableRenderer<'a> {
             label_font_size: 12.0,
             col_width: 16.0,
             row_height: 8.0,
-            header_height: 10.0,
+            header_height: 6.0, // Reduced: just enough for font + small padding
             line_thickness: 0.5,
         }
     }
@@ -192,8 +192,9 @@ impl<'a> WinnersTableRenderer<'a> {
         let measurer = text_metrics::get_serif_measurer();
         let text_width = measurer.measure_width_mm(text, self.header_font_size);
         let text_x = x + (width - text_width) / 2.0;
+        // Vertical center: baseline position accounts for font metrics (descender ~20% of font size)
         let text_y =
-            y - self.header_height + (self.header_height - self.header_font_size * 0.35) / 2.0;
+            y - self.header_height + (self.header_height - self.header_font_size * 0.35) / 2.0 + 1.0;
 
         layer.set_fill_color(Color::Rgb(BLACK));
         layer.use_text(

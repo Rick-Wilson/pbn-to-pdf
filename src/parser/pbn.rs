@@ -1,5 +1,5 @@
 use crate::error::PbnError;
-use crate::model::{Board, Direction, PbnMetadata, Vulnerability};
+use crate::model::{Board, Contract, Direction, PbnMetadata, Vulnerability};
 
 use super::auction::parse_auction;
 use super::commentary::{extract_commentary, parse_commentary};
@@ -249,12 +249,23 @@ fn process_tag(
             if let Some(ref mut board) = current_board {
                 if let Some(dir) = tag.value.chars().next().and_then(Direction::from_char) {
                     board.declarer = Some(dir);
+                    // Update contract declarer if contract already exists
+                    if let Some(ref mut contract) = board.contract {
+                        contract.declarer = dir;
+                    }
                 }
             }
         }
         "Contract" => {
-            // Contract is often derived from auction, but can be explicit
-            // We'll handle this in a simplified way for now
+            if let Some(ref mut board) = current_board {
+                if let Some(mut contract) = Contract::parse(&tag.value) {
+                    // If declarer was already set, use it
+                    if let Some(declarer) = board.declarer {
+                        contract.declarer = declarer;
+                    }
+                    board.contract = Some(contract);
+                }
+            }
         }
         "Result" => {
             if let Some(ref mut board) = current_board {

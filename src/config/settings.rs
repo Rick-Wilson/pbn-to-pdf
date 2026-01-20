@@ -6,6 +6,10 @@ use super::defaults::*;
 /// Standard margin for bidding sheets (1/2 inch)
 const BIDDING_SHEETS_MARGIN: f32 = 12.7;
 
+/// Margins for declarer's plan layout
+const DECLARERS_PLAN_MARGIN_LR: f32 = 12.7; // 1/2 inch left/right
+const DECLARERS_PLAN_MARGIN_TB: f32 = 25.4; // 1 inch top/bottom
+
 /// Runtime settings for PDF generation
 #[derive(Debug, Clone)]
 pub struct Settings {
@@ -117,23 +121,27 @@ impl Settings {
         let (page_width, page_height) = args.page_dimensions();
 
         // Determine initial margins based on layout and CLI override
-        let initial_margin = if let Some(preset) = args.margins {
-            preset.size_mm()
+        let (margin_lr, margin_tb) = if let Some(preset) = args.margins {
+            let m = preset.size_mm();
+            (m, m)
         } else if args.layout == Layout::BiddingSheets {
             // Bidding sheets use standard margins by default
-            BIDDING_SHEETS_MARGIN
+            (BIDDING_SHEETS_MARGIN, BIDDING_SHEETS_MARGIN)
+        } else if args.layout == Layout::DeclarersPlan {
+            // Declarer's plan uses 0.5" left/right, 1.0" top/bottom
+            (DECLARERS_PLAN_MARGIN_LR, DECLARERS_PLAN_MARGIN_TB)
         } else {
-            DEFAULT_PAGE_MARGIN
+            (DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN)
         };
 
         Self {
             page_width,
             page_height,
-            margin: initial_margin,
-            margin_top: initial_margin,
-            margin_bottom: initial_margin,
-            margin_left: initial_margin,
-            margin_right: initial_margin,
+            margin: margin_lr,
+            margin_top: margin_tb,
+            margin_bottom: margin_tb,
+            margin_left: margin_lr,
+            margin_right: margin_lr,
             boards_per_page: args.boards_per_page,
             margin_preset: args.margins,
             layout: args.layout,
@@ -155,7 +163,7 @@ impl Settings {
 
         // Apply PBN margins only if:
         // 1. No CLI margin override was specified, AND
-        // 2. Layout is Analysis (bidding sheets ignores embedded margins)
+        // 2. Layout is Analysis (bidding sheets and declarer's plan ignore embedded margins)
         if self.margin_preset.is_none() && self.layout == Layout::Analysis {
             if let Some(ref margins) = metadata.layout.margins {
                 self.margin_top = margins.top;

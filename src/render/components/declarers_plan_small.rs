@@ -1,11 +1,9 @@
 //! Declarer's plan small component
 //!
 //! Renders a compact layout for one quadrant of a page showing:
-//! - North hand in dummy view (top)
-//! - South hand in fan view (below, with opening lead between)
-//! - Opening lead card rotated 90° CW (between hands)
-//! - Deal number and contract text (next to opening lead)
-//! - Goal text with winners/losers blank (right-justified)
+//! - Header line: Deal # (left), Contract (center), Goal (right)
+//! - North hand in dummy view
+//! - South hand in fan view
 //! - Winners or Losers table (below south hand)
 //!   - NT contracts: Winners table
 //!   - Suit contracts: Losers table
@@ -16,7 +14,7 @@ use crate::model::{Board, Card, Hand, Suit};
 use crate::render::components::{
     DummyRenderer, FanRenderer, LosersTableRenderer, WinnersTableRenderer,
 };
-use crate::render::helpers::card_assets::{CardAssets, CARD_HEIGHT_MM, CARD_WIDTH_MM};
+use crate::render::helpers::card_assets::{CardAssets, CARD_HEIGHT_MM};
 use crate::render::helpers::colors::{SuitColors, BLACK};
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics;
@@ -30,8 +28,20 @@ const FAN_CROP_RATIO: f32 = 0.5;
 /// Nominal number of cards in a suit for calculating fixed dummy height
 const NOMINAL_SUIT_LENGTH: usize = 5;
 
-/// Scale factor for the opening lead card relative to other cards
-const LEAD_SCALE_RATIO: f32 = 0.66;
+/// Font size for header text (increased for visibility)
+const HEADER_FONT_SIZE: f32 = 14.0;
+
+/// Height of the header line area
+const HEADER_HEIGHT: f32 = 8.0;
+
+/// Extra space to raise dummy (one line height)
+const DUMMY_RAISE: f32 = 1.0;
+
+/// Extra space to raise fan (~1 inch minus header savings)
+const FAN_RAISE: f32 = 21.4;
+
+/// Extra space to raise table (about 1.5x title row height minus header savings + row height)
+const TABLE_RAISE: f32 = 11.5;
 
 /// Renderer for a small declarer's plan layout (one quadrant of a page)
 pub struct DeclarersPlanSmallRenderer<'a> {
@@ -67,7 +77,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             colors,
             card_scale: 0.35,
             fan_arc: 30.0,
-            dummy_overlap: 0.20,
+            dummy_overlap: 0.18,  // Show some suit symbol on clipped cards
             show_bounds: false,
         }
     }
@@ -112,14 +122,6 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         card_height + (NOMINAL_SUIT_LENGTH - 1) as f32 * visible_height
     }
 
-    /// Calculate the height of the opening lead gap (space between dummy and fan for the lead card)
-    fn lead_gap_height(&self) -> f32 {
-        // After 90° CCW rotation, card_width becomes visual height
-        let (card_width, _) = self.card_assets.card_size_mm(self.card_scale * LEAD_SCALE_RATIO);
-        // Gap includes the card height plus some padding
-        card_width + ELEMENT_GAP
-    }
-
     /// Get the fan renderer configured for this layout, scaled to match dummy width
     fn fan_renderer(&self, target_width: f32, hand: &Hand) -> FanRenderer<'a> {
         // Calculate scale to match target width
@@ -162,9 +164,9 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         // Width is just the content area
         let width = dummy_width.max(table_width);
 
-        // Total height: nominal dummy + lead gap + visible fan portion + gap + table
-        let lead_gap = self.lead_gap_height();
-        let height = nominal_dummy_height + lead_gap + visible_fan_height + ELEMENT_GAP + table_height;
+        // Total height: header + gap + dummy + gap + visible fan + gap + table
+        let height = HEADER_HEIGHT + ELEMENT_GAP + nominal_dummy_height + ELEMENT_GAP
+            + visible_fan_height + ELEMENT_GAP + table_height;
 
         (width, height)
     }
@@ -236,6 +238,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     /// deal_number: Optional deal number to display (e.g., "1", "2")
     /// contract_str: Optional contract string (e.g., "4H South")
     /// Returns the height used.
+    #[allow(unused_variables)]
     pub fn render_with_info(
         &self,
         layer: &mut LayerBuilder,
@@ -249,43 +252,71 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     ) -> f32 {
         let (ox, oy) = (origin.0 .0, origin.1 .0);
 
-        // Table header height used for vertical adjustments
-        let table_header_height = 10.0;
-
         // Content starts at origin
         let content_x = ox;
 
-        // Render dummy (North hand)
+        // Get dummy dimensions for layout calculations
         let dummy_renderer = self.dummy_renderer();
-        let (dummy_width, _actual_dummy_height) = dummy_renderer.dimensions(north);
-        let dummy_x = content_x;
-        let dummy_y = oy;
-        dummy_renderer.render(layer, north, (Mm(dummy_x), Mm(dummy_y)));
-
-        // Use nominal dummy height for positioning lower elements (consistent regardless of actual hand)
+        let (dummy_width, _) = dummy_renderer.dimensions(north);
         let nominal_dummy_height = self.nominal_dummy_height();
-        let lead_gap = self.lead_gap_height();
 
-        // Render fan (South hand) - scaled to match dummy width
-        // Position is based on nominal dummy height + lead gap (for opening lead between)
-        // Move up by table_header_height to squeeze layout
+        // Right edge for right-justified text
+        let right_edge = content_x + dummy_width;
+
+        // Render header line at the top
+        // Header Y position (baseline of text)
+        let header_y = oy - HEADER_HEIGHT + 2.0; // 2mm from bottom of header area
+
+        layer.set_fill_color(Color::Rgb(BLACK));
+        let measurer = text_metrics::get_serif_measurer();
+
+        // Left: "Deal #" followed by "Ctr: xx"
+        let mut text_x = content_x;
+        if let Some(deal_num) = deal_number {
+            let deal_text = format!("Deal {}", deal_num);
+            let deal_width = measurer.measure_width_mm(&deal_text, HEADER_FONT_SIZE);
+            layer.use_text(&deal_text, HEADER_FONT_SIZE, Mm(text_x), Mm(header_y), self.bold_font);
+            text_x += deal_width + 2.0; // Gap between deal and contract
+        }
+
+        // Contract right after deal number (abbreviated)
+        // Use serif for "Ctr: " label, sans for contract value (has suit symbols)
+        if let Some(contract) = contract_str {
+            let label = "Ctr: ";
+            let label_width = measurer.measure_width_mm(label, HEADER_FONT_SIZE);
+            layer.use_text(label, HEADER_FONT_SIZE, Mm(text_x), Mm(header_y), self.font);
+            layer.use_text(contract, HEADER_FONT_SIZE, Mm(text_x + label_width), Mm(header_y), self.symbol_font);
+        }
+
+        // Right: Goal text (right-justified)
+        let goal_text = if is_nt {
+            "Goal: at least ____ winners"
+        } else {
+            "Goal: at most ____ losers"
+        };
+        let goal_width = measurer.measure_width_mm(goal_text, HEADER_FONT_SIZE);
+        let goal_x = right_edge - goal_width;
+        layer.use_text(goal_text, HEADER_FONT_SIZE, Mm(goal_x), Mm(header_y), self.font);
+
+        // Dummy (North hand) - positioned below header with gap, raised by DUMMY_RAISE
+        let dummy_y = oy - HEADER_HEIGHT - ELEMENT_GAP + DUMMY_RAISE;
+        dummy_renderer.render(layer, north, (Mm(content_x), Mm(dummy_y)));
+
+        // Fan (South hand) - positioned below dummy, raised by FAN_RAISE
         let fan_renderer = self.fan_renderer(dummy_width, south);
         let (_, fan_height) = fan_renderer.dimensions(south);
         let visible_fan_height = fan_height * FAN_CROP_RATIO;
-        let fan_x = content_x;
-        // Fan starts below nominal dummy position + lead gap, moved up by header height
-        let fan_y = oy - nominal_dummy_height - lead_gap + table_header_height;
-        fan_renderer.render(layer, south, (Mm(fan_x), Mm(fan_y)));
+        let fan_y = dummy_y - nominal_dummy_height - ELEMENT_GAP + FAN_RAISE;
+        fan_renderer.render(layer, south, (Mm(content_x), Mm(fan_y)));
 
-        // Render table below the VISIBLE portion of the fan (this covers the bottom of the fan)
-        // Table is centered on the dummy width, moved up by 2x header height total
+        // Table below the VISIBLE portion of the fan (centered on dummy width), raised by TABLE_RAISE
         let (table_width, _) = if is_nt {
             self.winners_table_renderer().dimensions()
         } else {
             self.losers_table_renderer().dimensions()
         };
-        let table_x = content_x + (dummy_width - table_width) / 2.0; // Center on dummy
-        let table_y = fan_y - visible_fan_height - ELEMENT_GAP + table_header_height; // Move up by header height
+        let table_x = content_x + (dummy_width - table_width) / 2.0;
+        let table_y = fan_y - visible_fan_height - ELEMENT_GAP + TABLE_RAISE;
 
         if is_nt {
             let table = self.winners_table_renderer();
@@ -294,83 +325,6 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             let table = self.losers_table_renderer();
             table.render(layer, (Mm(table_x), Mm(table_y)));
         }
-
-        // Calculate lead card dimensions for positioning
-        let lead_scale = self.card_scale * LEAD_SCALE_RATIO;
-        let (lead_card_width, lead_card_height) = self.card_assets.card_size_mm(lead_scale);
-        // Offset lead card 1/4 card width to the right
-        let lead_x_offset = CARD_WIDTH_MM * self.card_scale * 0.25;
-
-        // Y position for lead gap area (moved up by header height)
-        let nominal_dummy_bottom = oy - nominal_dummy_height;
-        let adjusted_gap_top = nominal_dummy_bottom + table_header_height;
-        let gap_center_y = adjusted_gap_top - lead_gap / 2.0;
-
-        // Render opening lead card (rotated 90° CW) if present
-        // Lower it by 1/4 of pre-rotated card width
-        let lead_y_offset = CARD_WIDTH_MM * self.card_scale * 0.25;
-        if let Some(card) = opening_lead {
-            // After 90° CW rotation (-90° CCW) around bottom-left corner:
-            // - Card extends RIGHT by card_height and DOWN by card_width from pivot
-            // Visual height = lead_card_width (extends downward)
-            let card_pivot_y = gap_center_y + lead_card_width / 2.0 - lead_y_offset;
-            // X position: offset 1/4 card width to the right
-            let card_pivot_x = content_x + lead_x_offset;
-
-            let transform = self.card_assets.transform_at_rotated(
-                card_pivot_x,
-                card_pivot_y,
-                lead_scale,
-                -90.0, // 90° CW (clockwise)
-            );
-            layer.use_xobject(
-                self.card_assets.get(card.suit, card.rank).clone(),
-                transform,
-            );
-        }
-
-        // Render deal number and contract text (to the right of the opening lead)
-        // Font size increased by 30%
-        let info_font_size = 13.0;
-        let line_height = info_font_size * 0.4; // Approximate line height in mm
-        // Position text to the right of the lead card
-        let text_x = content_x + lead_x_offset + lead_card_height + 2.0; // 2mm gap after card
-        // Position so lower line is just above the fan bounding box top
-        let text_bottom_y = fan_y + 1.0; // 1mm above fan top
-        let text_top_y = text_bottom_y + line_height + 2.0;
-
-        layer.set_fill_color(Color::Rgb(BLACK));
-
-        if let Some(deal_num) = deal_number {
-            let deal_text = format!("Deal {}", deal_num);
-            layer.use_text(&deal_text, info_font_size, Mm(text_x), Mm(text_top_y), self.bold_font);
-        }
-
-        if let Some(contract) = contract_str {
-            // Use symbol_font for contract to render suit symbols properly
-            layer.use_text(contract, info_font_size, Mm(text_x), Mm(text_bottom_y), self.symbol_font);
-        }
-
-        // Render "Goal:" text box (right-justified with dummy width)
-        let goal_text = "Goal:";
-        let goal_line2 = if is_nt {
-            ">= ______ winners"
-        } else {
-            "<= ______ losers"
-        };
-
-        let measurer = text_metrics::get_serif_measurer();
-        let goal_width = measurer.measure_width_mm(goal_text, info_font_size);
-        let goal_line2_width = measurer.measure_width_mm(goal_line2, info_font_size);
-
-        // Right edge is at content_x + dummy_width
-        let right_edge = content_x + dummy_width;
-        let goal_x = right_edge - goal_width.max(goal_line2_width);
-
-        layer.use_text(goal_text, info_font_size, Mm(goal_x), Mm(text_top_y), self.bold_font);
-        // Right-justify the second line
-        let goal_line2_x = right_edge - goal_line2_width;
-        layer.use_text(goal_line2, info_font_size, Mm(goal_line2_x), Mm(text_bottom_y), self.font);
 
         // Calculate total height used
         let (_, total_height) = self.dimensions(north, south, is_nt);

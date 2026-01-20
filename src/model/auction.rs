@@ -185,6 +185,45 @@ pub struct Contract {
     pub declarer: Direction,
 }
 
+impl Contract {
+    /// Parse a contract string like "1NT", "4S", "4HX", "3NTXX"
+    /// The declarer is not included in PBN contract strings (it's a separate tag)
+    pub fn parse(s: &str) -> Option<Self> {
+        let s = s.trim();
+        if s.is_empty() {
+            return None;
+        }
+
+        // First character must be level 1-7
+        let level = s.chars().next()?.to_digit(10)? as u8;
+        if !(1..=7).contains(&level) {
+            return None;
+        }
+
+        let rest = &s[1..];
+
+        // Check for doubled/redoubled at end
+        let (suit_part, doubled, redoubled) = if rest.ends_with("XX") {
+            (&rest[..rest.len() - 2], false, true)
+        } else if rest.ends_with('X') {
+            (&rest[..rest.len() - 1], true, false)
+        } else {
+            (rest, false, false)
+        };
+
+        // Parse suit
+        let suit = BidSuit::parse(suit_part)?;
+
+        Some(Contract {
+            level,
+            suit,
+            doubled,
+            redoubled,
+            declarer: Direction::South, // Default, should be set from Declarer tag
+        })
+    }
+}
+
 impl fmt::Display for Contract {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.level, self.suit)?;

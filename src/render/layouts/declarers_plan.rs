@@ -9,17 +9,31 @@
 //! - Goal text (winners/losers to count)
 //! - Winners table (NT) or Losers table (suit contracts)
 
-use printpdf::{Mm, PdfDocument, PdfPage, PdfSaveOptions};
+use printpdf::{Color, Mm, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
 use crate::config::Settings;
 use crate::error::RenderError;
-use crate::model::{BidSuit, Board};
+use crate::model::{BidSuit, Board, Deal, Direction, Hand};
 
 use crate::render::components::DeclarersPlanSmallRenderer;
 use crate::render::helpers::card_assets::CardAssets;
 use crate::render::helpers::colors::SuitColors;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
+
+/// Separator line thickness (same as bidding sheets practice pages)
+const SEPARATOR_THICKNESS: f32 = 2.0;
+
+/// Separator line color (dark gray)
+const SEPARATOR_COLOR: Rgb = Rgb {
+    r: 0.3,
+    g: 0.3,
+    b: 0.3,
+    icc_profile: None,
+};
+
+/// Padding inside each quadrant to center content
+const QUADRANT_PADDING: f32 = 5.0;
 
 /// Declarer's plan 4-up renderer
 pub struct DeclarersPlanRenderer {
@@ -87,22 +101,34 @@ impl DeclarersPlanRenderer {
         .show_bounds(self.settings.debug_boxes);
 
         // Page layout: 2x2 grid
-        // Margins and positions
         let margin_left = self.settings.margin_left;
+        let margin_right = self.settings.margin_right;
         let margin_top = self.settings.margin_top;
+        let margin_bottom = self.settings.margin_bottom;
         let page_width = self.settings.page_width;
         let page_height = self.settings.page_height;
 
-        // Calculate quadrant positions
-        let half_width = (page_width - 2.0 * margin_left) / 2.0;
-        let half_height = (page_height - 2.0 * margin_top) / 2.0;
+        // Calculate content area
+        let content_width = page_width - margin_left - margin_right;
+        let content_height = page_height - margin_top - margin_bottom;
 
-        // Origins for each quadrant (top-left corner of each)
+        // Calculate quadrant dimensions
+        let half_width = content_width / 2.0;
+        let half_height = content_height / 2.0;
+
+        // Center lines for dividers
+        let center_x = margin_left + half_width;
+        let center_y = margin_bottom + half_height;
+
+        // Draw separator lines
+        self.draw_separator_lines(layer, center_x, center_y);
+
+        // Origins for each quadrant (top-left corner of each, with padding)
         let positions = [
-            (margin_left, page_height - margin_top),                    // Top-left
-            (margin_left + half_width, page_height - margin_top),      // Top-right
-            (margin_left, page_height - margin_top - half_height),     // Bottom-left
-            (margin_left + half_width, page_height - margin_top - half_height), // Bottom-right
+            (margin_left + QUADRANT_PADDING, page_height - margin_top),               // Top-left
+            (center_x + QUADRANT_PADDING, page_height - margin_top),                  // Top-right
+            (margin_left + QUADRANT_PADDING, center_y),                               // Bottom-left
+            (center_x + QUADRANT_PADDING, center_y),                                  // Bottom-right
         ];
 
         for (i, board) in boards.iter().enumerate() {
@@ -125,7 +151,7 @@ impl DeclarersPlanRenderer {
                 .as_ref()
                 .and_then(|play| play.tricks.first().and_then(|trick| trick.cards[0]));
 
-            // Format contract string
+            // Format contract string (without declarer direction)
             let contract_str = board.contract.as_ref().map(|c| {
                 let suit_symbol = match c.suit {
                     BidSuit::Clubs => "♣",
@@ -134,13 +160,22 @@ impl DeclarersPlanRenderer {
                     BidSuit::Spades => "♠",
                     BidSuit::NoTrump => "NT",
                 };
-                format!("{}{} {}", c.level, suit_symbol, c.declarer)
+                format!("{}{}", c.level, suit_symbol)
             });
+
+            // Rotate deal so declarer is always South (bottom of display)
+            // Default to South if no declarer specified
+            let declarer = board
+                .contract
+                .as_ref()
+                .map(|c| c.declarer)
+                .unwrap_or(Direction::South);
+            let (dummy_hand, declarer_hand) = rotate_deal_for_declarer(&board.deal, declarer);
 
             renderer.render_with_info(
                 layer,
-                &board.deal.north,
-                &board.deal.south,
+                &dummy_hand,
+                &declarer_hand,
                 is_nt,
                 opening_lead,
                 board.number,
@@ -148,5 +183,48 @@ impl DeclarersPlanRenderer {
                 (Mm(x), Mm(y)),
             );
         }
+    }
+
+    /// Draw horizontal and vertical separator lines between quadrants
+    fn draw_separator_lines(&self, layer: &mut LayerBuilder, center_x: f32, center_y: f32) {
+        let margin_left = self.settings.margin_left;
+        let margin_right = self.settings.margin_right;
+        let margin_top = self.settings.margin_top;
+        let margin_bottom = self.settings.margin_bottom;
+        let page_width = self.settings.page_width;
+        let page_height = self.settings.page_height;
+
+        layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
+        layer.set_outline_thickness(SEPARATOR_THICKNESS);
+
+        // Vertical line (from top margin to bottom margin)
+        layer.add_line(
+            Mm(center_x),
+            Mm(margin_bottom),
+            Mm(center_x),
+            Mm(page_height - margin_top),
+        );
+
+        // Horizontal line (from left margin to right margin)
+        layer.add_line(
+            Mm(margin_left),
+            Mm(center_y),
+            Mm(page_width - margin_right),
+            Mm(center_y),
+        );
+    }
+}
+
+/// Rotate a deal so that the declarer is always South.
+/// Returns (dummy_hand, declarer_hand) where declarer is positioned as South.
+///
+/// This is used exclusively for the declarer's plan layout which always shows
+/// declarer on the bottom (South position) and dummy on top (North position).
+fn rotate_deal_for_declarer(deal: &Deal, declarer: Direction) -> (Hand, Hand) {
+    match declarer {
+        Direction::South => (deal.north.clone(), deal.south.clone()),
+        Direction::North => (deal.south.clone(), deal.north.clone()),
+        Direction::East => (deal.west.clone(), deal.east.clone()),
+        Direction::West => (deal.east.clone(), deal.west.clone()),
     }
 }
