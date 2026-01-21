@@ -10,7 +10,7 @@
 
 use printpdf::{Color, FontId, Mm};
 
-use crate::model::{Board, Card, Hand, Suit};
+use crate::model::{BidSuit, Board, Card, Hand, Suit};
 use crate::render::components::{
     DummyRenderer, FanRenderer, LosersTableRenderer, WinnersTableRenderer,
 };
@@ -77,7 +77,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             colors,
             card_scale: 0.35,
             fan_arc: 30.0,
-            dummy_overlap: 0.18,  // Show some suit symbol on clipped cards
+            dummy_overlap: 0.18, // Show some suit symbol on clipped cards
             show_bounds: false,
         }
     }
@@ -107,10 +107,24 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     }
 
     /// Get the dummy renderer configured for this layout
-    fn dummy_renderer(&self) -> DummyRenderer<'a> {
+    fn dummy_renderer(&self, trump: Option<BidSuit>) -> DummyRenderer<'a> {
+        let first_suit = Self::first_suit_for_trump(trump);
         DummyRenderer::with_overlap(self.card_assets, self.card_scale, self.dummy_overlap)
-            .first_suit(Suit::Spades)
+            .first_suit(first_suit)
             .show_bounds(self.show_bounds)
+    }
+
+    /// Determine the first suit based on trump suit
+    /// - Suit contracts: trump suit first
+    /// - NT contracts: Clubs first
+    fn first_suit_for_trump(trump: Option<BidSuit>) -> Suit {
+        match trump {
+            Some(BidSuit::Spades) => Suit::Spades,
+            Some(BidSuit::Hearts) => Suit::Hearts,
+            Some(BidSuit::Diamonds) => Suit::Diamonds,
+            Some(BidSuit::Clubs) => Suit::Clubs,
+            Some(BidSuit::NoTrump) | None => Suit::Clubs,
+        }
     }
 
     /// Calculate the nominal dummy height based on a 5-card suit
@@ -123,9 +137,17 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     }
 
     /// Get the fan renderer configured for this layout, scaled to match dummy width
-    fn fan_renderer(&self, target_width: f32, hand: &Hand) -> FanRenderer<'a> {
+    fn fan_renderer(
+        &self,
+        target_width: f32,
+        hand: &Hand,
+        trump: Option<BidSuit>,
+    ) -> FanRenderer<'a> {
+        let first_suit = Self::first_suit_for_trump(trump);
         // Calculate scale to match target width
-        let temp_renderer = FanRenderer::new(self.card_assets, 1.0).arc(self.fan_arc);
+        let temp_renderer = FanRenderer::new(self.card_assets, 1.0)
+            .arc(self.fan_arc)
+            .first_suit(first_suit);
         let (temp_width, _) = temp_renderer.dimensions(hand);
         let scale = if temp_width > 0.0 {
             target_width / temp_width
@@ -135,6 +157,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
 
         FanRenderer::new(self.card_assets, scale)
             .arc(self.fan_arc)
+            .first_suit(first_suit)
             .show_bounds(self.show_bounds)
     }
 
@@ -143,13 +166,14 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     /// Returns (width, height) in mm.
     /// Uses nominal dummy height (5-card suit) for consistent positioning.
     pub fn dimensions(&self, north: &Hand, south: &Hand, is_nt: bool) -> (f32, f32) {
-        let dummy_renderer = self.dummy_renderer();
+        // Use None for trump since dimensions don't depend on suit order
+        let dummy_renderer = self.dummy_renderer(None);
         let (dummy_width, _) = dummy_renderer.dimensions(north);
 
         // Use nominal height for consistent layout
         let nominal_dummy_height = self.nominal_dummy_height();
 
-        let fan_renderer = self.fan_renderer(dummy_width, south);
+        let fan_renderer = self.fan_renderer(dummy_width, south, None);
         let (_, fan_height) = fan_renderer.dimensions(south);
         // Only count the visible (cropped) portion of the fan
         let visible_fan_height = fan_height * FAN_CROP_RATIO;
@@ -165,8 +189,13 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let width = dummy_width.max(table_width);
 
         // Total height: header + gap + dummy + gap + visible fan + gap + table
-        let height = HEADER_HEIGHT + ELEMENT_GAP + nominal_dummy_height + ELEMENT_GAP
-            + visible_fan_height + ELEMENT_GAP + table_height;
+        let height = HEADER_HEIGHT
+            + ELEMENT_GAP
+            + nominal_dummy_height
+            + ELEMENT_GAP
+            + visible_fan_height
+            + ELEMENT_GAP
+            + table_height;
 
         (width, height)
     }
@@ -229,16 +258,27 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         opening_lead: Option<Card>,
         origin: (Mm, Mm),
     ) -> f32 {
-        self.render_with_info(layer, north, south, is_nt, opening_lead, None, None, origin)
+        self.render_with_info(
+            layer,
+            north,
+            south,
+            is_nt,
+            opening_lead,
+            None,
+            None,
+            None,
+            origin,
+        )
     }
 
     /// Render the declarer's plan layout with deal info
     ///
     /// Origin is the top-left corner of the display area.
     /// deal_number: Optional deal number to display (e.g., "1", "2")
-    /// contract_str: Optional contract string (e.g., "4H South")
+    /// contract_str: Optional contract string (e.g., "4♥")
+    /// trump: Optional trump suit (used for suit ordering in displays)
     /// Returns the height used.
-    #[allow(unused_variables)]
+    #[allow(unused_variables, clippy::too_many_arguments)]
     pub fn render_with_info(
         &self,
         layer: &mut LayerBuilder,
@@ -248,6 +288,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         opening_lead: Option<Card>,
         deal_number: Option<u32>,
         contract_str: Option<&str>,
+        trump: Option<BidSuit>,
         origin: (Mm, Mm),
     ) -> f32 {
         let (ox, oy) = (origin.0 .0, origin.1 .0);
@@ -256,7 +297,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let content_x = ox;
 
         // Get dummy dimensions for layout calculations
-        let dummy_renderer = self.dummy_renderer();
+        let dummy_renderer = self.dummy_renderer(trump);
         let (dummy_width, _) = dummy_renderer.dimensions(north);
         let nominal_dummy_height = self.nominal_dummy_height();
 
@@ -275,20 +316,32 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         if let Some(deal_num) = deal_number {
             let deal_text = format!("Deal {}", deal_num);
             let deal_width = measurer.measure_width_mm(&deal_text, HEADER_FONT_SIZE);
-            layer.use_text(&deal_text, HEADER_FONT_SIZE, Mm(text_x), Mm(header_y), self.bold_font);
+            layer.use_text(
+                &deal_text,
+                HEADER_FONT_SIZE,
+                Mm(text_x),
+                Mm(header_y),
+                self.bold_font,
+            );
             text_x += deal_width + 2.0; // Gap between deal and contract
         }
 
         // Contract right after deal number (abbreviated)
-        // Use serif for "Ctr: " label, sans for contract value (has suit symbols)
+        // Use serif for "Ctr: " label, sans for contract value
+        // Hearts and diamonds are rendered in red
         if let Some(contract) = contract_str {
             let label = "Ctr: ";
             let label_width = measurer.measure_width_mm(label, HEADER_FONT_SIZE);
+            layer.set_fill_color(Color::Rgb(BLACK));
             layer.use_text(label, HEADER_FONT_SIZE, Mm(text_x), Mm(header_y), self.font);
-            layer.use_text(contract, HEADER_FONT_SIZE, Mm(text_x + label_width), Mm(header_y), self.symbol_font);
+
+            // Render contract with colored suit symbol
+            let contract_x = text_x + label_width;
+            self.render_colored_contract(layer, contract, trump, Mm(contract_x), Mm(header_y));
         }
 
         // Right: Goal text (right-justified)
+        layer.set_fill_color(Color::Rgb(BLACK));
         let goal_text = if is_nt {
             "Goal: at least ____ winners"
         } else {
@@ -296,14 +349,20 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         };
         let goal_width = measurer.measure_width_mm(goal_text, HEADER_FONT_SIZE);
         let goal_x = right_edge - goal_width;
-        layer.use_text(goal_text, HEADER_FONT_SIZE, Mm(goal_x), Mm(header_y), self.font);
+        layer.use_text(
+            goal_text,
+            HEADER_FONT_SIZE,
+            Mm(goal_x),
+            Mm(header_y),
+            self.font,
+        );
 
         // Dummy (North hand) - positioned below header with gap, raised by DUMMY_RAISE
         let dummy_y = oy - HEADER_HEIGHT - ELEMENT_GAP + DUMMY_RAISE;
         dummy_renderer.render(layer, north, (Mm(content_x), Mm(dummy_y)));
 
         // Fan (South hand) - positioned below dummy, raised by FAN_RAISE
-        let fan_renderer = self.fan_renderer(dummy_width, south);
+        let fan_renderer = self.fan_renderer(dummy_width, south, trump);
         let (_, fan_height) = fan_renderer.dimensions(south);
         let visible_fan_height = fan_height * FAN_CROP_RATIO;
         let fan_y = dummy_y - nominal_dummy_height - ELEMENT_GAP + FAN_RAISE;
@@ -329,5 +388,56 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         // Calculate total height used
         let (_, total_height) = self.dimensions(north, south, is_nt);
         total_height
+    }
+
+    /// Render contract string with colored suit symbol
+    /// Hearts and diamonds are rendered in red, spades and clubs in black
+    fn render_colored_contract(
+        &self,
+        layer: &mut LayerBuilder,
+        contract: &str,
+        trump: Option<BidSuit>,
+        x: Mm,
+        y: Mm,
+    ) {
+        // Use sans bold measurer for approximate width (close enough for single digit)
+        let measurer = text_metrics::get_sans_bold_measurer();
+
+        // Determine if trump suit is red
+        let is_red = trump.map(|t| t.is_red()).unwrap_or(false);
+
+        // Split contract into level and symbol
+        // Contract format is like "4♥" or "3NT"
+        if contract.len() >= 2 {
+            // First character is the level
+            let level = &contract[0..1];
+            let symbol = &contract[1..];
+
+            // Render level in black
+            layer.set_fill_color(Color::Rgb(BLACK));
+            let level_width = measurer.measure_width_mm(level, HEADER_FONT_SIZE);
+            layer.use_text(level, HEADER_FONT_SIZE, x, y, self.symbol_font);
+
+            // Render symbol in appropriate color
+            if is_red {
+                layer.set_fill_color(Color::Rgb(self.colors.hearts.clone()));
+            } else {
+                layer.set_fill_color(Color::Rgb(BLACK));
+            }
+            layer.use_text(
+                symbol,
+                HEADER_FONT_SIZE,
+                Mm(x.0 + level_width),
+                y,
+                self.symbol_font,
+            );
+        } else {
+            // Fallback: render whole contract
+            layer.set_fill_color(Color::Rgb(BLACK));
+            layer.use_text(contract, HEADER_FONT_SIZE, x, y, self.symbol_font);
+        }
+
+        // Reset to black
+        layer.set_fill_color(Color::Rgb(BLACK));
     }
 }

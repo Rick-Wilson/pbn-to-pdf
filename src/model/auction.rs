@@ -203,10 +203,10 @@ impl Contract {
         let rest = &s[1..];
 
         // Check for doubled/redoubled at end
-        let (suit_part, doubled, redoubled) = if rest.ends_with("XX") {
-            (&rest[..rest.len() - 2], false, true)
-        } else if rest.ends_with('X') {
-            (&rest[..rest.len() - 1], true, false)
+        let (suit_part, doubled, redoubled) = if let Some(stripped) = rest.strip_suffix("XX") {
+            (stripped, false, true)
+        } else if let Some(stripped) = rest.strip_suffix('X') {
+            (stripped, true, false)
         } else {
             (rest, false, false)
         };

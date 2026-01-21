@@ -193,8 +193,9 @@ impl<'a> LosersTableRenderer<'a> {
         let text_width = measurer.measure_width_mm(text, self.header_font_size);
         let text_x = x + (width - text_width) / 2.0;
         // Vertical center: baseline position accounts for font metrics (descender ~20% of font size)
-        let text_y =
-            y - self.header_height + (self.header_height - self.header_font_size * 0.35) / 2.0 + 1.0;
+        let text_y = y - self.header_height
+            + (self.header_height - self.header_font_size * 0.35) / 2.0
+            + 1.0;
 
         layer.set_fill_color(Color::Rgb(BLACK));
         layer.use_text(

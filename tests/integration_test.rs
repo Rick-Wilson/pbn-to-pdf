@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use pbn_to_pdf::config::Settings;
-use pbn_to_pdf::model::{Card, Hand, Holding, Rank, Suit};
+use pbn_to_pdf::model::{BidSuit, Card, Hand, Holding, Rank, Suit};
 use pbn_to_pdf::parser::parse_pbn;
 use pbn_to_pdf::render::components::{
     DeclarersPlanSmallRenderer, DummyRenderer, FanRenderer, LosersTableRenderer,
@@ -710,7 +710,7 @@ fn test_declarers_plan_small_generates_pdf() {
     // Create layer
     let mut layer = LayerBuilder::new();
 
-    // Test 1: Suit contract with opening lead (losers table)
+    // Test 1: Suit contract with opening lead (losers table) - Hearts
     let opening_lead = Some(Card::new(Suit::Hearts, Rank::King));
     let height1 = renderer.render_with_info(
         &mut layer,
@@ -718,8 +718,9 @@ fn test_declarers_plan_small_generates_pdf() {
         &south,
         false, // Suit contract
         opening_lead,
-        Some(1),       // Deal 1
-        Some("4♥ South"), // Contract
+        Some(1),               // Deal 1
+        Some("4♥"),            // Contract
+        Some(BidSuit::Hearts), // Trump suit
         (Mm(15.0), Mm(280.0)),
     );
 
@@ -728,14 +729,15 @@ fn test_declarers_plan_small_generates_pdf() {
         &mut layer,
         &north,
         &south,
-        true, // NT contract
-        None, // No opening lead
-        Some(2),        // Deal 2
-        Some("3NT South"), // Contract
+        true,                   // NT contract
+        None,                   // No opening lead
+        Some(2),                // Deal 2
+        Some("3NT"),            // Contract
+        Some(BidSuit::NoTrump), // Trump suit (NT)
         (Mm(115.0), Mm(280.0)),
     );
 
-    // Test 3: Suit contract with opening lead (losers table) - bottom left
+    // Test 3: Suit contract with opening lead (losers table) - bottom left - Diamonds (red)
     let opening_lead3 = Some(Card::new(Suit::Spades, Rank::Ace));
     let height3 = renderer.render_with_info(
         &mut layer,
@@ -743,8 +745,9 @@ fn test_declarers_plan_small_generates_pdf() {
         &south,
         false, // Suit contract
         opening_lead3,
-        Some(3),       // Deal 3
-        Some("4♠ South"), // Contract
+        Some(3),                 // Deal 3
+        Some("5♦"),              // Contract
+        Some(BidSuit::Diamonds), // Trump suit (red)
         (Mm(15.0), Mm(140.0)),
     );
 
@@ -756,8 +759,9 @@ fn test_declarers_plan_small_generates_pdf() {
         &south,
         true, // NT contract
         opening_lead4,
-        Some(4),        // Deal 4
-        Some("1NT North"), // Contract
+        Some(4),                // Deal 4
+        Some("1NT"),            // Contract
+        Some(BidSuit::NoTrump), // Trump suit (NT)
         (Mm(115.0), Mm(140.0)),
     );
 

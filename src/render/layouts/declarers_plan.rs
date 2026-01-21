@@ -57,8 +57,8 @@ impl DeclarersPlanRenderer {
 
         // Load fonts and card assets
         let fonts = FontManager::new(&mut doc)?;
-        let card_assets = CardAssets::load(&mut doc)
-            .map_err(|e| RenderError::CardAsset(e.to_string()))?;
+        let card_assets =
+            CardAssets::load(&mut doc).map_err(|e| RenderError::CardAsset(e.to_string()))?;
 
         let mut pages = Vec::new();
 
@@ -125,10 +125,10 @@ impl DeclarersPlanRenderer {
 
         // Origins for each quadrant (top-left corner of each, with padding)
         let positions = [
-            (margin_left + QUADRANT_PADDING, page_height - margin_top),               // Top-left
-            (center_x + QUADRANT_PADDING, page_height - margin_top),                  // Top-right
-            (margin_left + QUADRANT_PADDING, center_y),                               // Bottom-left
-            (center_x + QUADRANT_PADDING, center_y),                                  // Bottom-right
+            (margin_left + QUADRANT_PADDING, page_height - margin_top), // Top-left
+            (center_x + QUADRANT_PADDING, page_height - margin_top),    // Top-right
+            (margin_left + QUADRANT_PADDING, center_y),                 // Bottom-left
+            (center_x + QUADRANT_PADDING, center_y),                    // Bottom-right
         ];
 
         for (i, board) in boards.iter().enumerate() {
@@ -172,6 +172,9 @@ impl DeclarersPlanRenderer {
                 .unwrap_or(Direction::South);
             let (dummy_hand, declarer_hand) = rotate_deal_for_declarer(&board.deal, declarer);
 
+            // Get trump suit for suit ordering and color
+            let trump = board.contract.as_ref().map(|c| c.suit);
+
             renderer.render_with_info(
                 layer,
                 &dummy_hand,
@@ -180,6 +183,7 @@ impl DeclarersPlanRenderer {
                 opening_lead,
                 board.number,
                 contract_str.as_deref(),
+                trump,
                 (Mm(x), Mm(y)),
             );
         }
