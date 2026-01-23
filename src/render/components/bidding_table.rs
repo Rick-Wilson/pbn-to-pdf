@@ -59,6 +59,70 @@ impl<'a> BiddingTableRenderer<'a> {
         }
     }
 
+    /// Calculate the height of the bidding table without rendering
+    pub fn measure_height(&self, auction: &Auction) -> f32 {
+        let row_height = self.settings.bid_row_height;
+
+        let calls = &auction.calls;
+
+        // Check if auction is passed out (exactly 4 passes, no bids)
+        let is_passed_out = calls.len() == 4 && calls.iter().all(|a| a.call == Call::Pass);
+
+        // Check if auction ends with 3+ passes after bidding (for "All Pass" rendering)
+        let trailing_passes = calls
+            .iter()
+            .rev()
+            .take_while(|a| a.call == Call::Pass)
+            .count();
+        let show_all_pass = !is_passed_out && trailing_passes >= 3;
+        let calls_to_render = if is_passed_out || show_all_pass {
+            calls.len() - trailing_passes.min(calls.len())
+        } else {
+            calls.len()
+        };
+
+        // Determine starting column based on dealer
+        let start_col = auction.dealer.table_position();
+        let mut row = 1;
+        let mut col = start_col;
+
+        // Handle passed out auction
+        if is_passed_out {
+            row += 1;
+        } else {
+            // Count rows for regular calls
+            for _ in calls.iter().take(calls_to_render) {
+                col += 1;
+                if col >= 4 {
+                    col = 0;
+                    row += 1;
+                }
+            }
+
+            // Account for "All Pass" row
+            if show_all_pass {
+                row += 1;
+            }
+        }
+
+        // Account for notes
+        if !auction.notes.is_empty() {
+            let notes_height = self.measure_notes_height(auction);
+            row += (notes_height / row_height).ceil() as usize;
+        }
+
+        // Return total height used
+        ((row + 1) as f32) * row_height
+    }
+
+    /// Calculate the height of notes without rendering
+    fn measure_notes_height(&self, auction: &Auction) -> f32 {
+        let note_font_size = self.settings.body_font_size * 0.85;
+        let line_height = note_font_size * 1.3 * 0.352778; // Convert pt to mm
+        let num_notes = auction.notes.len();
+        (num_notes as f32) * line_height
+    }
+
     /// Render the bidding table and return the height used
     pub fn render(&self, layer: &mut LayerBuilder, auction: &Auction, origin: (Mm, Mm)) -> f32 {
         let (ox, oy) = origin;

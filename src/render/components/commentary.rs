@@ -335,6 +335,80 @@ impl<'a> CommentaryRenderer<'a> {
         }
     }
 
+    /// Measure the height of a commentary block without rendering
+    pub fn measure_height(&self, block: &CommentaryBlock, max_width: f32) -> f32 {
+        self.measure_formatted_text_height(&block.content, max_width)
+    }
+
+    /// Measure formatted text height without rendering
+    fn measure_formatted_text_height(&self, text: &FormattedText, max_width: f32) -> f32 {
+        let font_size = self.settings.commentary_font_size;
+        let line_height = self.settings.line_height;
+
+        let regular_measurer = self.get_regular_measurer();
+        let bold_measurer = self.get_bold_measurer();
+        let symbol_measurer = get_measurer();
+
+        let base_space_width = regular_measurer.measure_width_mm(" ", font_size);
+
+        // Tokenize the spans into word groups and spaces
+        let tokens = tokenize_spans(
+            &text.spans,
+            font_size,
+            regular_measurer,
+            bold_measurer,
+            symbol_measurer,
+        );
+
+        // Count lines by simulating the line-wrapping logic
+        let mut token_idx = 0;
+        let mut line_count = 0;
+
+        while token_idx < tokens.len() {
+            // Collect word groups for the current line
+            let mut line_groups: Vec<&WordGroup> = Vec::new();
+            let mut line_width: f32 = 0.0;
+            let mut pending_spaces: usize = 0;
+
+            while token_idx < tokens.len() {
+                match &tokens[token_idx] {
+                    RenderToken::WordGroup(group) => {
+                        let space_needed = if line_groups.is_empty() {
+                            0.0
+                        } else {
+                            base_space_width * pending_spaces.max(1) as f32
+                        };
+                        let new_width = line_width + space_needed + group.width;
+
+                        if line_groups.is_empty() || new_width <= max_width {
+                            line_groups.push(group);
+                            line_width = new_width;
+                            token_idx += 1;
+                            pending_spaces = 0;
+                        } else {
+                            break;
+                        }
+                    }
+                    RenderToken::Space => {
+                        pending_spaces += 1;
+                        token_idx += 1;
+                    }
+                    RenderToken::LineBreak => {
+                        token_idx += 1;
+                        break;
+                    }
+                }
+            }
+
+            // Count this line (even if empty due to consecutive line breaks)
+            line_count += 1;
+        }
+
+        // Return total height: line_count * line_height
+        // Adjust for the extra line_height similar to render method
+        (line_count as f32) * line_height
+    }
+
     /// Render a commentary block and return the height used
     pub fn render(
         &self,

@@ -137,6 +137,54 @@ impl<'a> HandDiagramRenderer<'a> {
             .fold(0.0_f32, |max, w| max.max(w))
     }
 
+    /// Measure the height of a deal diagram without rendering
+    pub fn measure_deal_height(&self, _deal: &Deal, options: &DiagramDisplayOptions) -> f32 {
+        // Use fragment-aware height if only some suits are present
+        if options.is_fragment {
+            return self.measure_fragment_height(options);
+        }
+
+        // North-only is just the hand height
+        if options.hide_compass {
+            return self.actual_hand_height();
+        }
+
+        // Full deal: 3 rows of hands with compass in middle row
+        let hand_h = self.actual_hand_height();
+        // north_y = oy.0
+        // row2_y = north_y - hand_h
+        // south_y = row2_y - hand_h - 2.0
+        // height = oy.0 - (south_y - hand_h)
+        // = oy.0 - (north_y - hand_h - hand_h - 2.0 - hand_h)
+        // = oy.0 - oy.0 + 3*hand_h + 2.0
+        // = 3*hand_h + 2.0
+        3.0 * hand_h + 2.0
+    }
+
+    /// Measure the height of a fragment deal diagram
+    fn measure_fragment_height(&self, options: &DiagramDisplayOptions) -> f32 {
+        let num_suits = options.suits_present.len();
+        let hand_h = self.hand_height_for_suits(num_suits);
+
+        // North-only fragment is just the hand height
+        if options.hide_compass {
+            return hand_h;
+        }
+
+        // Full fragment: similar to full deal but with potentially shorter hands
+        let compass_size = self.compass_box_size();
+        let compass_center_offset = (compass_size - hand_h) / 2.0;
+
+        // north_y = oy.0
+        // row2_y = north_y - hand_h
+        // west_y = row2_y - compass_center_offset
+        // south_y = west_y - hand_h - compass_center_offset
+        // height = oy.0 - (south_y - hand_h)
+        // = oy.0 - (oy.0 - hand_h - compass_center_offset - hand_h - compass_center_offset - hand_h)
+        // = 3*hand_h + 2*compass_center_offset
+        3.0 * hand_h + 2.0 * compass_center_offset
+    }
+
     /// Render a complete deal with compass rose - Bridge Composer style
     /// Returns the height used by the diagram
     pub fn render_deal(&self, layer: &mut LayerBuilder, deal: &Deal, origin: (Mm, Mm)) -> f32 {

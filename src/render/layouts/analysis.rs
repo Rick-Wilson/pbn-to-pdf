@@ -59,22 +59,41 @@ fn is_page_break(board: &Board) -> bool {
         .unwrap_or(false)
 }
 
-/// Check if a board has any visible content to render
-/// Returns false if board should be skipped entirely (empty deal, no commentary, all metadata hidden)
-fn board_has_content(board: &Board, settings: &Settings) -> bool {
-    let flags = board.bc_flags;
-    let deal_is_empty = board.deal.is_empty();
-    let show_board = !deal_is_empty && flags.map(|f| !f.hide_board()).unwrap_or(true);
-    let show_dealer = !deal_is_empty && flags.map(|f| !f.hide_dealer()).unwrap_or(true);
-    let show_vulnerable = !deal_is_empty && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true);
-    let show_diagram = !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true);
-    let show_commentary = settings.show_commentary
-        && !board.commentary.is_empty()
-        && flags
-            .map(|f| f.show_event_commentary() || f.show_final_commentary())
-            .unwrap_or(true);
+/// Visibility flags for a board, computed once and reused
+struct BoardVisibility {
+    show_board: bool,
+    show_dealer: bool,
+    show_vulnerable: bool,
+    show_diagram: bool,
+    show_auction: bool,
+    show_commentary: bool,
+}
 
-    show_board || show_dealer || show_vulnerable || show_diagram || show_commentary
+impl BoardVisibility {
+    fn from_board(board: &Board, settings: &Settings) -> Self {
+        let flags = board.bc_flags;
+        let deal_is_empty = board.deal.is_empty();
+        Self {
+            show_board: !deal_is_empty && flags.map(|f| !f.hide_board()).unwrap_or(true),
+            show_dealer: !deal_is_empty && flags.map(|f| !f.hide_dealer()).unwrap_or(true),
+            show_vulnerable: !deal_is_empty && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true),
+            show_diagram: !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true),
+            show_auction: flags.map(|f| f.show_auction()).unwrap_or(true) && settings.show_bidding,
+            show_commentary: settings.show_commentary
+                && !board.commentary.is_empty()
+                && flags
+                    .map(|f| f.show_event_commentary() || f.show_final_commentary())
+                    .unwrap_or(true),
+        }
+    }
+
+    fn has_content(&self) -> bool {
+        self.show_board
+            || self.show_dealer
+            || self.show_vulnerable
+            || self.show_diagram
+            || self.show_commentary
+    }
 }
 
 /// Main document renderer
@@ -85,6 +104,227 @@ pub struct DocumentRenderer {
 impl DocumentRenderer {
     pub fn new(settings: Settings) -> Self {
         Self { settings }
+    }
+
+    /// Measure the height a board would use in a column without rendering
+    /// Returns 0.0 for break markers and boards with no content
+    fn measure_board_height(&self, board: &Board, column_width: f32) -> f32 {
+        // Break markers have zero height
+        if is_column_break(board) || is_page_break(board) {
+            return 0.0;
+        }
+
+        let visibility = BoardVisibility::from_board(board, &self.settings);
+
+        // Empty boards have zero height
+        if !visibility.has_content() {
+            return 0.0;
+        }
+
+        let line_height = self.settings.line_height;
+        let measurer = get_measurer();
+        let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
+
+        // Extra spacing before title
+        let title_spacing = cap_height;
+        let mut height = cap_height + title_spacing; // Initial spacing from top
+
+        // Count title lines
+        let mut title_lines = 0;
+        if visibility.show_board && board.board_id.is_some() {
+            title_lines += 1;
+        }
+        if visibility.show_dealer && board.dealer.is_some() {
+            title_lines += 1;
+        }
+        if visibility.show_vulnerable {
+            title_lines += 1;
+        }
+
+        // Diagram height
+        if visibility.show_diagram {
+            let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
+            let diagram_height = self.measure_diagram_height(&diagram_options);
+
+            if diagram_options.hide_compass {
+                // North-only: cards on same line as title
+                height += diagram_height.max(title_lines as f32 * line_height);
+            } else {
+                height += diagram_height;
+            }
+        } else {
+            // No diagram - just title lines
+            height += title_lines as f32 * line_height;
+        }
+
+        // Auction height
+        if visibility.show_auction {
+            if let Some(ref auction) = board.auction {
+                height += self.measure_auction_height(auction) + 2.0;
+
+                // Contract line
+                if auction.final_contract().is_some() {
+                    height += line_height;
+                }
+
+                // Opening lead line
+                if let Some(ref play) = board.play {
+                    if let Some(first_trick) = play.tricks.first() {
+                        if first_trick.cards[0].is_some() {
+                            height += line_height;
+                        }
+                    }
+                }
+
+                height += 2.0; // Extra spacing after auction
+            }
+        }
+
+        // Commentary height
+        if visibility.show_commentary {
+            for block in &board.commentary {
+                height += self.measure_commentary_height(block, column_width) + 2.0;
+            }
+        }
+
+        height
+    }
+
+    /// Measure diagram height without rendering
+    fn measure_diagram_height(&self, options: &DiagramDisplayOptions) -> f32 {
+        let measurer = get_measurer();
+        let line_height = self.settings.line_height;
+        let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
+        let descender = measurer.descender_mm(self.settings.card_font_size);
+
+        // Calculate hand height for given number of suits
+        let num_suits = if options.is_fragment {
+            options.suits_present.len()
+        } else {
+            4
+        };
+        let n = num_suits.max(1) as f32;
+        let hand_h = cap_height + (n - 1.0) * line_height + descender;
+
+        // North-only is just the hand height
+        if options.hide_compass {
+            return hand_h;
+        }
+
+        // Calculate compass size (same logic as HandDiagramRenderer::compass_box_size)
+        let compass_size = measurer.cap_height_mm(self.settings.body_font_size) * 3.5;
+
+        if options.is_fragment {
+            // Fragment: 3 rows with compass centering offset
+            let compass_center_offset = (compass_size - hand_h) / 2.0;
+            3.0 * hand_h + 2.0 * compass_center_offset
+        } else {
+            // Full deal: 3 rows of hands
+            3.0 * hand_h + 2.0
+        }
+    }
+
+    /// Measure auction height without rendering
+    fn measure_auction_height(&self, auction: &crate::model::Auction) -> f32 {
+        let row_height = self.settings.bid_row_height;
+        let calls = &auction.calls;
+
+        // Check if auction is passed out
+        let is_passed_out = calls.len() == 4
+            && calls
+                .iter()
+                .all(|a| a.call == crate::model::Call::Pass);
+
+        // Check for trailing passes
+        let trailing_passes = calls
+            .iter()
+            .rev()
+            .take_while(|a| a.call == crate::model::Call::Pass)
+            .count();
+        let show_all_pass = !is_passed_out && trailing_passes >= 3;
+        let calls_to_render = if is_passed_out || show_all_pass {
+            calls.len() - trailing_passes.min(calls.len())
+        } else {
+            calls.len()
+        };
+
+        let start_col = auction.dealer.table_position();
+        let mut row = 1;
+        let mut col = start_col;
+
+        if is_passed_out {
+            row += 1;
+        } else {
+            for _ in calls.iter().take(calls_to_render) {
+                col += 1;
+                if col >= 4 {
+                    col = 0;
+                    row += 1;
+                }
+            }
+            if show_all_pass {
+                row += 1;
+            }
+        }
+
+        // Account for notes
+        if !auction.notes.is_empty() {
+            let note_font_size = self.settings.body_font_size * 0.85;
+            let note_line_height = note_font_size * 1.3 * 0.352778;
+            let notes_height = (auction.notes.len() as f32) * note_line_height;
+            row += (notes_height / row_height).ceil() as usize;
+        }
+
+        ((row + 1) as f32) * row_height
+    }
+
+    /// Measure commentary height without rendering
+    fn measure_commentary_height(&self, block: &crate::model::CommentaryBlock, max_width: f32) -> f32 {
+        use crate::model::TextSpan;
+
+        let font_size = self.settings.commentary_font_size;
+        let line_height = self.settings.line_height;
+
+        // Use the default measurer for estimation
+        let measurer = get_measurer();
+        let base_space_width = measurer.measure_width_mm(" ", font_size);
+
+        // Simple line counting based on text width
+        // This is a simplified version - for accurate measurement we'd need full tokenization
+        let mut total_width = 0.0;
+        let mut line_count = 1;
+
+        for span in &block.content.spans {
+            match span {
+                TextSpan::Plain(text)
+                | TextSpan::Bold(text)
+                | TextSpan::Italic(text)
+                | TextSpan::BoldItalic(text) => {
+                    for word in text.split_whitespace() {
+                        let word_width = measurer.measure_width_mm(word, font_size);
+                        if total_width + word_width + base_space_width > max_width && total_width > 0.0
+                        {
+                            line_count += 1;
+                            total_width = word_width;
+                        } else {
+                            total_width += word_width + base_space_width;
+                        }
+                    }
+                    // Count newlines in the text
+                    line_count += text.matches('\n').count();
+                }
+                TextSpan::SuitSymbol(_) | TextSpan::CardRef { .. } => {
+                    // Suit symbols and card refs are small, just add a bit of width
+                    total_width += measurer.measure_width_mm("♠", font_size);
+                }
+                TextSpan::LineBreak => {
+                    line_count += 1;
+                    total_width = 0.0;
+                }
+            }
+        }
+
+        (line_count as f32) * line_height
     }
 
     /// Generate a PDF from a list of boards
@@ -148,8 +388,8 @@ impl DocumentRenderer {
         // Calculate center x for vertical separator
         let center_x = margin_left + column_width;
 
-        // Minimum space needed below content before starting new page
-        let min_space_for_board = 25.0; // Enough for at least a small fragment
+        // Spacing between boards (separator line area)
+        let board_spacing = 5.0;
 
         // Process boards dynamically - fill each column until no more space
         let mut board_iter = boards.iter().peekable();
@@ -177,115 +417,123 @@ impl DocumentRenderer {
             let mut force_page_break = false;
 
             // Fill left column first
-            while board_iter.peek().is_some() {
-                // Check if next board is a break marker BEFORE checking space
-                // This ensures breaks are processed even when column appears full
-                if let Some(next) = board_iter.peek() {
-                    if is_page_break(next) {
-                        board_iter.next(); // Consume the break marker
-                        force_page_break = true;
-                        break;
-                    }
-                    if is_column_break(next) {
-                        board_iter.next(); // Consume the break marker
-                        break;
-                    }
-                }
-
-                // Now check if we have space for more content
-                if left_y <= margin_bottom + min_space_for_board {
+            while let Some(&next) = board_iter.peek() {
+                // Page break marker - force new page
+                if is_page_break(next) {
+                    board_iter.next(); // Consume the break marker
+                    force_page_break = true;
                     break;
                 }
 
-                if let Some(board) = board_iter.next() {
-                    // Skip empty boards (no visible content)
-                    if !board_has_content(board, &self.settings) {
-                        continue;
-                    }
+                // Column break marker - move to right column
+                if is_column_break(next) {
+                    board_iter.next(); // Consume the break marker
+                    break;
+                }
 
-                    // Draw horizontal separator if not at top
-                    if left_board_count > 0 {
-                        let sep_y = left_y + 2.0;
-                        layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
-                        layer.set_outline_thickness(SEPARATOR_THICKNESS);
-                        layer.add_line(
-                            Mm(margin_left),
-                            Mm(sep_y),
-                            Mm(center_x - gutter / 2.0),
-                            Mm(sep_y),
-                        );
-                    }
+                // Measure the board height to check if it fits
+                let board_height = self.measure_board_height(next, usable_column_width);
 
-                    let board_height = self.render_board_in_column(
-                        &mut layer,
-                        board,
-                        fonts,
-                        margin_left,
-                        left_y,
-                        usable_column_width,
+                // Skip empty boards (height 0)
+                if board_height == 0.0 {
+                    board_iter.next(); // Consume and skip
+                    continue;
+                }
+
+                // Check if board fits in remaining space
+                let available = left_y - margin_bottom;
+                if board_height + board_spacing > available && left_board_count > 0 {
+                    // Doesn't fit and we have at least one board - move to right column
+                    break;
+                }
+
+                // Board fits - consume and render it
+                let board = board_iter.next().unwrap();
+
+                // Draw horizontal separator if not at top
+                if left_board_count > 0 {
+                    let sep_y = left_y + 2.0;
+                    layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
+                    layer.set_outline_thickness(SEPARATOR_THICKNESS);
+                    layer.add_line(
+                        Mm(margin_left),
+                        Mm(sep_y),
+                        Mm(center_x - gutter / 2.0),
+                        Mm(sep_y),
                     );
-
-                    left_y -= board_height + 5.0;
-                    left_board_count += 1;
-                } else {
-                    break;
                 }
+
+                let rendered_height = self.render_board_in_column(
+                    &mut layer,
+                    board,
+                    fonts,
+                    margin_left,
+                    left_y,
+                    usable_column_width,
+                );
+
+                left_y -= rendered_height + board_spacing;
+                left_board_count += 1;
             }
 
             // Fill right column (unless page break was requested)
             if !force_page_break {
-                while board_iter.peek().is_some() {
-                    // Check if next board is a break marker BEFORE checking space
-                    // This ensures breaks are processed even when column appears full
-                    if let Some(next) = board_iter.peek() {
-                        if is_page_break(next) {
-                            board_iter.next(); // Consume the break marker
-                            break;
-                        }
-                        if is_column_break(next) {
-                            board_iter.next(); // Consume the break marker
-                            break;
-                        }
-                    }
-
-                    // Now check if we have space for more content
-                    if right_y <= margin_bottom + min_space_for_board {
+                while let Some(&next) = board_iter.peek() {
+                    // Page break marker - end this page
+                    if is_page_break(next) {
+                        board_iter.next(); // Consume the break marker
                         break;
                     }
 
-                    if let Some(board) = board_iter.next() {
-                        // Skip empty boards (no visible content)
-                        if !board_has_content(board, &self.settings) {
-                            continue;
-                        }
+                    // Column break marker - end this page (in right column, it triggers new page)
+                    if is_column_break(next) {
+                        board_iter.next(); // Consume the break marker
+                        break;
+                    }
 
-                        // Draw horizontal separator if not at top
-                        if right_board_count > 0 {
-                            let sep_y = right_y + 2.0;
-                            layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
-                            layer.set_outline_thickness(SEPARATOR_THICKNESS);
-                            layer.add_line(
-                                Mm(center_x + gutter / 2.0),
-                                Mm(sep_y),
-                                Mm(page_width - margin_right),
-                                Mm(sep_y),
-                            );
-                        }
+                    // Measure the board height to check if it fits
+                    let board_height = self.measure_board_height(next, usable_column_width);
 
-                        let board_height = self.render_board_in_column(
-                            &mut layer,
-                            board,
-                            fonts,
-                            center_x + gutter / 2.0,
-                            right_y,
-                            usable_column_width,
+                    // Skip empty boards (height 0)
+                    if board_height == 0.0 {
+                        board_iter.next(); // Consume and skip
+                        continue;
+                    }
+
+                    // Check if board fits in remaining space
+                    let available = right_y - margin_bottom;
+                    if board_height + board_spacing > available && right_board_count > 0 {
+                        // Doesn't fit and we have at least one board - move to next page
+                        break;
+                    }
+
+                    // Board fits - consume and render it
+                    let board = board_iter.next().unwrap();
+
+                    // Draw horizontal separator if not at top
+                    if right_board_count > 0 {
+                        let sep_y = right_y + 2.0;
+                        layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
+                        layer.set_outline_thickness(SEPARATOR_THICKNESS);
+                        layer.add_line(
+                            Mm(center_x + gutter / 2.0),
+                            Mm(sep_y),
+                            Mm(page_width - margin_right),
+                            Mm(sep_y),
                         );
-
-                        right_y -= board_height + 5.0;
-                        right_board_count += 1;
-                    } else {
-                        break;
                     }
+
+                    let rendered_height = self.render_board_in_column(
+                        &mut layer,
+                        board,
+                        fonts,
+                        center_x + gutter / 2.0,
+                        right_y,
+                        usable_column_width,
+                    );
+
+                    right_y -= rendered_height + board_spacing;
+                    right_board_count += 1;
                 }
             }
 
