@@ -31,6 +31,34 @@ const SEPARATOR_COLOR: Rgb = Rgb {
 /// Separator line thickness
 const SEPARATOR_THICKNESS: f32 = 0.5;
 
+/// Special board name that triggers a column break
+const COLUMN_BREAK_NAME: &str = "column-break";
+/// Special board name that triggers a page break
+const PAGE_BREAK_NAME: &str = "page-break";
+/// Legacy spacer name (treated as column-break)
+const SPACER_NAME: &str = "spacer";
+
+/// Check if a board is a column break marker
+fn is_column_break(board: &Board) -> bool {
+    board
+        .board_id
+        .as_ref()
+        .map(|id| {
+            let id_lower = id.to_lowercase();
+            id_lower == COLUMN_BREAK_NAME || id_lower == SPACER_NAME
+        })
+        .unwrap_or(false)
+}
+
+/// Check if a board is a page break marker
+fn is_page_break(board: &Board) -> bool {
+    board
+        .board_id
+        .as_ref()
+        .map(|id| id.to_lowercase() == PAGE_BREAK_NAME)
+        .unwrap_or(false)
+}
+
 /// Check if a board has any visible content to render
 /// Returns false if board should be skipped entirely (empty deal, no commentary, all metadata hidden)
 fn board_has_content(board: &Board, settings: &Settings) -> bool {
@@ -145,9 +173,23 @@ impl DocumentRenderer {
             let mut left_board_count = 0;
             let mut right_board_count = 0;
 
+            // Track if we need to force a page break after this page
+            let mut force_page_break = false;
+
             // Fill left column first
             while board_iter.peek().is_some() && left_y > margin_bottom + min_space_for_board {
                 if let Some(board) = board_iter.next() {
+                    // Check for page-break marker - finish this page immediately
+                    if is_page_break(board) {
+                        force_page_break = true;
+                        break;
+                    }
+
+                    // Check for column-break marker - move to right column
+                    if is_column_break(board) {
+                        break;
+                    }
+
                     // Skip empty boards (no visible content)
                     if !board_has_content(board, &self.settings) {
                         continue;
@@ -182,40 +224,53 @@ impl DocumentRenderer {
                 }
             }
 
-            // Fill right column
-            while board_iter.peek().is_some() && right_y > margin_bottom + min_space_for_board {
-                if let Some(board) = board_iter.next() {
-                    // Skip empty boards (no visible content)
-                    if !board_has_content(board, &self.settings) {
-                        continue;
-                    }
+            // Fill right column (unless page break was requested)
+            if !force_page_break {
+                while board_iter.peek().is_some() && right_y > margin_bottom + min_space_for_board
+                {
+                    if let Some(board) = board_iter.next() {
+                        // Check for page-break marker - finish this page immediately
+                        if is_page_break(board) {
+                            break;
+                        }
 
-                    // Draw horizontal separator if not at top
-                    if right_board_count > 0 {
-                        let sep_y = right_y + 2.0;
-                        layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
-                        layer.set_outline_thickness(SEPARATOR_THICKNESS);
-                        layer.add_line(
-                            Mm(center_x + gutter / 2.0),
-                            Mm(sep_y),
-                            Mm(page_width - margin_right),
-                            Mm(sep_y),
+                        // Check for column-break marker - treat as page break in right column
+                        if is_column_break(board) {
+                            break;
+                        }
+
+                        // Skip empty boards (no visible content)
+                        if !board_has_content(board, &self.settings) {
+                            continue;
+                        }
+
+                        // Draw horizontal separator if not at top
+                        if right_board_count > 0 {
+                            let sep_y = right_y + 2.0;
+                            layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
+                            layer.set_outline_thickness(SEPARATOR_THICKNESS);
+                            layer.add_line(
+                                Mm(center_x + gutter / 2.0),
+                                Mm(sep_y),
+                                Mm(page_width - margin_right),
+                                Mm(sep_y),
+                            );
+                        }
+
+                        let board_height = self.render_board_in_column(
+                            &mut layer,
+                            board,
+                            fonts,
+                            center_x + gutter / 2.0,
+                            right_y,
+                            usable_column_width,
                         );
+
+                        right_y -= board_height + 5.0;
+                        right_board_count += 1;
+                    } else {
+                        break;
                     }
-
-                    let board_height = self.render_board_in_column(
-                        &mut layer,
-                        board,
-                        fonts,
-                        center_x + gutter / 2.0,
-                        right_y,
-                        usable_column_width,
-                    );
-
-                    right_y -= board_height + 5.0;
-                    right_board_count += 1;
-                } else {
-                    break;
                 }
             }
 
