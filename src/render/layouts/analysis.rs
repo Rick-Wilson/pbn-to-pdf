@@ -234,10 +234,15 @@ impl DocumentRenderer {
             && !board.commentary.is_empty()
             && flags.map(|f| f.show_event_commentary() || f.show_final_commentary()).unwrap_or(true);
 
+        // Skip completely empty boards (nothing visible to show)
+        if !show_board && !show_dealer && !show_vulnerable && !show_diagram && !show_commentary {
+            return 0.0;
+        }
+
         // Build and render title lines (Deal #, Dealer, Vulnerability)
         let font_size = self.settings.body_font_size;
         // Extra spacing before title (between separator line and title)
-        let title_spacing = cap_height / 2.0;
+        let title_spacing = cap_height;
         // Title baseline: move down by title_spacing to create gap after separator
         let first_baseline = start_y - cap_height - title_spacing;
         let mut title_line = 0;
