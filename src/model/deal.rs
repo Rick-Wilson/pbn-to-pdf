@@ -1,5 +1,6 @@
 use std::fmt;
 
+use super::card::Suit;
 use super::hand::Hand;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -118,6 +119,30 @@ impl Deal {
             Direction::West => self.west = hand,
         }
     }
+
+    /// Returns which suits have at least one card across all four hands.
+    /// Used to detect hand fragments that only show certain suits.
+    pub fn suits_present(&self) -> Vec<Suit> {
+        Suit::all()
+            .into_iter()
+            .filter(|suit| {
+                !self.north.holding(*suit).is_void()
+                    || !self.east.holding(*suit).is_void()
+                    || !self.south.holding(*suit).is_void()
+                    || !self.west.holding(*suit).is_void()
+            })
+            .collect()
+    }
+
+    /// Returns true if this is a hand fragment (not all suits have cards)
+    pub fn is_fragment(&self) -> bool {
+        self.suits_present().len() < 4
+    }
+
+    /// Returns true if this deal has no cards at all (empty deal)
+    pub fn is_empty(&self) -> bool {
+        self.suits_present().is_empty()
+    }
 }
 
 #[cfg(test)]
@@ -151,5 +176,56 @@ mod tests {
         assert_eq!(Direction::North.table_position(), 1);
         assert_eq!(Direction::East.table_position(), 2);
         assert_eq!(Direction::South.table_position(), 3);
+    }
+
+    #[test]
+    fn test_suits_present_full_deal() {
+        use super::super::hand::Holding;
+        use super::super::card::Rank;
+
+        let mut deal = Deal::new();
+        deal.north.spades = Holding::from_ranks([Rank::Ace, Rank::King]);
+        deal.north.hearts = Holding::from_ranks([Rank::Ace]);
+        deal.south.diamonds = Holding::from_ranks([Rank::Ace]);
+        deal.west.clubs = Holding::from_ranks([Rank::Ace]);
+
+        let suits = deal.suits_present();
+        assert_eq!(suits.len(), 4);
+        assert!(!deal.is_fragment());
+    }
+
+    #[test]
+    fn test_suits_present_spades_only() {
+        use super::super::hand::Holding;
+        use super::super::card::Rank;
+
+        let mut deal = Deal::new();
+        deal.north.spades = Holding::from_ranks([Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]);
+        deal.east.spades = Holding::from_ranks([Rank::Seven, Rank::Six, Rank::Four, Rank::Two]);
+
+        let suits = deal.suits_present();
+        assert_eq!(suits.len(), 1);
+        assert_eq!(suits[0], Suit::Spades);
+        assert!(deal.is_fragment());
+    }
+
+    #[test]
+    fn test_suits_present_empty_deal() {
+        let deal = Deal::new();
+        let suits = deal.suits_present();
+        assert_eq!(suits.len(), 0);
+        assert!(deal.is_fragment());
+        assert!(deal.is_empty());
+    }
+
+    #[test]
+    fn test_is_empty_with_cards() {
+        use super::super::card::Rank;
+        use super::super::hand::Holding;
+
+        let mut deal = Deal::new();
+        deal.north.spades = Holding::from_ranks([Rank::Ace]);
+
+        assert!(!deal.is_empty());
     }
 }

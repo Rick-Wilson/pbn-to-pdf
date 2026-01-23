@@ -38,6 +38,7 @@ pub struct CommentaryRenderer<'a> {
     font: &'a FontId,
     bold_font: &'a FontId,
     italic_font: &'a FontId,
+    bold_italic_font: &'a FontId,
     symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
@@ -57,6 +58,7 @@ enum TextStyle {
     Plain,
     Bold,
     Italic,
+    BoldItalic,
 }
 
 /// A word group is a sequence of fragments that should be kept together (no whitespace between them)
@@ -145,16 +147,20 @@ fn tokenize_spans(
 
     for span in spans {
         match span {
-            TextSpan::Plain(s) | TextSpan::Italic(s) | TextSpan::Bold(s) => {
+            TextSpan::Plain(s)
+            | TextSpan::Italic(s)
+            | TextSpan::Bold(s)
+            | TextSpan::BoldItalic(s) => {
                 let style = match span {
                     TextSpan::Plain(_) => TextStyle::Plain,
                     TextSpan::Italic(_) => TextStyle::Italic,
                     TextSpan::Bold(_) => TextStyle::Bold,
+                    TextSpan::BoldItalic(_) => TextStyle::BoldItalic,
                     _ => unreachable!(),
                 };
                 let measurer = match style {
                     TextStyle::Plain | TextStyle::Italic => regular_measurer,
-                    TextStyle::Bold => bold_measurer,
+                    TextStyle::Bold | TextStyle::BoldItalic => bold_measurer,
                 };
 
                 let chars: Vec<char> = s.chars().collect();
@@ -287,6 +293,7 @@ impl<'a> CommentaryRenderer<'a> {
         font: &'a FontId,
         bold_font: &'a FontId,
         italic_font: &'a FontId,
+        bold_italic_font: &'a FontId,
         symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
@@ -302,6 +309,7 @@ impl<'a> CommentaryRenderer<'a> {
             font,
             bold_font,
             italic_font,
+            bold_italic_font,
             symbol_font,
             colors: SuitColors::new(settings.black_color, settings.red_color),
             settings,
@@ -504,10 +512,11 @@ impl<'a> CommentaryRenderer<'a> {
                                 TextStyle::Plain => self.font,
                                 TextStyle::Bold => self.bold_font,
                                 TextStyle::Italic => self.italic_font,
+                                TextStyle::BoldItalic => self.bold_italic_font,
                             };
                             let measurer = match style {
                                 TextStyle::Plain | TextStyle::Italic => &regular_measurer,
-                                TextStyle::Bold => &bold_measurer,
+                                TextStyle::Bold | TextStyle::BoldItalic => &bold_measurer,
                             };
                             let width = measurer.measure_width_mm(txt, font_size);
 

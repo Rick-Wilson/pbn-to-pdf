@@ -93,6 +93,17 @@ pub fn parse_header_line(line: &str) -> Option<HeaderDirective> {
         return Some(HeaderDirective::ShowBoardLabels(show));
     }
 
+    // Parse %Translate directive: %Translate "Board %" "%)"
+    // This defines how board labels should be formatted
+    if let Some(stripped) = content.strip_prefix("Translate ") {
+        if let Some((from, to)) = parse_translate(stripped) {
+            // Only handle "Board %" translations for now
+            if from == "Board %" {
+                return Some(HeaderDirective::BoardLabelFormat(to));
+            }
+        }
+    }
+
     // Unknown directive
     Some(HeaderDirective::Unknown(content.to_string()))
 }
@@ -110,7 +121,7 @@ pub enum HeaderDirective {
     Version(String),
     Creator(String),
     Created(String),
-    BoardsPerPage(u8),
+    BoardsPerPage(BoardsPerPageConfig),
     Margins(Margins),
     PaperSize(PaperSize),
     Font(String, FontSpec),
@@ -121,14 +132,30 @@ pub enum HeaderDirective {
     ShowCardTable(bool),
     ShowBoardLabels(bool),
     BCOptions(BCOptions),
+    /// Board label format from %Translate "Board %" "%)"
+    BoardLabelFormat(String),
     Unknown(String),
 }
 
-fn parse_boards_per_page(value: &str) -> Option<u8> {
-    // Format: "fit,1" or just "1"
+/// Parsed BoardsPerPage directive
+#[derive(Debug, Clone, Copy)]
+pub struct BoardsPerPageConfig {
+    pub count: u8,
+    pub fit: bool,
+}
+
+fn parse_boards_per_page(value: &str) -> Option<BoardsPerPageConfig> {
+    // Format: "fit,1" or "fit,2" or just "1"
     let parts: Vec<&str> = value.split(',').collect();
-    let num_str = parts.last()?;
-    num_str.trim().parse().ok()
+
+    let (fit, num_str) = if parts.len() >= 2 && parts[0].trim().eq_ignore_ascii_case("fit") {
+        (true, parts[1])
+    } else {
+        (false, *parts.last()?)
+    };
+
+    let count: u8 = num_str.trim().parse().ok()?;
+    Some(BoardsPerPageConfig { count, fit })
 }
 
 fn parse_margins(value: &str) -> Option<Margins> {
@@ -234,6 +261,26 @@ fn parse_color(value: &str) -> Option<(u8, u8, u8)> {
     Some((r, g, b))
 }
 
+/// Parse %Translate directive: "Board %" "%)"
+/// Returns (from_pattern, to_pattern) if successful
+fn parse_translate(value: &str) -> Option<(String, String)> {
+    // Format: "from" "to" - two quoted strings
+    let value = value.trim();
+
+    // Find first quoted string
+    let first_start = value.find('"')?;
+    let first_end = value[first_start + 1..].find('"')? + first_start + 1;
+    let from = value[first_start + 1..first_end].to_string();
+
+    // Find second quoted string
+    let rest = &value[first_end + 1..];
+    let second_start = rest.find('"')?;
+    let second_end = rest[second_start + 1..].find('"')? + second_start + 1;
+    let to = rest[second_start + 1..second_end].to_string();
+
+    Some((from, to))
+}
+
 /// Parse BCOptions line: "Float Justify NoHRStats STBorder STShade ShowHCP"
 fn parse_bc_options(value: &str) -> BCOptions {
     let mut options = BCOptions::default();
@@ -261,7 +308,10 @@ pub fn parse_headers(lines: &[&str]) -> PbnMetadata {
                 HeaderDirective::Version(v) => metadata.version = Some(v),
                 HeaderDirective::Creator(c) => metadata.creator = Some(c),
                 HeaderDirective::Created(c) => metadata.created = Some(c),
-                HeaderDirective::BoardsPerPage(n) => metadata.layout.boards_per_page = Some(n),
+                HeaderDirective::BoardsPerPage(config) => {
+                    metadata.layout.boards_per_page = Some(config.count);
+                    metadata.layout.two_column = config.count == 2 && config.fit;
+                }
                 HeaderDirective::Margins(m) => metadata.layout.margins = Some(m),
                 HeaderDirective::PaperSize(s) => metadata.layout.paper_size = Some(s),
                 HeaderDirective::Font(name, spec) => match name.as_str() {
@@ -286,6 +336,9 @@ pub fn parse_headers(lines: &[&str]) -> PbnMetadata {
                     if opts.justify {
                         metadata.layout.justify = true;
                     }
+                }
+                HeaderDirective::BoardLabelFormat(fmt) => {
+                    metadata.layout.board_label_format = Some(fmt);
                 }
                 HeaderDirective::Unknown(_) => {}
             }
@@ -312,7 +365,22 @@ mod tests {
     fn test_parse_boards_per_page() {
         let directive = parse_header_line("%BoardsPerPage fit,1").unwrap();
         match directive {
-            HeaderDirective::BoardsPerPage(n) => assert_eq!(n, 1),
+            HeaderDirective::BoardsPerPage(config) => {
+                assert_eq!(config.count, 1);
+                assert!(config.fit);
+            }
+            _ => panic!("Expected BoardsPerPage directive"),
+        }
+    }
+
+    #[test]
+    fn test_parse_boards_per_page_two_column() {
+        let directive = parse_header_line("%BoardsPerPage fit,2").unwrap();
+        match directive {
+            HeaderDirective::BoardsPerPage(config) => {
+                assert_eq!(config.count, 2);
+                assert!(config.fit);
+            }
             _ => panic!("Expected BoardsPerPage directive"),
         }
     }
@@ -370,5 +438,23 @@ mod tests {
             }
             _ => panic!("Expected BCOptions directive"),
         }
+    }
+
+    #[test]
+    fn test_parse_translate_board_label() {
+        let directive = parse_header_line("%Translate \"Board %\" \"%)\"").unwrap();
+        match directive {
+            HeaderDirective::BoardLabelFormat(fmt) => {
+                assert_eq!(fmt, "%)");
+            }
+            _ => panic!("Expected BoardLabelFormat directive"),
+        }
+    }
+
+    #[test]
+    fn test_parse_translate_in_headers() {
+        let lines = vec!["%Translate \"Board %\" \"%)\""];
+        let metadata = parse_headers(&lines);
+        assert_eq!(metadata.layout.board_label_format, Some("%)".to_string()));
     }
 }

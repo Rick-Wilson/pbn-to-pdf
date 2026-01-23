@@ -1,5 +1,5 @@
 use crate::config::Settings;
-use crate::model::{Deal, Hand, Suit};
+use crate::model::{Deal, Hand, HiddenHands, Suit};
 use printpdf::{Color, FontId, Mm, PaintMode, Rgb};
 
 use crate::render::helpers::colors::{self, SuitColors};
@@ -13,6 +13,42 @@ const DEBUG_BOX_COLOR: Rgb = Rgb {
     b: 0.7,
     icc_profile: None,
 };
+
+/// Display options for diagram rendering, computed by the layout layer
+/// This centralizes all visibility decisions in one place
+#[derive(Debug, Clone, Default)]
+pub struct DiagramDisplayOptions {
+    /// Which hands are hidden (from [Hidden] PBN tag)
+    pub hidden: HiddenHands,
+    /// Hide the compass box (implied when only North is visible)
+    pub hide_compass: bool,
+    /// Deal is a fragment (not all 4 suits present)
+    pub is_fragment: bool,
+    /// Which suits are present in the deal (for fragments)
+    pub suits_present: Vec<Suit>,
+    /// Whether to show suit symbols (false for single-suit fragments)
+    pub show_suit_symbols: bool,
+}
+
+impl DiagramDisplayOptions {
+    /// Compute display options from a deal and hidden hands
+    /// This applies the implied hiding rules documented in docs/BCFlags.md
+    pub fn from_deal(deal: &Deal, hidden: &HiddenHands) -> Self {
+        let suits_present = deal.suits_present();
+        let is_fragment = suits_present.len() < 4;
+        // Hide compass when only North is visible (E/S/W all hidden)
+        let only_north_visible = !hidden.north && hidden.east && hidden.south && hidden.west;
+        let show_suit_symbols = suits_present.len() > 1;
+
+        Self {
+            hidden: *hidden,
+            hide_compass: only_north_visible,
+            is_fragment,
+            suits_present,
+            show_suit_symbols,
+        }
+    }
+}
 
 /// Renderer for hand diagrams
 pub struct HandDiagramRenderer<'a> {
@@ -57,16 +93,22 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Calculate the actual height of a hand block based on font metrics
     fn actual_hand_height(&self) -> f32 {
+        self.hand_height_for_suits(4)
+    }
+
+    /// Calculate hand height for a specific number of suits
+    fn hand_height_for_suits(&self, num_suits: usize) -> f32 {
         let measurer = text_metrics::get_measurer();
         let line_height = self.settings.line_height;
         let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
         let descender = measurer.descender_mm(self.settings.card_font_size);
 
-        // 4 lines of text:
+        // N lines of text:
         // - cap_height: from top of box to first baseline
-        // - 3 * line_height: 3 gaps between the 4 baselines
+        // - (N-1) * line_height: gaps between the N baselines
         // - descender: from last baseline to bottom of descenders
-        cap_height + 3.0 * line_height + descender
+        let n = num_suits.max(1) as f32;
+        cap_height + (n - 1.0) * line_height + descender
     }
 
     /// Calculate the actual width of a hand by measuring all suit lines
@@ -98,9 +140,48 @@ impl<'a> HandDiagramRenderer<'a> {
     /// Render a complete deal with compass rose - Bridge Composer style
     /// Returns the height used by the diagram
     pub fn render_deal(&self, layer: &mut LayerBuilder, deal: &Deal, origin: (Mm, Mm)) -> f32 {
+        let options = DiagramDisplayOptions::from_deal(deal, &HiddenHands::default());
+        self.render_deal_with_options(layer, deal, origin, &options)
+    }
+
+    /// Render a complete deal with compass rose, respecting hidden hands
+    /// Returns the height used by the diagram
+    ///
+    /// DEPRECATED: Use render_deal_with_options instead for new code
+    pub fn render_deal_with_hidden(
+        &self,
+        layer: &mut LayerBuilder,
+        deal: &Deal,
+        origin: (Mm, Mm),
+        hidden: &HiddenHands,
+    ) -> f32 {
+        let options = DiagramDisplayOptions::from_deal(deal, hidden);
+        self.render_deal_with_options(layer, deal, origin, &options)
+    }
+
+    /// Render a complete deal with pre-computed display options
+    /// All visibility decisions should be made in the layout layer and passed here
+    /// Returns the height used by the diagram
+    pub fn render_deal_with_options(
+        &self,
+        layer: &mut LayerBuilder,
+        deal: &Deal,
+        origin: (Mm, Mm),
+        options: &DiagramDisplayOptions,
+    ) -> f32 {
         let (ox, oy) = origin;
 
-        // Layout constants
+        // Use fragment-aware rendering if only some suits are present
+        if options.is_fragment {
+            return self.render_deal_fragment_with_options(layer, deal, origin, options);
+        }
+
+        // Render without compass if compass is hidden
+        if options.hide_compass {
+            return self.render_north_only(layer, deal, origin);
+        }
+
+        // Layout constants for full deals
         let hand_w = self.settings.hand_width; // Used for positioning
         let hand_h = self.actual_hand_height(); // Use actual calculated height
         let compass_size = self.compass_box_size(); // Dynamic size based on font
@@ -114,16 +195,20 @@ impl<'a> HandDiagramRenderer<'a> {
         // Row 1: North hand (centered above compass)
         let north_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
         let north_y = oy.0;
-        self.draw_debug_box(layer, north_x, north_y, north_w, hand_h);
-        self.render_hand_cards(layer, &deal.north, (Mm(north_x), Mm(north_y)));
+        if !options.hidden.north {
+            self.draw_debug_box(layer, north_x, north_y, north_w, hand_h);
+            self.render_hand_cards(layer, &deal.north, (Mm(north_x), Mm(north_y)));
+        }
 
         // Row 2: West hand | Compass | East hand (immediately below North)
         let row2_y = north_y - hand_h; // No extra gap
 
         // West hand - left side
         let west_x = ox.0;
-        self.draw_debug_box(layer, west_x, row2_y, west_w, hand_h);
-        self.render_hand_cards(layer, &deal.west, (Mm(west_x), Mm(row2_y)));
+        if !options.hidden.west {
+            self.draw_debug_box(layer, west_x, row2_y, west_w, hand_h);
+            self.render_hand_cards(layer, &deal.west, (Mm(west_x), Mm(row2_y)));
+        }
 
         // Compass rose - vertically centered with West/East hands
         // Left edge of compass aligns with right edge of suit symbols (suit symbols are ~5mm wide)
@@ -143,8 +228,10 @@ impl<'a> HandDiagramRenderer<'a> {
 
         // East hand - to the right of compass
         let east_x = compass_center_x + compass_size / 2.0 + 3.5;
-        self.draw_debug_box(layer, east_x, row2_y, east_w, hand_h);
-        self.render_hand_cards(layer, &deal.east, (Mm(east_x), Mm(row2_y)));
+        if !options.hidden.east {
+            self.draw_debug_box(layer, east_x, row2_y, east_w, hand_h);
+            self.render_hand_cards(layer, &deal.east, (Mm(east_x), Mm(row2_y)));
+        }
 
         // Row 3: HCP box (below West) and South hand (next to HCP box)
         let hcp_box_size = compass_size;
@@ -157,11 +244,287 @@ impl<'a> HandDiagramRenderer<'a> {
 
         // South hand - positioned next to HCP box, at same Y level
         let south_y = hcp_box_y;
-        self.draw_debug_box(layer, north_x, south_y, south_w, hand_h);
-        self.render_hand_cards(layer, &deal.south, (Mm(north_x), Mm(south_y)));
+        if !options.hidden.south {
+            self.draw_debug_box(layer, north_x, south_y, south_w, hand_h);
+            self.render_hand_cards(layer, &deal.south, (Mm(north_x), Mm(south_y)));
+        }
 
         // Return total height used
         oy.0 - (south_y - hand_h)
+    }
+
+    /// Render a deal fragment with pre-computed display options
+    fn render_deal_fragment_with_options(
+        &self,
+        layer: &mut LayerBuilder,
+        deal: &Deal,
+        origin: (Mm, Mm),
+        options: &DiagramDisplayOptions,
+    ) -> f32 {
+        // Render without compass if compass is hidden
+        if options.hide_compass {
+            return self.render_north_only_fragment(layer, deal, origin, &options.suits_present);
+        }
+
+        let (ox, oy) = origin;
+        let suits_present = &options.suits_present;
+        let num_suits = suits_present.len();
+        let show_suit_symbol = options.show_suit_symbols;
+
+        // Layout constants
+        let hand_w = self.settings.hand_width;
+        let hand_h = self.hand_height_for_suits(num_suits);
+        let compass_size = self.compass_box_size();
+
+        // Calculate actual widths for fragment hands
+        let north_w = self.actual_fragment_width(&deal.north, suits_present, show_suit_symbol);
+        let south_w = self.actual_fragment_width(&deal.south, suits_present, show_suit_symbol);
+        let east_w = self.actual_fragment_width(&deal.east, suits_present, show_suit_symbol);
+        let west_w = self.actual_fragment_width(&deal.west, suits_present, show_suit_symbol);
+
+        // Calculate vertical offset to center hands with compass
+        // Compass is vertically centered with West/East row
+        // We want the hand content centered with the compass center
+        let compass_center_offset = (compass_size - hand_h) / 2.0;
+
+        // Row 1: North hand (centered above compass)
+        let north_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
+        let north_y = oy.0;
+        if !options.hidden.north {
+            self.draw_debug_box(layer, north_x, north_y, north_w, hand_h);
+            self.render_fragment_hand(
+                layer,
+                &deal.north,
+                (Mm(north_x), Mm(north_y)),
+                suits_present,
+                show_suit_symbol,
+            );
+        }
+
+        // Row 2: West hand | Compass | East hand
+        let row2_y = north_y - hand_h;
+
+        // Compass rose - centered in the row (calculate first for positioning)
+        let suit_symbol_width = if show_suit_symbol { 5.0 } else { 0.0 };
+        let half_char_adjust = if show_suit_symbol { 1.5 } else { 0.0 };
+        let compass_center_x = north_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
+        let compass_y = row2_y - hand_h / 2.0 - compass_center_offset;
+        let compass_left = compass_center_x - compass_size / 2.0;
+        let compass_right = compass_center_x + compass_size / 2.0;
+
+        // Gap between hands and compass
+        let hand_compass_gap = 3.5;
+
+        // West hand - right-justified so right edge is near compass left edge
+        let west_y = row2_y - compass_center_offset;
+        let west_x = compass_left - hand_compass_gap - west_w;
+        if !options.hidden.west {
+            self.draw_debug_box(layer, west_x, west_y, west_w, hand_h);
+            self.render_fragment_hand(
+                layer,
+                &deal.west,
+                (Mm(west_x), Mm(west_y)),
+                suits_present,
+                show_suit_symbol,
+            );
+        }
+
+        // Render compass
+        self.draw_debug_box(
+            layer,
+            compass_left,
+            compass_y + compass_size / 2.0,
+            compass_size,
+            compass_size,
+        );
+        self.render_compass(layer, (Mm(compass_center_x), Mm(compass_y)));
+
+        // East hand - left edge near compass right edge
+        let east_x = compass_right + hand_compass_gap;
+        if !options.hidden.east {
+            self.draw_debug_box(layer, east_x, west_y, east_w, hand_h);
+            self.render_fragment_hand(
+                layer,
+                &deal.east,
+                (Mm(east_x), Mm(west_y)),
+                suits_present,
+                show_suit_symbol,
+            );
+        }
+
+        // Row 3: South hand (below compass, centered)
+        let south_y = west_y - hand_h - compass_center_offset;
+        if !options.hidden.south {
+            self.draw_debug_box(layer, north_x, south_y, south_w, hand_h);
+            self.render_fragment_hand(
+                layer,
+                &deal.south,
+                (Mm(north_x), Mm(south_y)),
+                suits_present,
+                show_suit_symbol,
+            );
+        }
+
+        // Return total height used
+        oy.0 - (south_y - hand_h)
+    }
+
+    /// Calculate the width of a hand for fragment display
+    fn actual_fragment_width(
+        &self,
+        hand: &Hand,
+        suits_present: &[Suit],
+        show_suit_symbol: bool,
+    ) -> f32 {
+        let measurer = text_metrics::get_measurer();
+        let font_size = self.settings.card_font_size;
+
+        suits_present
+            .iter()
+            .map(|suit| {
+                let holding = hand.holding(*suit);
+                let cards_str = if holding.is_void() {
+                    "-".to_string()
+                } else {
+                    holding
+                        .ranks
+                        .iter()
+                        .map(|r| r.to_char().to_string())
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                };
+                if show_suit_symbol {
+                    let line = format!("{} {}", suit.symbol(), cards_str);
+                    measurer.measure_width_mm(&line, font_size)
+                } else {
+                    measurer.measure_width_mm(&cards_str, font_size)
+                }
+            })
+            .fold(0.0_f32, |max, w| max.max(w))
+    }
+
+    /// Render a hand showing only the specified suits
+    fn render_fragment_hand(
+        &self,
+        layer: &mut LayerBuilder,
+        hand: &Hand,
+        origin: (Mm, Mm),
+        suits_present: &[Suit],
+        show_suit_symbol: bool,
+    ) {
+        let (ox, oy) = origin;
+        let line_height = self.settings.line_height;
+
+        let measurer = text_metrics::get_measurer();
+        let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
+
+        let first_baseline = oy.0 - cap_height;
+
+        for (i, suit) in suits_present.iter().enumerate() {
+            let y = first_baseline - (i as f32 * line_height);
+            if show_suit_symbol {
+                self.render_suit_line(layer, *suit, hand.holding(*suit), (Mm(ox.0), Mm(y)));
+            } else {
+                self.render_cards_only(layer, hand.holding(*suit), (Mm(ox.0), Mm(y)));
+            }
+        }
+    }
+
+    /// Render just the cards without a suit symbol (for single-suit fragments)
+    fn render_cards_only(
+        &self,
+        layer: &mut LayerBuilder,
+        holding: &crate::model::Holding,
+        origin: (Mm, Mm),
+    ) {
+        let (ox, oy) = origin;
+
+        layer.set_fill_color(Color::Rgb(colors::BLACK));
+
+        let cards_str = if holding.is_void() {
+            "-".to_string()
+        } else {
+            holding
+                .ranks
+                .iter()
+                .map(|r| r.to_char().to_string())
+                .collect::<Vec<_>>()
+                .join(" ")
+        };
+
+        layer.use_text(
+            &cards_str,
+            self.settings.card_font_size,
+            ox,
+            oy,
+            self.font,
+        );
+    }
+
+    /// Render only North's hand without compass (when E/S/W are hidden)
+    /// Used for full deals with only North visible
+    /// Cards are centered at the compass center position
+    fn render_north_only(&self, layer: &mut LayerBuilder, deal: &Deal, origin: (Mm, Mm)) -> f32 {
+        let (ox, oy) = origin;
+        let hand_w = self.settings.hand_width;
+        let hand_h = self.actual_hand_height();
+        let compass_size = self.compass_box_size();
+        let north_w = self.actual_hand_width(&deal.north);
+
+        // Calculate compass center (same formula as in render_deal_with_hidden)
+        let north_base_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
+        let suit_symbol_width = 5.0;
+        let half_char_adjust = 1.5;
+        let compass_center_x = north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
+
+        // Center the cards at the compass center position
+        let north_x = compass_center_x - north_w / 2.0;
+
+        self.draw_debug_box(layer, north_x, oy.0, north_w, hand_h);
+        self.render_hand_cards(layer, &deal.north, (Mm(north_x), oy));
+
+        // Return just the height used - layout handles spacing
+        hand_h
+    }
+
+    /// Render only North's hand without compass (when E/S/W are hidden) for fragments
+    /// Used for fragment deals with only North visible
+    /// Cards are centered at the compass center position
+    fn render_north_only_fragment(
+        &self,
+        layer: &mut LayerBuilder,
+        deal: &Deal,
+        origin: (Mm, Mm),
+        suits_present: &[Suit],
+    ) -> f32 {
+        let (ox, oy) = origin;
+        let hand_w = self.settings.hand_width;
+        let compass_size = self.compass_box_size();
+        let num_suits = suits_present.len();
+        let show_suit_symbol = num_suits > 1;
+        let hand_h = self.hand_height_for_suits(num_suits);
+        let north_w = self.actual_fragment_width(&deal.north, suits_present, show_suit_symbol);
+
+        // Calculate compass center (same formula as in render_deal_fragment)
+        let north_base_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
+        let suit_symbol_width = if show_suit_symbol { 5.0 } else { 0.0 };
+        let half_char_adjust = if show_suit_symbol { 1.5 } else { 0.0 };
+        let compass_center_x = north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
+
+        // Center the cards at the compass center position
+        let north_x = compass_center_x - north_w / 2.0;
+
+        self.draw_debug_box(layer, north_x, oy.0, north_w, hand_h);
+        self.render_fragment_hand(
+            layer,
+            &deal.north,
+            (Mm(north_x), oy),
+            suits_present,
+            show_suit_symbol,
+        );
+
+        // Return just the height used - layout handles spacing
+        hand_h
     }
 
     /// Render a single hand (used for backward compatibility)

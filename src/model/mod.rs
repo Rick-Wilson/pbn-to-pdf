@@ -1,5 +1,6 @@
 pub mod analysis;
 pub mod auction;
+pub mod bcflags;
 pub mod board;
 pub mod card;
 pub mod commentary;
@@ -9,7 +10,8 @@ pub mod metadata;
 pub mod play;
 
 pub use auction::{AnnotatedCall, Auction, BidSuit, Call, Contract};
-pub use board::{Board, Vulnerability};
+pub use bcflags::BCFlags;
+pub use board::{Board, HiddenHands, Vulnerability};
 pub use card::{Card, Rank, Suit};
 pub use commentary::{CommentaryBlock, FormattedText, TextSpan};
 pub use deal::{Deal, Direction};

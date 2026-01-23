@@ -1,5 +1,5 @@
 use crate::error::PbnError;
-use crate::model::{Board, Contract, Direction, PbnMetadata, Vulnerability};
+use crate::model::{BCFlags, Board, Contract, Direction, HiddenHands, PbnMetadata, Vulnerability};
 
 use super::auction::parse_auction;
 use super::commentary::{extract_commentary, parse_commentary};
@@ -216,6 +216,11 @@ fn process_tag(
         }
         "Board" => {
             if let Some(ref mut board) = current_board {
+                // Store raw board ID if non-empty
+                if !tag.value.is_empty() {
+                    board.board_id = Some(tag.value.clone());
+                }
+                // Also try to parse as number for backward compatibility
                 if let Ok(num) = tag.value.parse::<u32>() {
                     board.number = Some(num);
                 }
@@ -298,6 +303,20 @@ fn process_tag(
                 }
             }
         }
+        "BCFlags" => {
+            // Bridge Composer display flags (hexadecimal bitmask)
+            if let Some(ref mut board) = current_board {
+                if let Some(flags) = BCFlags::from_hex(&tag.value) {
+                    board.bc_flags = Some(flags);
+                }
+            }
+        }
+        "Hidden" => {
+            // Hidden hands (e.g., "NS", "ESW", "NESW")
+            if let Some(ref mut board) = current_board {
+                board.hidden = HiddenHands::from_pbn(&tag.value);
+            }
+        }
         _ => {
             // Unknown tag, skip
             log::debug!("Skipping unknown tag: {}", tag.name);
@@ -355,5 +374,51 @@ mod tests {
         assert_eq!(result.boards[0].number, Some(1));
         assert_eq!(result.boards[1].number, Some(2));
         assert_eq!(result.boards[1].vulnerable, Vulnerability::NorthSouth);
+    }
+
+    #[test]
+    fn test_parse_bcflags() {
+        let content = r#"[Event "Test"]
+[Board "1"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AKQ.JT9.876.5432 JT9.AKQ.543.8765 876.543.AKQ.JT98 543.876.JT9.AKQ6"]
+[BCFlags "60001b"]
+"#;
+
+        let result = parse_pbn(content).unwrap();
+        assert_eq!(result.boards.len(), 1);
+
+        let board = &result.boards[0];
+        assert!(board.bc_flags.is_some());
+
+        let flags = board.bc_flags.unwrap();
+        assert!(flags.show_play());
+        assert!(flags.show_results());
+        assert!(flags.show_diagram());
+        assert!(flags.show_auction());
+        assert!(!flags.hide_board());
+        assert!(flags.hide_dealer());
+        assert!(flags.hide_vulnerable());
+    }
+
+    #[test]
+    fn test_parse_hidden() {
+        let content = r#"[Event "Test"]
+[Board "1"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AKQ.JT9.876.5432 JT9.AKQ.543.8765 876.543.AKQ.JT98 543.876.JT9.AKQ6"]
+[Hidden "NS"]
+"#;
+
+        let result = parse_pbn(content).unwrap();
+        assert_eq!(result.boards.len(), 1);
+
+        let board = &result.boards[0];
+        assert!(board.hidden.north);
+        assert!(!board.hidden.east);
+        assert!(board.hidden.south);
+        assert!(!board.hidden.west);
     }
 }

@@ -22,6 +22,52 @@ fn fixtures_path() -> PathBuf {
 }
 
 #[test]
+fn test_two_column_layout() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Parse the exercises PBN file which has %BoardsPerPage fit,2
+    let pbn_path = fixtures_path().join("ABS2-2 Promotion and Length exercises.pbn");
+    let content = fs::read_to_string(&pbn_path).expect("Failed to read PBN file");
+
+    let pbn_file = parse_pbn(&content).expect("Failed to parse PBN");
+
+    // Verify that two_column was detected from metadata
+    assert!(
+        pbn_file.metadata.layout.two_column,
+        "Expected two_column to be true from %BoardsPerPage fit,2"
+    );
+
+    // Create settings and verify two_column is set
+    let settings = Settings::default().with_metadata(&pbn_file.metadata);
+    assert!(
+        settings.two_column,
+        "Expected settings.two_column to be true"
+    );
+
+    // Generate PDF
+    let pdf_bytes = generate_pdf(&pbn_file.boards, &settings).expect("Failed to generate PDF");
+
+    // PDF should be non-empty
+    assert!(!pdf_bytes.is_empty());
+
+    // PDF should start with %PDF header
+    assert!(pdf_bytes.starts_with(b"%PDF"));
+
+    // Should be a reasonable size (multiple boards fit on fewer pages)
+    assert!(pdf_bytes.len() > 10_000);
+
+    // Write to output for visual verification
+    let output_file = output_dir.join("two_column_layout_test.pdf");
+    fs::write(&output_file, &pdf_bytes).expect("Failed to write test PDF");
+    println!(
+        "Two-column layout test PDF written to: {:?}",
+        output_file
+    );
+}
+
+#[test]
 fn test_parse_abs2_practice_deals() {
     let pbn_path = fixtures_path().join("ABS2-2 Promotion and Length practice deals.pbn");
     let content = fs::read_to_string(&pbn_path).expect("Failed to read PBN file");

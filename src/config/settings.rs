@@ -36,11 +36,18 @@ pub struct Settings {
     pub show_hcp: bool,
     pub justify: bool,
     pub debug_boxes: bool,
+    /// Two-column layout mode
+    pub two_column: bool,
 
     /// Title override from CLI (None = use metadata, Some("") = hide, Some(x) = use x)
     pub title_override: Option<String>,
     /// Title from metadata (HRTitleEvent)
     pub title_from_metadata: Option<String>,
+
+    /// Board label format from %Translate directive
+    /// Format string where "%" is replaced with the board number
+    /// Default is "Board %" -> "Board 1", can be "%)" -> "1)"
+    pub board_label_format: String,
 
     // Layout dimensions (in mm)
     pub hand_width: f32,
@@ -86,11 +93,13 @@ impl Default for Settings {
             show_bidding: true,
             show_play: true,
             show_commentary: true,
-            show_hcp: true,
+            show_hcp: false,
             justify: false,
             debug_boxes: false,
+            two_column: false,
             title_override: None,
             title_from_metadata: None,
+            board_label_format: "Board %".to_string(),
 
             hand_width: DEFAULT_HAND_WIDTH,
             hand_height: DEFAULT_HAND_HEIGHT,
@@ -204,9 +213,17 @@ impl Settings {
         if metadata.layout.justify {
             self.justify = true;
         }
+        if metadata.layout.two_column {
+            self.two_column = true;
+        }
 
         // Store title from metadata (HRTitleEvent)
         self.title_from_metadata = metadata.title_event.clone();
+
+        // Apply board label format from %Translate directive
+        if let Some(ref fmt) = metadata.layout.board_label_format {
+            self.board_label_format = fmt.clone();
+        }
 
         self
     }

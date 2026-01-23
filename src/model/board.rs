@@ -1,4 +1,5 @@
 use super::auction::{Auction, Contract};
+use super::bcflags::BCFlags;
 use super::commentary::CommentaryBlock;
 use super::deal::{Deal, Direction};
 use super::play::PlaySequence;
@@ -44,10 +45,54 @@ impl std::fmt::Display for Vulnerability {
     }
 }
 
+/// Tracks which hands should be hidden in display
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct HiddenHands {
+    pub north: bool,
+    pub east: bool,
+    pub south: bool,
+    pub west: bool,
+}
+
+impl HiddenHands {
+    /// Parse from PBN Hidden tag value (e.g., "NS", "ESW", "NESW")
+    pub fn from_pbn(s: &str) -> Self {
+        let s = s.to_uppercase();
+        Self {
+            north: s.contains('N'),
+            east: s.contains('E'),
+            south: s.contains('S'),
+            west: s.contains('W'),
+        }
+    }
+
+    /// Check if a specific direction is hidden
+    pub fn is_hidden(&self, direction: Direction) -> bool {
+        match direction {
+            Direction::North => self.north,
+            Direction::East => self.east,
+            Direction::South => self.south,
+            Direction::West => self.west,
+        }
+    }
+
+    /// Returns true if all hands are hidden
+    pub fn all_hidden(&self) -> bool {
+        self.north && self.east && self.south && self.west
+    }
+
+    /// Returns true if no hands are hidden
+    pub fn none_hidden(&self) -> bool {
+        !self.north && !self.east && !self.south && !self.west
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct Board {
     // Identification
     pub number: Option<u32>,
+    /// Raw board identifier string (e.g., "1", "1-1", "1-2")
+    pub board_id: Option<String>,
     pub event: Option<String>,
     pub site: Option<String>,
     pub date: Option<String>,
@@ -68,6 +113,12 @@ pub struct Board {
 
     // Commentary
     pub commentary: Vec<CommentaryBlock>,
+
+    // Display flags (Bridge Composer)
+    pub bc_flags: Option<BCFlags>,
+
+    // Hidden hands (from [Hidden] tag)
+    pub hidden: HiddenHands,
 }
 
 impl Board {
@@ -154,5 +205,35 @@ mod tests {
             .with_vulnerability(Vulnerability::None);
 
         assert_eq!(board.title(), "Board 1 • North Deals • None Vul");
+    }
+
+    #[test]
+    fn test_hidden_hands_parsing() {
+        let hidden = HiddenHands::from_pbn("NS");
+        assert!(hidden.north);
+        assert!(!hidden.east);
+        assert!(hidden.south);
+        assert!(!hidden.west);
+
+        let hidden = HiddenHands::from_pbn("ESW");
+        assert!(!hidden.north);
+        assert!(hidden.east);
+        assert!(hidden.south);
+        assert!(hidden.west);
+
+        let hidden = HiddenHands::from_pbn("NESW");
+        assert!(hidden.all_hidden());
+
+        let hidden = HiddenHands::from_pbn("");
+        assert!(hidden.none_hidden());
+    }
+
+    #[test]
+    fn test_hidden_hands_is_hidden() {
+        let hidden = HiddenHands::from_pbn("NS");
+        assert!(hidden.is_hidden(Direction::North));
+        assert!(!hidden.is_hidden(Direction::East));
+        assert!(hidden.is_hidden(Direction::South));
+        assert!(!hidden.is_hidden(Direction::West));
     }
 }

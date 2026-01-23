@@ -5,6 +5,7 @@ pub enum TextSpan {
     Plain(String),
     Bold(String),
     Italic(String),
+    BoldItalic(String),
     SuitSymbol(Suit),
     CardRef { suit: Suit, rank: Rank },
     LineBreak,
@@ -21,6 +22,10 @@ impl TextSpan {
 
     pub fn italic(s: impl Into<String>) -> Self {
         TextSpan::Italic(s.into())
+    }
+
+    pub fn bold_italic(s: impl Into<String>) -> Self {
+        TextSpan::BoldItalic(s.into())
     }
 }
 
@@ -46,7 +51,10 @@ impl FormattedText {
         let mut result = String::new();
         for span in &self.spans {
             match span {
-                TextSpan::Plain(s) | TextSpan::Bold(s) | TextSpan::Italic(s) => {
+                TextSpan::Plain(s)
+                | TextSpan::Bold(s)
+                | TextSpan::Italic(s)
+                | TextSpan::BoldItalic(s) => {
                     result.push_str(s);
                 }
                 TextSpan::SuitSymbol(suit) => {

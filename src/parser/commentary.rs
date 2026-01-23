@@ -24,7 +24,15 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
             // Find closing tag
             let end = remaining.find("</b>").ok_or("Unclosed <b> tag")?;
             let bold_content = &remaining[3..end];
-            text.push(TextSpan::bold(bold_content));
+
+            // Check for nested <i> tag inside bold
+            if bold_content.starts_with("<i>") && bold_content.ends_with("</i>") {
+                // Extract the content inside both tags
+                let inner = &bold_content[3..bold_content.len() - 4];
+                text.push(TextSpan::bold_italic(inner));
+            } else {
+                text.push(TextSpan::bold(bold_content));
+            }
             remaining = &remaining[end + 4..];
         } else if remaining.starts_with("<i>") {
             // Flush plain buffer
@@ -35,7 +43,15 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
             // Find closing tag
             let end = remaining.find("</i>").ok_or("Unclosed <i> tag")?;
             let italic_content = &remaining[3..end];
-            text.push(TextSpan::italic(italic_content));
+
+            // Check for nested <b> tag inside italic
+            if italic_content.starts_with("<b>") && italic_content.ends_with("</b>") {
+                // Extract the content inside both tags
+                let inner = &italic_content[3..italic_content.len() - 4];
+                text.push(TextSpan::bold_italic(inner));
+            } else {
+                text.push(TextSpan::italic(italic_content));
+            }
             remaining = &remaining[end + 4..];
         } else if remaining.starts_with('\\') && remaining.len() >= 2 {
             // Check for suit symbol escape
@@ -256,6 +272,28 @@ mod tests {
         assert_eq!(
             text.spans[1],
             TextSpan::Plain(" Declarer (North)".to_string())
+        );
+    }
+
+    #[test]
+    fn test_bold_italic_nested() {
+        // Test nested <b><i>...</i></b> produces BoldItalic
+        let text = parse_formatted_text("<b><i>Exercise One Answers</i></b>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::BoldItalic("Exercise One Answers".to_string())
+        );
+    }
+
+    #[test]
+    fn test_italic_bold_nested() {
+        // Test nested <i><b>...</b></i> also produces BoldItalic
+        let text = parse_formatted_text("<i><b>Also Bold Italic</b></i>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::BoldItalic("Also Bold Italic".to_string())
         );
     }
 }
