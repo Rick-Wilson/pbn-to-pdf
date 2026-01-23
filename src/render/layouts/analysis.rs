@@ -31,6 +31,24 @@ const SEPARATOR_COLOR: Rgb = Rgb {
 /// Separator line thickness
 const SEPARATOR_THICKNESS: f32 = 0.5;
 
+/// Check if a board has any visible content to render
+/// Returns false if board should be skipped entirely (empty deal, no commentary, all metadata hidden)
+fn board_has_content(board: &Board, settings: &Settings) -> bool {
+    let flags = board.bc_flags;
+    let deal_is_empty = board.deal.is_empty();
+    let show_board = !deal_is_empty && flags.map(|f| !f.hide_board()).unwrap_or(true);
+    let show_dealer = !deal_is_empty && flags.map(|f| !f.hide_dealer()).unwrap_or(true);
+    let show_vulnerable = !deal_is_empty && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true);
+    let show_diagram = !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true);
+    let show_commentary = settings.show_commentary
+        && !board.commentary.is_empty()
+        && flags
+            .map(|f| f.show_event_commentary() || f.show_final_commentary())
+            .unwrap_or(true);
+
+    show_board || show_dealer || show_vulnerable || show_diagram || show_commentary
+}
+
 /// Main document renderer
 pub struct DocumentRenderer {
     settings: Settings,
@@ -130,6 +148,11 @@ impl DocumentRenderer {
             // Fill left column first
             while board_iter.peek().is_some() && left_y > margin_bottom + min_space_for_board {
                 if let Some(board) = board_iter.next() {
+                    // Skip empty boards (no visible content)
+                    if !board_has_content(board, &self.settings) {
+                        continue;
+                    }
+
                     // Draw horizontal separator if not at top
                     if left_board_count > 0 {
                         let sep_y = left_y + 2.0;
@@ -162,6 +185,11 @@ impl DocumentRenderer {
             // Fill right column
             while board_iter.peek().is_some() && right_y > margin_bottom + min_space_for_board {
                 if let Some(board) = board_iter.next() {
+                    // Skip empty boards (no visible content)
+                    if !board_has_content(board, &self.settings) {
+                        continue;
+                    }
+
                     // Draw horizontal separator if not at top
                     if right_board_count > 0 {
                         let sep_y = right_y + 2.0;
@@ -298,9 +326,10 @@ impl DocumentRenderer {
             let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
 
             // Full compass: diagram starts at start_y (title already moved down by title_spacing)
-            // Hidden compass: diagram starts below title lines
+            // Hidden compass: cards should be on same line as title text
+            // The diagram renderer subtracts cap_height internally, so we add it back
             let diagram_y = if diagram_options.hide_compass {
-                first_baseline - (title_line as f32 * line_height)
+                first_baseline + cap_height
             } else {
                 start_y
             };
