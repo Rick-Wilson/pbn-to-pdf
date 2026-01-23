@@ -242,4 +242,342 @@ impl LayerBuilder {
     pub fn end_clip(&mut self) {
         self.restore_graphics_state();
     }
+
+    /// Draw a circle
+    ///
+    /// Uses Bezier curves to approximate a circle.
+    /// center_x, center_y: center of the circle in mm
+    /// radius: radius of the circle in mm
+    pub fn add_circle(&mut self, center_x: Mm, center_y: Mm, radius: Mm, mode: PaintMode) {
+        self.add_ellipse(center_x, center_y, radius, radius, mode);
+    }
+
+    /// Draw an ellipse
+    ///
+    /// Uses Bezier curves to approximate an ellipse.
+    /// center_x, center_y: center of the ellipse in mm
+    /// radius_x: horizontal radius in mm
+    /// radius_y: vertical radius in mm
+    pub fn add_ellipse(
+        &mut self,
+        center_x: Mm,
+        center_y: Mm,
+        radius_x: Mm,
+        radius_y: Mm,
+        mode: PaintMode,
+    ) {
+        // Approximate an ellipse using 4 cubic Bezier curves
+        // The magic number for a good ellipse approximation is k = 4 * (sqrt(2) - 1) / 3 ≈ 0.5522848
+        let k = 0.552_284_8_f32;
+
+        let cx = center_x.0;
+        let cy = center_y.0;
+        let rx = radius_x.0;
+        let ry = radius_y.0;
+        let krx = k * rx;
+        let kry = k * ry;
+
+        // Four points on the ellipse (right, top, left, bottom)
+        let right = (cx + rx, cy);
+        let top = (cx, cy + ry);
+        let left = (cx - rx, cy);
+        let bottom = (cx, cy - ry);
+
+        // Control points for each curve
+        // From right to top
+        let cp1_rt = (cx + rx, cy + kry);
+        let cp2_rt = (cx + krx, cy + ry);
+
+        // From top to left
+        let cp1_tl = (cx - krx, cy + ry);
+        let cp2_tl = (cx - rx, cy + kry);
+
+        // From left to bottom
+        let cp1_lb = (cx - rx, cy - kry);
+        let cp2_lb = (cx - krx, cy - ry);
+
+        // From bottom to right
+        let cp1_br = (cx + krx, cy - ry);
+        let cp2_br = (cx + rx, cy - kry);
+
+        let points = vec![
+            // Start at right point
+            LinePoint {
+                p: Point {
+                    x: Mm(right.0).into(),
+                    y: Mm(right.1).into(),
+                },
+                bezier: false,
+            },
+            // Curve to top
+            LinePoint {
+                p: Point {
+                    x: Mm(cp1_rt.0).into(),
+                    y: Mm(cp1_rt.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(cp2_rt.0).into(),
+                    y: Mm(cp2_rt.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(top.0).into(),
+                    y: Mm(top.1).into(),
+                },
+                bezier: true,
+            },
+            // Curve to left
+            LinePoint {
+                p: Point {
+                    x: Mm(cp1_tl.0).into(),
+                    y: Mm(cp1_tl.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(cp2_tl.0).into(),
+                    y: Mm(cp2_tl.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(left.0).into(),
+                    y: Mm(left.1).into(),
+                },
+                bezier: true,
+            },
+            // Curve to bottom
+            LinePoint {
+                p: Point {
+                    x: Mm(cp1_lb.0).into(),
+                    y: Mm(cp1_lb.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(cp2_lb.0).into(),
+                    y: Mm(cp2_lb.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(bottom.0).into(),
+                    y: Mm(bottom.1).into(),
+                },
+                bezier: true,
+            },
+            // Curve back to right
+            LinePoint {
+                p: Point {
+                    x: Mm(cp1_br.0).into(),
+                    y: Mm(cp1_br.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(cp2_br.0).into(),
+                    y: Mm(cp2_br.1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(right.0).into(),
+                    y: Mm(right.1).into(),
+                },
+                bezier: true,
+            },
+        ];
+
+        let polygon = Polygon {
+            rings: vec![PolygonRing { points }],
+            mode,
+            winding_order: WindingOrder::NonZero,
+        };
+
+        self.ops.push(Op::DrawPolygon { polygon });
+    }
+
+    /// Draw a rotated ellipse
+    ///
+    /// Uses Bezier curves to approximate an ellipse, then rotates all points.
+    /// center_x, center_y: center of the ellipse in mm
+    /// radius_x: horizontal radius in mm (before rotation)
+    /// radius_y: vertical radius in mm (before rotation)
+    /// rotation_degrees: rotation angle in degrees (counter-clockwise)
+    pub fn add_rotated_ellipse(
+        &mut self,
+        center_x: Mm,
+        center_y: Mm,
+        radius_x: Mm,
+        radius_y: Mm,
+        rotation_degrees: f32,
+        mode: PaintMode,
+    ) {
+        // If no rotation, use the simpler method
+        if rotation_degrees.abs() < 0.001 {
+            self.add_ellipse(center_x, center_y, radius_x, radius_y, mode);
+            return;
+        }
+
+        // Approximate an ellipse using 4 cubic Bezier curves
+        let k = 0.552_284_8_f32;
+
+        let cx = center_x.0;
+        let cy = center_y.0;
+        let rx = radius_x.0;
+        let ry = radius_y.0;
+        let krx = k * rx;
+        let kry = k * ry;
+
+        // Four points on the ellipse (right, top, left, bottom) - before rotation
+        let unrotated_points: [(f32, f32); 13] = [
+            (rx, 0.0),        // right (start)
+            (rx, kry),        // cp1_rt
+            (krx, ry),        // cp2_rt
+            (0.0, ry),        // top
+            (-krx, ry),       // cp1_tl
+            (-rx, kry),       // cp2_tl
+            (-rx, 0.0),       // left
+            (-rx, -kry),      // cp1_lb
+            (-krx, -ry),      // cp2_lb
+            (0.0, -ry),       // bottom
+            (krx, -ry),       // cp1_br
+            (rx, -kry),       // cp2_br
+            (rx, 0.0),        // right (end)
+        ];
+
+        // Rotate all points around center
+        let angle_rad = rotation_degrees.to_radians();
+        let cos_a = angle_rad.cos();
+        let sin_a = angle_rad.sin();
+
+        let rotate_point = |x: f32, y: f32| -> (f32, f32) {
+            let rotated_x = x * cos_a - y * sin_a;
+            let rotated_y = x * sin_a + y * cos_a;
+            (cx + rotated_x, cy + rotated_y)
+        };
+
+        let rotated: Vec<(f32, f32)> = unrotated_points
+            .iter()
+            .map(|(x, y)| rotate_point(*x, *y))
+            .collect();
+
+        let points = vec![
+            // Start at right point
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[0].0).into(),
+                    y: Mm(rotated[0].1).into(),
+                },
+                bezier: false,
+            },
+            // Curve to top
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[1].0).into(),
+                    y: Mm(rotated[1].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[2].0).into(),
+                    y: Mm(rotated[2].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[3].0).into(),
+                    y: Mm(rotated[3].1).into(),
+                },
+                bezier: true,
+            },
+            // Curve to left
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[4].0).into(),
+                    y: Mm(rotated[4].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[5].0).into(),
+                    y: Mm(rotated[5].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[6].0).into(),
+                    y: Mm(rotated[6].1).into(),
+                },
+                bezier: true,
+            },
+            // Curve to bottom
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[7].0).into(),
+                    y: Mm(rotated[7].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[8].0).into(),
+                    y: Mm(rotated[8].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[9].0).into(),
+                    y: Mm(rotated[9].1).into(),
+                },
+                bezier: true,
+            },
+            // Curve back to right
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[10].0).into(),
+                    y: Mm(rotated[10].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[11].0).into(),
+                    y: Mm(rotated[11].1).into(),
+                },
+                bezier: true,
+            },
+            LinePoint {
+                p: Point {
+                    x: Mm(rotated[12].0).into(),
+                    y: Mm(rotated[12].1).into(),
+                },
+                bezier: true,
+            },
+        ];
+
+        let polygon = Polygon {
+            rings: vec![PolygonRing { points }],
+            mode,
+            winding_order: WindingOrder::NonZero,
+        };
+
+        self.ops.push(Op::DrawPolygon { polygon });
+    }
 }

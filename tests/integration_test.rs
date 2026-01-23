@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -10,7 +11,8 @@ use pbn_to_pdf::render::components::{
     WinnersTableRenderer,
 };
 use pbn_to_pdf::render::generate_pdf;
-use pbn_to_pdf::render::helpers::{colors::SuitColors, FontManager};
+use pbn_to_pdf::render::helpers::colors::{SuitColors, BLUE, RED};
+use pbn_to_pdf::render::helpers::FontManager;
 use pbn_to_pdf::render::helpers::{CardAssets, LayerBuilder};
 use printpdf::{Mm, PdfDocument, PdfPage, PdfSaveOptions, PdfWarnMsg};
 
@@ -352,6 +354,65 @@ fn test_fan_renderer_generates_pdf() {
     let output_path = output_dir.join("fan_test.pdf");
     fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
     println!("Fan renderer test PDF written to: {:?}", output_path);
+}
+
+#[test]
+fn test_circled_cards() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Create test hand
+    let hand = create_test_hand();
+
+    // Define cards to circle (highlight) with colors
+    // Include adjacent clubs to test overlapping ellipses
+    // Use red for some cards and blue for others to demonstrate color support
+    let mut circled: HashMap<Card, printpdf::Rgb> = HashMap::new();
+    circled.insert(Card::new(Suit::Spades, Rank::Ace), RED);
+    circled.insert(Card::new(Suit::Hearts, Rank::King), RED);
+    circled.insert(Card::new(Suit::Diamonds, Rank::Queen), BLUE);
+    circled.insert(Card::new(Suit::Clubs, Rank::Jack), BLUE);
+    circled.insert(Card::new(Suit::Clubs, Rank::Queen), RED);
+    circled.insert(Card::new(Suit::Clubs, Rank::Ten), BLUE);
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Circled Cards Test");
+
+    // Load card assets
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+
+    // Create layer for both renderers
+    let mut layer = LayerBuilder::new();
+
+    // Test FanRenderer with circled cards
+    let fan_renderer = FanRenderer::new(&card_assets, 0.4)
+        .arc(45.0)
+        .circled_cards(circled.clone());
+    fan_renderer.render(&mut layer, &hand, (Mm(20.0), Mm(180.0)));
+
+    // Test DummyRenderer with circled cards
+    let dummy_renderer = DummyRenderer::new(&card_assets, 0.4).circled_cards(circled);
+    dummy_renderer.render(&mut layer, &hand, (Mm(20.0), Mm(80.0)));
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(297.0), Mm(210.0), layer.into_ops()); // Landscape
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 1000, "PDF should have reasonable size");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("circled_cards_test.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!("Circled cards test PDF written to: {:?}", output_path);
 }
 
 #[test]

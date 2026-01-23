@@ -79,3 +79,19 @@ pub const WHITE: Rgb = Rgb {
     b: 1.0,
     icc_profile: None,
 };
+
+/// Red color for highlights/circles
+pub const RED: Rgb = Rgb {
+    r: 1.0,
+    g: 0.0,
+    b: 0.0,
+    icc_profile: None,
+};
+
+/// Blue color for highlights/circles
+pub const BLUE: Rgb = Rgb {
+    r: 0.0,
+    g: 0.0,
+    b: 1.0,
+    icc_profile: None,
+};

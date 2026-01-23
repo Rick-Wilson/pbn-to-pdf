@@ -3,10 +3,12 @@
 //! Renders a hand as stacked cards by suit, like dummy's hand laid out on the table.
 //! Each suit is a vertical stack with only the bottom card fully visible.
 
-use printpdf::Mm;
+use printpdf::{Mm, PaintMode, Rgb};
+use std::collections::HashMap;
 
-use crate::model::{Hand, Rank, Suit};
-use crate::render::helpers::card_assets::{CardAssets, CARD_HEIGHT_MM};
+use crate::model::{Card, Hand, Rank, Suit};
+use crate::render::helpers::card_assets::{CardAssets, CARD_HEIGHT_MM, CARD_WIDTH_MM};
+use crate::render::helpers::colors::RED;
 use crate::render::helpers::layer::LayerBuilder;
 
 /// Gap between suit stacks in mm
@@ -21,6 +23,14 @@ const ALTERNATING_SUIT_ORDER: [Suit; 4] = [Suit::Spades, Suit::Hearts, Suit::Clu
 /// Standard suit order: Spades, Hearts, Diamonds, Clubs
 const STANDARD_SUIT_ORDER: [Suit; 4] = [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
 
+/// Circle/ellipse position relative to the card's top-left corner
+/// Based on SVG analysis: rank text at x=1.16pt, y=28pt; suit symbol at x=11pt, y=40pt
+/// Card dimensions: 167.09pt × 242.67pt
+const CIRCLE_CENTER_X_RATIO: f32 = 0.06; // ~10pt / 167pt = 6% from left edge
+const CIRCLE_CENTER_Y_RATIO: f32 = 0.115; // ~28pt / 243pt = 11.5% from top edge
+const CIRCLE_RADIUS_RATIO: f32 = 0.17; // 17% of card width as radius (vertical)
+const ELLIPSE_WIDTH_RATIO: f32 = 0.65; // Ellipse is 65% as wide as it is tall
+
 /// Renderer for dummy-style card display (vertical stacks by suit)
 pub struct DummyRenderer<'a> {
     card_assets: &'a CardAssets,
@@ -30,6 +40,8 @@ pub struct DummyRenderer<'a> {
     alternate_colors: bool,
     /// Whether to draw a debug rectangle showing the bounding box
     show_bounds: bool,
+    /// Cards to circle (highlight) with their colors
+    circled_cards: HashMap<Card, Rgb>,
 }
 
 impl<'a> DummyRenderer<'a> {
@@ -44,6 +56,7 @@ impl<'a> DummyRenderer<'a> {
             first_suit: Suit::Spades,
             alternate_colors: true,
             show_bounds: false,
+            circled_cards: HashMap::new(),
         }
     }
 
@@ -58,6 +71,7 @@ impl<'a> DummyRenderer<'a> {
             first_suit: Suit::Spades,
             alternate_colors: true,
             show_bounds: false,
+            circled_cards: HashMap::new(),
         }
     }
 
@@ -79,6 +93,26 @@ impl<'a> DummyRenderer<'a> {
     /// Set whether to show a debug bounding box rectangle (default: false)
     pub fn show_bounds(mut self, show: bool) -> Self {
         self.show_bounds = show;
+        self
+    }
+
+    /// Set which cards should be circled (highlighted) with their colors
+    ///
+    /// The ellipse appears around the rank/suit indicator in the top-left corner of the card.
+    pub fn circled_cards(mut self, cards: HashMap<Card, Rgb>) -> Self {
+        self.circled_cards = cards;
+        self
+    }
+
+    /// Add a single card to circle with the default color (red)
+    pub fn circle_card(mut self, card: Card) -> Self {
+        self.circled_cards.insert(card, RED);
+        self
+    }
+
+    /// Add a single card to circle with a specific color
+    pub fn circle_card_with_color(mut self, card: Card, color: Rgb) -> Self {
+        self.circled_cards.insert(card, color);
         self
     }
 
@@ -197,11 +231,49 @@ impl<'a> DummyRenderer<'a> {
                     .card_assets
                     .transform_at(col_x, card_bottom_y, self.scale);
                 layer.use_xobject(self.card_assets.get(*suit, *rank).clone(), transform);
+
+                // Draw ellipse if this card is in the circled set
+                if let Some(color) = self.circled_cards.get(&Card::new(*suit, *rank)) {
+                    self.draw_card_ellipse(layer, col_x, card_bottom_y, color);
+                }
             }
         }
 
         // Return the height used
         let (_, height) = self.dimensions(hand);
         height
+    }
+
+    /// Draw an ellipse around the rank/suit indicator in the top-left corner of a card
+    ///
+    /// card_bottom_left_x, card_bottom_left_y: position of card's bottom-left corner in mm
+    /// color: the color to draw the ellipse outline
+    fn draw_card_ellipse(
+        &self,
+        layer: &mut LayerBuilder,
+        card_bottom_left_x: f32,
+        card_bottom_left_y: f32,
+        color: &Rgb,
+    ) {
+        let card_width = CARD_WIDTH_MM * self.scale;
+        let card_height = CARD_HEIGHT_MM * self.scale;
+
+        // Ellipse center position relative to card's bottom-left corner
+        // The ellipse should be in the top-left area of the card
+        let ellipse_x = card_bottom_left_x + card_width * CIRCLE_CENTER_X_RATIO;
+        let ellipse_y = card_bottom_left_y + card_height * (1.0 - CIRCLE_CENTER_Y_RATIO); // from top
+        let ellipse_radius_y = card_width * CIRCLE_RADIUS_RATIO; // vertical radius
+        let ellipse_radius_x = ellipse_radius_y * ELLIPSE_WIDTH_RATIO; // horizontal radius (30% narrower)
+
+        // Draw the ellipse with the specified color
+        layer.set_outline_color(printpdf::Color::Rgb(color.clone()));
+        layer.set_outline_thickness(1.5);
+        layer.add_ellipse(
+            Mm(ellipse_x),
+            Mm(ellipse_y),
+            Mm(ellipse_radius_x),
+            Mm(ellipse_radius_y),
+            PaintMode::Stroke,
+        );
     }
 }

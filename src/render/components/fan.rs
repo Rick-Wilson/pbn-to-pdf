@@ -4,10 +4,12 @@
 //! Cards overlap horizontally with only the rightmost card fully visible.
 //! Optional arc parameter rotates cards to simulate the natural curve of a held hand.
 
-use printpdf::{CurTransMat, Mm};
+use printpdf::{CurTransMat, Mm, PaintMode, Rgb};
+use std::collections::HashMap;
 
-use crate::model::{Hand, Rank, Suit};
-use crate::render::helpers::card_assets::{CardAssets, CARD_WIDTH_MM};
+use crate::model::{Card, Hand, Rank, Suit};
+use crate::render::helpers::card_assets::{CardAssets, CARD_HEIGHT_MM, CARD_WIDTH_MM};
+use crate::render::helpers::colors::RED;
 use crate::render::helpers::layer::LayerBuilder;
 
 /// Conversion factor from mm to points
@@ -21,6 +23,14 @@ const ALTERNATING_SUIT_ORDER: [Suit; 4] = [Suit::Spades, Suit::Hearts, Suit::Clu
 
 /// Standard suit order: Spades, Hearts, Diamonds, Clubs
 const STANDARD_SUIT_ORDER: [Suit; 4] = [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
+
+/// Circle/ellipse position relative to the card's top-left corner
+/// Based on SVG analysis: rank text at x=1.16pt, y=28pt; suit symbol at x=11pt, y=40pt
+/// Card dimensions: 167.09pt × 242.67pt
+const CIRCLE_CENTER_X_RATIO: f32 = 0.06; // ~10pt / 167pt = 6% from left edge
+const CIRCLE_CENTER_Y_RATIO: f32 = 0.115; // ~28pt / 243pt = 11.5% from top edge
+const CIRCLE_RADIUS_RATIO: f32 = 0.17; // 17% of card width as radius (vertical)
+const ELLIPSE_WIDTH_RATIO: f32 = 0.65; // Ellipse is 65% as wide as it is tall
 
 /// Renderer for fan-style card display (horizontal fan)
 pub struct FanRenderer<'a> {
@@ -37,6 +47,8 @@ pub struct FanRenderer<'a> {
     display_rotation: f32,
     /// Whether to draw a debug rectangle showing the bounding box
     show_bounds: bool,
+    /// Cards to circle (highlight) with their colors
+    circled_cards: HashMap<Card, Rgb>,
 }
 
 impl<'a> FanRenderer<'a> {
@@ -53,6 +65,7 @@ impl<'a> FanRenderer<'a> {
             arc_degrees: 0.0,
             display_rotation: 0.0,
             show_bounds: false,
+            circled_cards: HashMap::new(),
         }
     }
 
@@ -69,6 +82,7 @@ impl<'a> FanRenderer<'a> {
             arc_degrees: 0.0,
             display_rotation: 0.0,
             show_bounds: false,
+            circled_cards: HashMap::new(),
         }
     }
 
@@ -112,6 +126,26 @@ impl<'a> FanRenderer<'a> {
     /// Set whether to show a debug bounding box rectangle (default: false)
     pub fn show_bounds(mut self, show: bool) -> Self {
         self.show_bounds = show;
+        self
+    }
+
+    /// Set which cards should be circled (highlighted) with their colors
+    ///
+    /// The ellipse appears around the rank/suit indicator in the top-left corner of the card.
+    pub fn circled_cards(mut self, cards: HashMap<Card, Rgb>) -> Self {
+        self.circled_cards = cards;
+        self
+    }
+
+    /// Add a single card to circle with the default color (red)
+    pub fn circle_card(mut self, card: Card) -> Self {
+        self.circled_cards.insert(card, RED);
+        self
+    }
+
+    /// Add a single card to circle with a specific color
+    pub fn circle_card_with_color(mut self, card: Card, color: Rgb) -> Self {
+        self.circled_cards.insert(card, color);
         self
     }
 
@@ -535,6 +569,11 @@ impl<'a> FanRenderer<'a> {
                     rotation,
                 );
                 layer.use_xobject(self.card_assets.get(*suit, *rank).clone(), transform);
+
+                // Draw ellipse if this card is in the circled set
+                if let Some(color) = self.circled_cards.get(&Card::new(*suit, *rank)) {
+                    self.draw_card_ellipse(layer, base_x, card_bottom_y, rotation, color);
+                }
             } else {
                 // No rotation - simple flat layout
                 let card_bottom_y = card_top_y - card_height;
@@ -542,7 +581,67 @@ impl<'a> FanRenderer<'a> {
                     .card_assets
                     .transform_at(base_x, card_bottom_y, self.scale);
                 layer.use_xobject(self.card_assets.get(*suit, *rank).clone(), transform);
+
+                // Draw ellipse if this card is in the circled set
+                if let Some(color) = self.circled_cards.get(&Card::new(*suit, *rank)) {
+                    self.draw_card_ellipse(layer, base_x, card_bottom_y, 0.0, color);
+                }
             }
         }
+    }
+
+    /// Draw a rotated ellipse around the rank/suit indicator in the top-left corner of a card
+    ///
+    /// card_bottom_left_x, card_bottom_left_y: position of card's bottom-left corner in mm
+    /// rotation: card rotation in degrees (counter-clockwise)
+    /// color: the color to draw the ellipse outline
+    fn draw_card_ellipse(
+        &self,
+        layer: &mut LayerBuilder,
+        card_bottom_left_x: f32,
+        card_bottom_left_y: f32,
+        rotation: f32,
+        color: &Rgb,
+    ) {
+        let card_width = CARD_WIDTH_MM * self.scale;
+        let card_height = CARD_HEIGHT_MM * self.scale;
+
+        // Ellipse center position relative to card's bottom-left corner (unrotated)
+        // The ellipse should be in the top-left area of the card
+        let ellipse_local_x = card_width * CIRCLE_CENTER_X_RATIO;
+        let ellipse_local_y = card_height * (1.0 - CIRCLE_CENTER_Y_RATIO); // from top
+        let ellipse_radius_y = card_width * CIRCLE_RADIUS_RATIO; // vertical radius
+        let ellipse_radius_x = ellipse_radius_y * ELLIPSE_WIDTH_RATIO; // horizontal radius (30% narrower)
+
+        // Calculate rotated center position
+        let (ellipse_x, ellipse_y) = if rotation.abs() > 0.001 {
+            let angle_rad = rotation.to_radians();
+            let cos_a = angle_rad.cos();
+            let sin_a = angle_rad.sin();
+            // Rotate point around origin (bottom-left of card)
+            let rotated_x = ellipse_local_x * cos_a - ellipse_local_y * sin_a;
+            let rotated_y = ellipse_local_x * sin_a + ellipse_local_y * cos_a;
+            (
+                card_bottom_left_x + rotated_x,
+                card_bottom_left_y + rotated_y,
+            )
+        } else {
+            (
+                card_bottom_left_x + ellipse_local_x,
+                card_bottom_left_y + ellipse_local_y,
+            )
+        };
+
+        // Draw the rotated ellipse with the specified color
+        layer.set_outline_color(printpdf::Color::Rgb(color.clone()));
+        layer.set_outline_thickness(1.5);
+        layer.add_rotated_ellipse(
+            Mm(ellipse_x),
+            Mm(ellipse_y),
+            Mm(ellipse_radius_x),
+            Mm(ellipse_radius_y),
+            rotation,
+            PaintMode::Stroke,
+        );
     }
 }
