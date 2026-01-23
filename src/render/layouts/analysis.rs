@@ -177,19 +177,27 @@ impl DocumentRenderer {
             let mut force_page_break = false;
 
             // Fill left column first
-            while board_iter.peek().is_some() && left_y > margin_bottom + min_space_for_board {
-                if let Some(board) = board_iter.next() {
-                    // Check for page-break marker - finish this page immediately
-                    if is_page_break(board) {
+            while board_iter.peek().is_some() {
+                // Check if next board is a break marker BEFORE checking space
+                // This ensures breaks are processed even when column appears full
+                if let Some(next) = board_iter.peek() {
+                    if is_page_break(next) {
+                        board_iter.next(); // Consume the break marker
                         force_page_break = true;
                         break;
                     }
-
-                    // Check for column-break marker - move to right column
-                    if is_column_break(board) {
+                    if is_column_break(next) {
+                        board_iter.next(); // Consume the break marker
                         break;
                     }
+                }
 
+                // Now check if we have space for more content
+                if left_y <= margin_bottom + min_space_for_board {
+                    break;
+                }
+
+                if let Some(board) = board_iter.next() {
                     // Skip empty boards (no visible content)
                     if !board_has_content(board, &self.settings) {
                         continue;
@@ -226,19 +234,26 @@ impl DocumentRenderer {
 
             // Fill right column (unless page break was requested)
             if !force_page_break {
-                while board_iter.peek().is_some() && right_y > margin_bottom + min_space_for_board
-                {
+                while board_iter.peek().is_some() {
+                    // Check if next board is a break marker BEFORE checking space
+                    // This ensures breaks are processed even when column appears full
+                    if let Some(next) = board_iter.peek() {
+                        if is_page_break(next) {
+                            board_iter.next(); // Consume the break marker
+                            break;
+                        }
+                        if is_column_break(next) {
+                            board_iter.next(); // Consume the break marker
+                            break;
+                        }
+                    }
+
+                    // Now check if we have space for more content
+                    if right_y <= margin_bottom + min_space_for_board {
+                        break;
+                    }
+
                     if let Some(board) = board_iter.next() {
-                        // Check for page-break marker - finish this page immediately
-                        if is_page_break(board) {
-                            break;
-                        }
-
-                        // Check for column-break marker - treat as page break in right column
-                        if is_column_break(board) {
-                            break;
-                        }
-
                         // Skip empty boards (no visible content)
                         if !board_has_content(board, &self.settings) {
                             continue;
