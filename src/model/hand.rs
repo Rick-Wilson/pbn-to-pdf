@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
-use super::card::{Rank, Suit};
+use super::card::{Card, Rank, Suit};
 
 /// Cards held in a single suit
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -129,6 +129,11 @@ impl Hand {
 
     pub fn card_count(&self) -> usize {
         self.spades.len() + self.hearts.len() + self.diamonds.len() + self.clubs.len()
+    }
+
+    /// Check if the hand contains a specific card
+    pub fn contains(&self, card: Card) -> bool {
+        self.holding(card.suit).ranks.contains(&card.rank)
     }
 }
 

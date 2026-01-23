@@ -4,7 +4,8 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use pbn_to_pdf::config::Settings;
-use pbn_to_pdf::model::{BidSuit, Card, Hand, Holding, Rank, Suit};
+use pbn_to_pdf::model::analysis::{find_length_winners, find_promotable_winners, find_sure_winners};
+use pbn_to_pdf::model::{BidSuit, Card, Direction, Hand, Holding, Rank, Suit};
 use pbn_to_pdf::parser::parse_pbn;
 use pbn_to_pdf::render::components::{
     DeclarersPlanSmallRenderer, DummyRenderer, FanRenderer, LosersTableRenderer,
@@ -861,6 +862,545 @@ fn test_declarers_plan_small_generates_pdf() {
     fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
     println!(
         "Declarer's plan small test PDF written to: {:?}",
+        output_path
+    );
+}
+
+/// Rotate a deal so that the declarer is always South.
+/// Returns (dummy_hand, declarer_hand) where declarer is positioned as South.
+fn rotate_deal_for_declarer(
+    deal: &pbn_to_pdf::model::Deal,
+    declarer: Direction,
+) -> (Hand, Hand) {
+    match declarer {
+        Direction::South => (deal.north.clone(), deal.south.clone()),
+        Direction::North => (deal.south.clone(), deal.north.clone()),
+        Direction::East => (deal.west.clone(), deal.east.clone()),
+        Direction::West => (deal.east.clone(), deal.west.clone()),
+    }
+}
+
+/// Green color for sure winners
+const GREEN: printpdf::Rgb = printpdf::Rgb {
+    r: 0.0,
+    g: 0.6,
+    b: 0.0,
+    icc_profile: None,
+};
+
+/// Orange color for spent cards (used to drive out higher honors)
+const ORANGE: printpdf::Rgb = printpdf::Rgb {
+    r: 1.0,
+    g: 0.5,
+    b: 0.0,
+    icc_profile: None,
+};
+
+/// Blue color for promoted winners
+const PROMO_BLUE: printpdf::Rgb = printpdf::Rgb {
+    r: 0.0,
+    g: 0.4,
+    b: 0.8,
+    icc_profile: None,
+};
+
+#[test]
+fn test_declarers_plan_with_sure_winners() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Parse the PBN file
+    let pbn_path = fixtures_path().join("ABS2-2 Promotion and Length practice deals.pbn");
+    let content = fs::read_to_string(&pbn_path).expect("Failed to read PBN file");
+    let pbn_file = parse_pbn(&content).expect("Failed to parse PBN");
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Declarer's Plan with Sure Winners");
+
+    // Load card assets and fonts
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+    let fonts = FontManager::new(&mut doc).expect("Failed to load fonts");
+
+    // Create layer
+    let mut layer = LayerBuilder::new();
+
+    // Page layout: 2x2 grid (same as declarers_plan layout)
+    let page_width = 215.9; // Letter width in mm
+    let page_height = 279.4; // Letter height in mm
+    let margin = 12.7; // ~0.5 inch margin
+    let quadrant_padding = 5.0;
+
+    let content_width = page_width - 2.0 * margin;
+    let content_height = page_height - 2.0 * margin;
+    let half_width = content_width / 2.0;
+    let half_height = content_height / 2.0;
+
+    let center_x = margin + half_width;
+    let center_y = margin + half_height;
+
+    // Origins for each quadrant (top-left corner of each, with padding)
+    let positions = [
+        (margin + quadrant_padding, page_height - margin), // Top-left
+        (center_x + quadrant_padding, page_height - margin), // Top-right
+        (margin + quadrant_padding, center_y),             // Bottom-left
+        (center_x + quadrant_padding, center_y),           // Bottom-right
+    ];
+
+    // Draw separator lines
+    let separator_color = printpdf::Rgb::new(0.3, 0.3, 0.3, None);
+    layer.set_outline_color(printpdf::Color::Rgb(separator_color));
+    layer.set_outline_thickness(2.0);
+    layer.add_line(Mm(center_x), Mm(margin), Mm(center_x), Mm(page_height - margin));
+    layer.add_line(Mm(margin), Mm(center_y), Mm(page_width - margin), Mm(center_y));
+
+    let colors = SuitColors::default();
+
+    // Process each board (up to 4)
+    for (i, board) in pbn_file.boards.iter().take(4).enumerate() {
+        let (x, y) = positions[i];
+
+        // Get declarer direction (default to South if not specified)
+        let declarer = board
+            .contract
+            .as_ref()
+            .map(|c| c.declarer)
+            .unwrap_or(Direction::South);
+
+        // Rotate deal so declarer is always South
+        let (dummy_hand, declarer_hand) = rotate_deal_for_declarer(&board.deal, declarer);
+
+        // Find sure winners by combining dummy and declarer hands
+        let sure_winners = find_sure_winners(&dummy_hand, &declarer_hand);
+        println!(
+            "Board {}: Found {} sure winners",
+            board.number.unwrap_or(0),
+            sure_winners.len()
+        );
+        for card in &sure_winners {
+            println!("  - {}", card);
+        }
+
+        // Convert sure winners to circled cards map with green color
+        let circled_cards: HashMap<Card, printpdf::Rgb> = sure_winners
+            .into_iter()
+            .map(|card| (card, GREEN))
+            .collect();
+
+        // Determine if NT contract
+        let is_nt = board
+            .contract
+            .as_ref()
+            .map(|c| c.suit == BidSuit::NoTrump)
+            .unwrap_or(false);
+
+        // Get opening lead if play sequence exists
+        let opening_lead = board
+            .play
+            .as_ref()
+            .and_then(|play| play.tricks.first().and_then(|trick| trick.cards[0]));
+
+        // Format contract string
+        let contract_str = board.contract.as_ref().map(|c| {
+            let suit_symbol = match c.suit {
+                BidSuit::Clubs => "♣",
+                BidSuit::Diamonds => "♦",
+                BidSuit::Hearts => "♥",
+                BidSuit::Spades => "♠",
+                BidSuit::NoTrump => "NT",
+            };
+            format!("{}{}", c.level, suit_symbol)
+        });
+
+        // Get trump suit for suit ordering
+        let trump = board.contract.as_ref().map(|c| c.suit);
+
+        // Create renderer with circled cards
+        let renderer = DeclarersPlanSmallRenderer::new(
+            &card_assets,
+            &fonts.serif.regular,
+            &fonts.serif.bold,
+            &fonts.sans.regular,
+            colors.clone(),
+        )
+        .circled_cards(circled_cards);
+
+        renderer.render_with_info(
+            &mut layer,
+            &dummy_hand,
+            &declarer_hand,
+            is_nt,
+            opening_lead,
+            board.number,
+            contract_str.as_deref(),
+            trump,
+            (Mm(x), Mm(y)),
+        );
+    }
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(page_width), Mm(page_height), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 5000, "PDF should have reasonable size");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("declarers_plan_sure_winners.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!(
+        "Declarer's plan with sure winners PDF written to: {:?}",
+        output_path
+    );
+}
+
+#[test]
+fn test_declarers_plan_with_promotable_winners() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Parse the PBN file
+    let pbn_path = fixtures_path().join("ABS2-2 Promotion and Length practice deals.pbn");
+    let content = fs::read_to_string(&pbn_path).expect("Failed to read PBN file");
+    let pbn_file = parse_pbn(&content).expect("Failed to parse PBN");
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Declarer's Plan with Promotable Winners");
+
+    // Load card assets and fonts
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+    let fonts = FontManager::new(&mut doc).expect("Failed to load fonts");
+
+    // Create layer
+    let mut layer = LayerBuilder::new();
+
+    // Page layout: 2x2 grid (same as declarers_plan layout)
+    let page_width = 215.9; // Letter width in mm
+    let page_height = 279.4; // Letter height in mm
+    let margin = 12.7; // ~0.5 inch margin
+    let quadrant_padding = 5.0;
+
+    let content_width = page_width - 2.0 * margin;
+    let content_height = page_height - 2.0 * margin;
+    let half_width = content_width / 2.0;
+    let half_height = content_height / 2.0;
+
+    let center_x = margin + half_width;
+    let center_y = margin + half_height;
+
+    // Origins for each quadrant (top-left corner of each, with padding)
+    let positions = [
+        (margin + quadrant_padding, page_height - margin), // Top-left
+        (center_x + quadrant_padding, page_height - margin), // Top-right
+        (margin + quadrant_padding, center_y),             // Bottom-left
+        (center_x + quadrant_padding, center_y),           // Bottom-right
+    ];
+
+    // Draw separator lines
+    let separator_color = printpdf::Rgb::new(0.3, 0.3, 0.3, None);
+    layer.set_outline_color(printpdf::Color::Rgb(separator_color));
+    layer.set_outline_thickness(2.0);
+    layer.add_line(Mm(center_x), Mm(margin), Mm(center_x), Mm(page_height - margin));
+    layer.add_line(Mm(margin), Mm(center_y), Mm(page_width - margin), Mm(center_y));
+
+    let colors = SuitColors::default();
+
+    // Process each board (up to 4)
+    for (i, board) in pbn_file.boards.iter().take(4).enumerate() {
+        let (x, y) = positions[i];
+
+        // Get declarer direction (default to South if not specified)
+        let declarer = board
+            .contract
+            .as_ref()
+            .map(|c| c.declarer)
+            .unwrap_or(Direction::South);
+
+        // Rotate deal so declarer is always South
+        let (dummy_hand, declarer_hand) = rotate_deal_for_declarer(&board.deal, declarer);
+
+        // Find promotable winners by combining dummy and declarer hands
+        let promotion_result = find_promotable_winners(&dummy_hand, &declarer_hand);
+        println!(
+            "Board {}: Found {} spent cards, {} promotable winners",
+            board.number.unwrap_or(0),
+            promotion_result.spent.len(),
+            promotion_result.winners.len()
+        );
+        for card in &promotion_result.spent {
+            println!("  Spent: {}", card);
+        }
+        for card in &promotion_result.winners {
+            println!("  Winner: {}", card);
+        }
+
+        // Convert to circled cards map: orange for spent, blue for winners
+        let mut circled_cards: HashMap<Card, printpdf::Rgb> = HashMap::new();
+        for card in promotion_result.spent {
+            circled_cards.insert(card, ORANGE);
+        }
+        for card in promotion_result.winners {
+            circled_cards.insert(card, PROMO_BLUE);
+        }
+
+        // Determine if NT contract
+        let is_nt = board
+            .contract
+            .as_ref()
+            .map(|c| c.suit == BidSuit::NoTrump)
+            .unwrap_or(false);
+
+        // Get opening lead if play sequence exists
+        let opening_lead = board
+            .play
+            .as_ref()
+            .and_then(|play| play.tricks.first().and_then(|trick| trick.cards[0]));
+
+        // Format contract string
+        let contract_str = board.contract.as_ref().map(|c| {
+            let suit_symbol = match c.suit {
+                BidSuit::Clubs => "♣",
+                BidSuit::Diamonds => "♦",
+                BidSuit::Hearts => "♥",
+                BidSuit::Spades => "♠",
+                BidSuit::NoTrump => "NT",
+            };
+            format!("{}{}", c.level, suit_symbol)
+        });
+
+        // Get trump suit for suit ordering
+        let trump = board.contract.as_ref().map(|c| c.suit);
+
+        // Create renderer with circled cards
+        let renderer = DeclarersPlanSmallRenderer::new(
+            &card_assets,
+            &fonts.serif.regular,
+            &fonts.serif.bold,
+            &fonts.sans.regular,
+            colors.clone(),
+        )
+        .circled_cards(circled_cards);
+
+        renderer.render_with_info(
+            &mut layer,
+            &dummy_hand,
+            &declarer_hand,
+            is_nt,
+            opening_lead,
+            board.number,
+            contract_str.as_deref(),
+            trump,
+            (Mm(x), Mm(y)),
+        );
+    }
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(page_width), Mm(page_height), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 5000, "PDF should have reasonable size");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("declarers_plan_promotable_winners.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!(
+        "Declarer's plan with promotable winners PDF written to: {:?}",
+        output_path
+    );
+}
+
+/// Purple color for duck cards (used to exhaust defenders)
+const PURPLE: printpdf::Rgb = printpdf::Rgb {
+    r: 0.6,
+    g: 0.2,
+    b: 0.8,
+    icc_profile: None,
+};
+
+/// Cyan color for length winners
+const CYAN: printpdf::Rgb = printpdf::Rgb {
+    r: 0.0,
+    g: 0.7,
+    b: 0.7,
+    icc_profile: None,
+};
+
+#[test]
+fn test_declarers_plan_with_length_winners() {
+    // Create output directory
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    // Parse the PBN file
+    let pbn_path = fixtures_path().join("ABS2-2 Promotion and Length practice deals.pbn");
+    let content = fs::read_to_string(&pbn_path).expect("Failed to read PBN file");
+    let pbn_file = parse_pbn(&content).expect("Failed to parse PBN");
+
+    // Create PDF document
+    let mut doc = PdfDocument::new("Declarer's Plan with Length Winners");
+
+    // Load card assets and fonts
+    let card_assets = CardAssets::load(&mut doc).expect("Failed to load card assets");
+    let fonts = FontManager::new(&mut doc).expect("Failed to load fonts");
+
+    // Create layer
+    let mut layer = LayerBuilder::new();
+
+    // Page layout: 2x2 grid (same as declarers_plan layout)
+    let page_width = 215.9; // Letter width in mm
+    let page_height = 279.4; // Letter height in mm
+    let margin = 12.7; // ~0.5 inch margin
+    let quadrant_padding = 5.0;
+
+    let content_width = page_width - 2.0 * margin;
+    let content_height = page_height - 2.0 * margin;
+    let half_width = content_width / 2.0;
+    let half_height = content_height / 2.0;
+
+    let center_x = margin + half_width;
+    let center_y = margin + half_height;
+
+    // Origins for each quadrant (top-left corner of each, with padding)
+    let positions = [
+        (margin + quadrant_padding, page_height - margin), // Top-left
+        (center_x + quadrant_padding, page_height - margin), // Top-right
+        (margin + quadrant_padding, center_y),             // Bottom-left
+        (center_x + quadrant_padding, center_y),           // Bottom-right
+    ];
+
+    // Draw separator lines
+    let separator_color = printpdf::Rgb::new(0.3, 0.3, 0.3, None);
+    layer.set_outline_color(printpdf::Color::Rgb(separator_color));
+    layer.set_outline_thickness(2.0);
+    layer.add_line(Mm(center_x), Mm(margin), Mm(center_x), Mm(page_height - margin));
+    layer.add_line(Mm(margin), Mm(center_y), Mm(page_width - margin), Mm(center_y));
+
+    let colors = SuitColors::default();
+
+    // Process each board (up to 4)
+    for (i, board) in pbn_file.boards.iter().take(4).enumerate() {
+        let (x, y) = positions[i];
+
+        // Get declarer direction (default to South if not specified)
+        let declarer = board
+            .contract
+            .as_ref()
+            .map(|c| c.declarer)
+            .unwrap_or(Direction::South);
+
+        // Rotate deal so declarer is always South
+        let (dummy_hand, declarer_hand) = rotate_deal_for_declarer(&board.deal, declarer);
+
+        // Find length winners by combining dummy and declarer hands
+        let length_result = find_length_winners(&dummy_hand, &declarer_hand);
+        println!(
+            "Board {}: Found {} duck cards, {} length winners",
+            board.number.unwrap_or(0),
+            length_result.ducks.len(),
+            length_result.winners.len()
+        );
+        for card in &length_result.ducks {
+            println!("  Duck: {}", card);
+        }
+        for card in &length_result.winners {
+            println!("  Length winner: {}", card);
+        }
+
+        // Convert to circled cards map: purple for ducks, cyan for length winners
+        let mut circled_cards: HashMap<Card, printpdf::Rgb> = HashMap::new();
+        for card in length_result.ducks {
+            circled_cards.insert(card, PURPLE);
+        }
+        for card in length_result.winners {
+            circled_cards.insert(card, CYAN);
+        }
+
+        // Determine if NT contract
+        let is_nt = board
+            .contract
+            .as_ref()
+            .map(|c| c.suit == BidSuit::NoTrump)
+            .unwrap_or(false);
+
+        // Get opening lead if play sequence exists
+        let opening_lead = board
+            .play
+            .as_ref()
+            .and_then(|play| play.tricks.first().and_then(|trick| trick.cards[0]));
+
+        // Format contract string
+        let contract_str = board.contract.as_ref().map(|c| {
+            let suit_symbol = match c.suit {
+                BidSuit::Clubs => "♣",
+                BidSuit::Diamonds => "♦",
+                BidSuit::Hearts => "♥",
+                BidSuit::Spades => "♠",
+                BidSuit::NoTrump => "NT",
+            };
+            format!("{}{}", c.level, suit_symbol)
+        });
+
+        // Get trump suit for suit ordering
+        let trump = board.contract.as_ref().map(|c| c.suit);
+
+        // Create renderer with circled cards
+        let renderer = DeclarersPlanSmallRenderer::new(
+            &card_assets,
+            &fonts.serif.regular,
+            &fonts.serif.bold,
+            &fonts.sans.regular,
+            colors.clone(),
+        )
+        .circled_cards(circled_cards);
+
+        renderer.render_with_info(
+            &mut layer,
+            &dummy_hand,
+            &declarer_hand,
+            is_nt,
+            opening_lead,
+            board.number,
+            contract_str.as_deref(),
+            trump,
+            (Mm(x), Mm(y)),
+        );
+    }
+
+    // Create page with the rendered content
+    let page = PdfPage::new(Mm(page_width), Mm(page_height), layer.into_ops());
+    let mut warnings: Vec<PdfWarnMsg> = Vec::new();
+    let pdf_bytes = doc
+        .with_pages(vec![page])
+        .save(&PdfSaveOptions::default(), &mut warnings);
+
+    // Verify PDF is valid
+    assert!(
+        pdf_bytes.starts_with(b"%PDF"),
+        "PDF should start with %PDF header"
+    );
+    assert!(pdf_bytes.len() > 5000, "PDF should have reasonable size");
+
+    // Write to output for visual verification
+    let output_path = output_dir.join("declarers_plan_length_winners.pdf");
+    fs::write(&output_path, &pdf_bytes).expect("Failed to write test PDF");
+    println!(
+        "Declarer's plan with length winners PDF written to: {:?}",
         output_path
     );
 }

@@ -1,3 +1,4 @@
+pub mod analysis;
 pub mod auction;
 pub mod board;
 pub mod card;

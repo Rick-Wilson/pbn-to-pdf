@@ -8,7 +8,8 @@
 //!   - NT contracts: Winners table
 //!   - Suit contracts: Losers table
 
-use printpdf::{Color, FontId, Mm};
+use printpdf::{Color, FontId, Mm, Rgb};
+use std::collections::HashMap;
 
 use crate::model::{BidSuit, Board, Card, Hand, Suit};
 use crate::render::components::{
@@ -58,6 +59,8 @@ pub struct DeclarersPlanSmallRenderer<'a> {
     dummy_overlap: f32,
     /// Whether to show debug bounding boxes
     show_bounds: bool,
+    /// Cards to circle (highlight) with their colors
+    circled_cards: HashMap<Card, Rgb>,
 }
 
 impl<'a> DeclarersPlanSmallRenderer<'a> {
@@ -79,6 +82,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             fan_arc: 30.0,
             dummy_overlap: 0.18, // Show some suit symbol on clipped cards
             show_bounds: false,
+            circled_cards: HashMap::new(),
         }
     }
 
@@ -106,12 +110,43 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         self
     }
 
+    /// Set which cards should be circled (highlighted) with their colors
+    ///
+    /// The ellipse appears around the rank/suit indicator in the top-left corner of the card.
+    /// Cards can be in either the dummy (north) or declarer (south) hand.
+    pub fn circled_cards(mut self, cards: HashMap<Card, Rgb>) -> Self {
+        self.circled_cards = cards;
+        self
+    }
+
+    /// Add a single card to circle with the default color (red)
+    pub fn circle_card(mut self, card: Card) -> Self {
+        use crate::render::helpers::colors::RED;
+        self.circled_cards.insert(card, RED);
+        self
+    }
+
+    /// Add a single card to circle with a specific color
+    pub fn circle_card_with_color(mut self, card: Card, color: Rgb) -> Self {
+        self.circled_cards.insert(card, color);
+        self
+    }
+
     /// Get the dummy renderer configured for this layout
-    fn dummy_renderer(&self, trump: Option<BidSuit>) -> DummyRenderer<'a> {
+    ///
+    /// Filters circled_cards to only include cards that are in the given hand.
+    fn dummy_renderer(&self, trump: Option<BidSuit>, hand: &Hand) -> DummyRenderer<'a> {
         let first_suit = Self::first_suit_for_trump(trump);
+        let hand_circled: HashMap<Card, Rgb> = self
+            .circled_cards
+            .iter()
+            .filter(|(card, _)| hand.contains(**card))
+            .map(|(card, color)| (*card, color.clone()))
+            .collect();
         DummyRenderer::with_overlap(self.card_assets, self.card_scale, self.dummy_overlap)
             .first_suit(first_suit)
             .show_bounds(self.show_bounds)
+            .circled_cards(hand_circled)
     }
 
     /// Determine the first suit based on trump suit
@@ -137,6 +172,8 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     }
 
     /// Get the fan renderer configured for this layout, scaled to match dummy width
+    ///
+    /// Filters circled_cards to only include cards that are in the given hand.
     fn fan_renderer(
         &self,
         target_width: f32,
@@ -155,10 +192,18 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             self.card_scale
         };
 
+        let hand_circled: HashMap<Card, Rgb> = self
+            .circled_cards
+            .iter()
+            .filter(|(card, _)| hand.contains(**card))
+            .map(|(card, color)| (*card, color.clone()))
+            .collect();
+
         FanRenderer::new(self.card_assets, scale)
             .arc(self.fan_arc)
             .first_suit(first_suit)
             .show_bounds(self.show_bounds)
+            .circled_cards(hand_circled)
     }
 
     /// Calculate dimensions needed for the layout
@@ -167,7 +212,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     /// Uses nominal dummy height (5-card suit) for consistent positioning.
     pub fn dimensions(&self, north: &Hand, south: &Hand, is_nt: bool) -> (f32, f32) {
         // Use None for trump since dimensions don't depend on suit order
-        let dummy_renderer = self.dummy_renderer(None);
+        let dummy_renderer = self.dummy_renderer(None, north);
         let (dummy_width, _) = dummy_renderer.dimensions(north);
 
         // Use nominal height for consistent layout
@@ -297,7 +342,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let content_x = ox;
 
         // Get dummy dimensions for layout calculations
-        let dummy_renderer = self.dummy_renderer(trump);
+        let dummy_renderer = self.dummy_renderer(trump, north);
         let (dummy_width, _) = dummy_renderer.dimensions(north);
         let nominal_dummy_height = self.nominal_dummy_height();
 
