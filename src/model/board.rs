@@ -87,6 +87,35 @@ impl HiddenHands {
     }
 }
 
+/// Player names for each seat
+#[derive(Debug, Clone, Default)]
+pub struct PlayerNames {
+    pub north: Option<String>,
+    pub east: Option<String>,
+    pub south: Option<String>,
+    pub west: Option<String>,
+}
+
+impl PlayerNames {
+    /// Get the player name for a direction
+    pub fn get(&self, direction: Direction) -> Option<&str> {
+        match direction {
+            Direction::North => self.north.as_deref(),
+            Direction::East => self.east.as_deref(),
+            Direction::South => self.south.as_deref(),
+            Direction::West => self.west.as_deref(),
+        }
+    }
+
+    /// Returns true if any player name is set (non-empty)
+    pub fn has_any(&self) -> bool {
+        self.north.as_ref().is_some_and(|s| !s.is_empty())
+            || self.east.as_ref().is_some_and(|s| !s.is_empty())
+            || self.south.as_ref().is_some_and(|s| !s.is_empty())
+            || self.west.as_ref().is_some_and(|s| !s.is_empty())
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct Board {
     // Identification
@@ -101,6 +130,9 @@ pub struct Board {
     pub dealer: Option<Direction>,
     pub vulnerable: Vulnerability,
     pub deal: Deal,
+
+    // Player names
+    pub players: PlayerNames,
 
     // Bidding
     pub auction: Option<Auction>,

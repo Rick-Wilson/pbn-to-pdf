@@ -1212,7 +1212,7 @@ impl BiddingSheetsRenderer {
                         )));
                         found_opp_bid = true;
                     }
-                    Call::Pass => {}
+                    Call::Pass | Call::Continue => {}
                 }
             } else {
                 // Track N/S bids for "doubles X" context
@@ -1538,6 +1538,12 @@ impl BiddingSheetsRenderer {
 
                 let symbol_width = measurer.measure_width_mm(symbol, font_size);
                 level_width + symbol_width
+            }
+            Call::Continue => {
+                // "+" in PBN becomes "?" in display
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text("?", font_size, Mm(x), Mm(y), text_font);
+                measurer.measure_width_mm("?", font_size)
             }
         }
     }

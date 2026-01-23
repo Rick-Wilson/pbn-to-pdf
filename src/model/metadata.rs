@@ -14,6 +14,10 @@ pub struct LayoutSettings {
     /// Format string where "%" is replaced with the board number
     /// Default is "Board %" -> "Board 1", can be "%)" -> "1)"
     pub board_label_format: Option<String>,
+    /// Center layout mode: place board info below commentary, centered
+    pub center: bool,
+    /// Two-column auctions: display uncontested auctions in only two columns
+    pub two_col_auctions: bool,
 }
 
 #[derive(Debug, Clone, Copy)]

@@ -38,6 +38,10 @@ pub struct Settings {
     pub debug_boxes: bool,
     /// Two-column layout mode
     pub two_column: bool,
+    /// Two-column auctions mode (show uncontested auctions in 2 columns)
+    pub two_col_auctions: bool,
+    /// Center layout mode (commentary first, board info centered below)
+    pub center: bool,
 
     /// Title override from CLI (None = use metadata, Some("") = hide, Some(x) = use x)
     pub title_override: Option<String>,
@@ -97,6 +101,8 @@ impl Default for Settings {
             justify: false,
             debug_boxes: false,
             two_column: false,
+            two_col_auctions: false,
+            center: false,
             title_override: None,
             title_from_metadata: None,
             board_label_format: "Board %".to_string(),
@@ -215,6 +221,12 @@ impl Settings {
         }
         if metadata.layout.two_column {
             self.two_column = true;
+        }
+        if metadata.layout.two_col_auctions {
+            self.two_col_auctions = true;
+        }
+        if metadata.layout.center {
+            self.center = true;
         }
 
         // Store title from metadata (HRTitleEvent)

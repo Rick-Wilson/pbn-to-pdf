@@ -160,7 +160,7 @@ impl DocumentRenderer {
         // Auction height
         if visibility.show_auction {
             if let Some(ref auction) = board.auction {
-                height += self.measure_auction_height(auction) + 2.0;
+                height += self.measure_auction_height(auction, &board.players) + 2.0;
 
                 // Contract line
                 if auction.final_contract().is_some() {
@@ -225,7 +225,11 @@ impl DocumentRenderer {
     }
 
     /// Measure auction height without rendering
-    fn measure_auction_height(&self, auction: &crate::model::Auction) -> f32 {
+    fn measure_auction_height(
+        &self,
+        auction: &crate::model::Auction,
+        players: &crate::model::PlayerNames,
+    ) -> f32 {
         let row_height = self.settings.bid_row_height;
         let calls = &auction.calls;
 
@@ -249,7 +253,9 @@ impl DocumentRenderer {
         };
 
         let start_col = auction.dealer.table_position();
-        let mut row = 1;
+        // Account for header row + optional player names row
+        let has_player_names = players.has_any();
+        let mut row = if has_player_names { 2 } else { 1 };
         let mut col = start_col;
 
         if is_passed_out {
@@ -585,6 +591,20 @@ impl DocumentRenderer {
             return 0.0;
         }
 
+        // Check if we should use center layout (commentary first, then centered board info)
+        // Only use center layout when there IS commentary to show - otherwise use normal layout
+        if self.settings.center && show_commentary {
+            return self.render_board_in_column_centered(
+                layer,
+                board,
+                fonts,
+                column_x,
+                start_y,
+                column_width,
+                (show_board, show_dealer, show_vulnerable, show_diagram, show_auction, show_commentary),
+            );
+        }
+
         // Build and render title lines (Deal #, Dealer, Vulnerability)
         let font_size = self.settings.body_font_size;
         // Extra spacing before title (between separator line and title)
@@ -682,8 +702,12 @@ impl DocumentRenderer {
                     &fonts.sans.regular,
                     &self.settings,
                 );
-                let table_height =
-                    bidding_renderer.render(layer, auction, (Mm(column_x), Mm(current_y)));
+                let table_height = bidding_renderer.render_with_players(
+                    layer,
+                    auction,
+                    (Mm(column_x), Mm(current_y)),
+                    Some(&board.players),
+                );
                 current_y -= table_height + 2.0;
 
                 // Render contract
@@ -741,6 +765,205 @@ impl DocumentRenderer {
                 let height =
                     commentary_renderer.render(layer, block, (Mm(column_x), Mm(current_y)), column_width);
                 current_y -= height + 2.0;
+            }
+        }
+
+        // Return total height used
+        start_y - current_y
+    }
+
+    /// Render a board with Center layout: commentary first, then centered board info
+    #[allow(clippy::too_many_arguments)]
+    fn render_board_in_column_centered(
+        &self,
+        layer: &mut LayerBuilder,
+        board: &Board,
+        fonts: &FontManager,
+        column_x: f32,
+        start_y: f32,
+        column_width: f32,
+        visibility: (bool, bool, bool, bool, bool, bool), // (board, dealer, vuln, diagram, auction, commentary)
+    ) -> f32 {
+        let line_height = self.settings.line_height;
+        let (show_board, show_dealer, show_vulnerable, show_diagram, show_auction, show_commentary) =
+            visibility;
+
+        // Get font sets
+        let diagram_fonts = fonts.set_for_spec(self.settings.fonts.diagram.as_ref());
+        let card_table_fonts = fonts.set_for_spec(self.settings.fonts.card_table.as_ref());
+        let hand_record_fonts = fonts.set_for_spec(self.settings.fonts.hand_record.as_ref());
+        let commentary_fonts = fonts.set_for_spec(self.settings.fonts.commentary.as_ref());
+
+        let measurer = get_measurer();
+        let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
+
+        // Start rendering from the top
+        let title_spacing = cap_height;
+        let mut current_y = start_y - cap_height - title_spacing;
+
+        // In Center layout: render commentary FIRST
+        if show_commentary {
+            let commentary_renderer = CommentaryRenderer::new(
+                &commentary_fonts.regular,
+                &commentary_fonts.bold,
+                &commentary_fonts.italic,
+                &commentary_fonts.bold_italic,
+                &fonts.sans.regular,
+                &self.settings,
+            );
+
+            for block in &board.commentary {
+                let height = commentary_renderer.render(
+                    layer,
+                    block,
+                    (Mm(column_x), Mm(current_y)),
+                    column_width,
+                );
+                current_y -= height + 2.0;
+            }
+        }
+
+        // Calculate centered position for diagram and auction
+        // We'll use the column center for positioning
+        let column_center_x = column_x + column_width / 2.0;
+
+        // Render diagram centered if enabled
+        if show_diagram {
+            // Calculate diagram width to center it
+            let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
+            let hand_renderer = HandDiagramRenderer::new(
+                &diagram_fonts.regular,
+                &diagram_fonts.bold,
+                &card_table_fonts.regular,
+                &fonts.sans.regular,
+                &self.settings,
+            );
+
+            // Estimate diagram width for centering
+            let diagram_width = if diagram_options.hide_compass {
+                // North-only: narrower width
+                30.0
+            } else {
+                // Full compass layout
+                self.settings.diagram_width()
+            };
+
+            let diagram_x = column_center_x - diagram_width / 2.0;
+            let diagram_y = current_y;
+
+            let diagram_height = hand_renderer.render_deal_with_options(
+                layer,
+                &board.deal,
+                (Mm(diagram_x), Mm(diagram_y)),
+                &diagram_options,
+            );
+
+            current_y -= diagram_height + 2.0;
+        }
+
+        // Render title lines centered (Board #, Dealer, Vulnerability)
+        let font_size = self.settings.body_font_size;
+        layer.set_fill_color(Color::Rgb(BLACK));
+
+        if show_board {
+            if let Some(ref board_id) = board.board_id {
+                let label = self.settings.board_label_format.replace('%', board_id);
+                let label_width = measurer.measure_width_mm(&label, font_size);
+                let x = column_center_x - label_width / 2.0;
+                layer.use_text(
+                    label,
+                    font_size,
+                    Mm(x),
+                    Mm(current_y),
+                    &hand_record_fonts.bold_italic,
+                );
+                current_y -= line_height;
+            }
+        }
+
+        if show_dealer {
+            if let Some(dealer) = board.dealer {
+                let text = format!("{} Deals", dealer);
+                let text_width = measurer.measure_width_mm(&text, font_size);
+                let x = column_center_x - text_width / 2.0;
+                layer.use_text(text, font_size, Mm(x), Mm(current_y), &hand_record_fonts.regular);
+                current_y -= line_height;
+            }
+        }
+
+        if show_vulnerable {
+            let text = board.vulnerable.to_string();
+            let text_width = measurer.measure_width_mm(&text, font_size);
+            let x = column_center_x - text_width / 2.0;
+            layer.use_text(text, font_size, Mm(x), Mm(current_y), &hand_record_fonts.regular);
+            current_y -= line_height;
+        }
+
+        // Render bidding table centered
+        if show_auction {
+            if let Some(ref auction) = board.auction {
+                let bidding_renderer = BiddingTableRenderer::new(
+                    &hand_record_fonts.regular,
+                    &hand_record_fonts.bold,
+                    &hand_record_fonts.italic,
+                    &fonts.sans.regular,
+                    &self.settings,
+                );
+
+                // Calculate bidding table width for centering
+                // Two-column mode uses 2 columns, standard uses 4
+                let num_cols = if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
+                    2
+                } else {
+                    4
+                };
+                let table_width = num_cols as f32 * self.settings.bid_column_width;
+                let table_x = column_center_x - table_width / 2.0;
+
+                let table_height = bidding_renderer.render_with_players(
+                    layer,
+                    auction,
+                    (Mm(table_x), Mm(current_y)),
+                    Some(&board.players),
+                );
+                current_y -= table_height + 2.0;
+
+                // Render contract centered
+                if let Some(contract) = auction.final_contract() {
+                    let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
+                    // For centered contract, we'd need to measure and center the contract text
+                    // For now, render from the centered table position
+                    self.render_contract(
+                        layer,
+                        &contract,
+                        Mm(table_x),
+                        Mm(current_y),
+                        &hand_record_fonts.regular,
+                        &fonts.sans.regular,
+                        &colors,
+                    );
+                    current_y -= line_height;
+                }
+
+                // Render opening lead
+                if let Some(ref play) = board.play {
+                    if let Some(first_trick) = play.tricks.first() {
+                        if let Some(lead_card) = first_trick.cards[0] {
+                            let colors =
+                                SuitColors::new(self.settings.black_color, self.settings.red_color);
+                            self.render_lead(
+                                layer,
+                                &lead_card,
+                                Mm(table_x),
+                                Mm(current_y),
+                                &hand_record_fonts.regular,
+                                &fonts.sans.regular,
+                                &colors,
+                            );
+                            current_y -= line_height;
+                        }
+                    }
+                }
             }
         }
 
@@ -902,8 +1125,12 @@ impl DocumentRenderer {
                     &fonts.sans.regular, // DejaVu Sans for suit symbols
                     &self.settings,
                 );
-                let table_height =
-                    bidding_renderer.render(layer, auction, (Mm(margin_left), content_y));
+                let table_height = bidding_renderer.render_with_players(
+                    layer,
+                    auction,
+                    (Mm(margin_left), content_y),
+                    Some(&board.players),
+                );
                 content_y = Mm(content_y.0 - table_height - 2.0);
 
                 // Render contract below auction (no label)

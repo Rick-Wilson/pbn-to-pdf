@@ -51,6 +51,9 @@ pub enum Call {
     Bid { level: u8, suit: BidSuit },
     Double,
     Redouble,
+    /// "+" in PBN - indicates auction continues (student fills in next bid)
+    /// Displayed as "?" in output
+    Continue,
 }
 
 impl Call {
@@ -60,6 +63,7 @@ impl Call {
             "PASS" | "P" => Some(Call::Pass),
             "X" => Some(Call::Double),
             "XX" => Some(Call::Redouble),
+            "+" => Some(Call::Continue),
             "AP" => None, // All Pass is handled specially
             _ => {
                 // Parse "1C", "2H", "3NT", etc.
@@ -82,6 +86,7 @@ impl fmt::Display for Call {
             Call::Pass => write!(f, "Pass"),
             Call::Double => write!(f, "X"),
             Call::Redouble => write!(f, "XX"),
+            Call::Continue => write!(f, "?"),
             Call::Bid { level, suit } => write!(f, "{}{}", level, suit),
         }
     }
@@ -140,6 +145,37 @@ impl Auction {
         self.calls.push(AnnotatedCall { call, annotation });
     }
 
+    /// Returns true if this is an uncontested auction (one pair only bids, opponents only pass)
+    /// Returns the bidding pair: Some((Direction, Direction)) for the pair that bids
+    /// - West/East pair if N/S only pass
+    /// - North/South pair if E/W only pass
+    /// Returns None if both pairs bid (contested)
+    pub fn uncontested_pair(&self) -> Option<(Direction, Direction)> {
+        let mut ns_bid = false;
+        let mut ew_bid = false;
+
+        let mut current = self.dealer;
+        for annotated in &self.calls {
+            let is_bid = !matches!(
+                annotated.call,
+                Call::Pass | Call::Continue
+            );
+            if is_bid {
+                match current {
+                    Direction::North | Direction::South => ns_bid = true,
+                    Direction::East | Direction::West => ew_bid = true,
+                }
+            }
+            current = current.next();
+        }
+
+        match (ns_bid, ew_bid) {
+            (true, false) => Some((Direction::North, Direction::South)),
+            (false, true) => Some((Direction::West, Direction::East)),
+            _ => None, // Both pairs bid or neither bid
+        }
+    }
+
     pub fn final_contract(&self) -> Option<Contract> {
         let mut last_bid: Option<(u8, BidSuit, Direction)> = None;
         let mut doubled = false;
@@ -161,7 +197,7 @@ impl Auction {
                     doubled = false;
                     redoubled = true;
                 }
-                Call::Pass => {}
+                Call::Pass | Call::Continue => {}
             }
             current_player = current_player.next();
         }

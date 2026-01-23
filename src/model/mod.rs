@@ -11,7 +11,7 @@ pub mod play;
 
 pub use auction::{AnnotatedCall, Auction, BidSuit, Call, Contract};
 pub use bcflags::BCFlags;
-pub use board::{Board, HiddenHands, Vulnerability};
+pub use board::{Board, HiddenHands, PlayerNames, Vulnerability};
 pub use card::{Card, Rank, Suit};
 pub use commentary::{CommentaryBlock, FormattedText, TextSpan};
 pub use deal::{Deal, Direction};

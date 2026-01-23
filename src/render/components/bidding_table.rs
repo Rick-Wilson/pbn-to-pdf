@@ -1,5 +1,5 @@
 use crate::config::Settings;
-use crate::model::{AnnotatedCall, Auction, BidSuit, Call, Direction};
+use crate::model::{AnnotatedCall, Auction, BidSuit, Call, Direction, PlayerNames};
 use printpdf::{Color, FontId, Mm};
 
 use crate::render::helpers::colors::{SuitColors, BLACK};
@@ -61,9 +61,35 @@ impl<'a> BiddingTableRenderer<'a> {
 
     /// Calculate the height of the bidding table without rendering
     pub fn measure_height(&self, auction: &Auction) -> f32 {
+        self.measure_height_with_players(auction, None)
+    }
+
+    /// Calculate the height of the bidding table with optional player names
+    pub fn measure_height_with_players(
+        &self,
+        auction: &Auction,
+        players: Option<&PlayerNames>,
+    ) -> f32 {
+        self.measure_height_with_options(auction, players, self.settings.two_col_auctions)
+    }
+
+    /// Calculate the height of the bidding table with all options
+    pub fn measure_height_with_options(
+        &self,
+        auction: &Auction,
+        players: Option<&PlayerNames>,
+        two_col_auctions: bool,
+    ) -> f32 {
         let row_height = self.settings.bid_row_height;
 
         let calls = &auction.calls;
+
+        // Check if we should use two-column mode for this auction
+        let uncontested_pair = if two_col_auctions {
+            auction.uncontested_pair()
+        } else {
+            None
+        };
 
         // Check if auction is passed out (exactly 4 passes, no bids)
         let is_passed_out = calls.len() == 4 && calls.iter().all(|a| a.call == Call::Pass);
@@ -81,16 +107,38 @@ impl<'a> BiddingTableRenderer<'a> {
             calls.len()
         };
 
-        // Determine starting column based on dealer
-        let start_col = auction.dealer.table_position();
-        let mut row = 1;
-        let mut col = start_col;
+        // Start counting rows: spacing + header + optional player names row
+        // Row 0 is spacing, Row 1 is header, Row 2 is player names (if present)
+        let has_player_names = players.is_some_and(|p| p.has_any());
+        let mut row = if has_player_names { 3 } else { 2 };
 
         // Handle passed out auction
         if is_passed_out {
             row += 1;
+        } else if let Some((d1, d2)) = uncontested_pair {
+            // Two-column mode: count only calls from the bidding pair
+            let mut col = 0;
+            let mut current_player = auction.dealer;
+
+            for _ in calls.iter().take(calls_to_render) {
+                if current_player == d1 || current_player == d2 {
+                    col += 1;
+                    if col >= 2 {
+                        col = 0;
+                        row += 1;
+                    }
+                }
+                current_player = current_player.next();
+            }
+
+            if show_all_pass {
+                row += 1;
+            }
         } else {
-            // Count rows for regular calls
+            // Standard 4-column mode: count rows for regular calls
+            let start_col = auction.dealer.table_position();
+            let mut col = start_col;
+
             for _ in calls.iter().take(calls_to_render) {
                 col += 1;
                 if col >= 4 {
@@ -125,29 +173,99 @@ impl<'a> BiddingTableRenderer<'a> {
 
     /// Render the bidding table and return the height used
     pub fn render(&self, layer: &mut LayerBuilder, auction: &Auction, origin: (Mm, Mm)) -> f32 {
+        self.render_with_options(layer, auction, origin, None, false)
+    }
+
+    /// Render the bidding table with optional player names and return the height used
+    pub fn render_with_players(
+        &self,
+        layer: &mut LayerBuilder,
+        auction: &Auction,
+        origin: (Mm, Mm),
+        players: Option<&PlayerNames>,
+    ) -> f32 {
+        self.render_with_options(layer, auction, origin, players, self.settings.two_col_auctions)
+    }
+
+    /// Render the bidding table with all options
+    pub fn render_with_options(
+        &self,
+        layer: &mut LayerBuilder,
+        auction: &Auction,
+        origin: (Mm, Mm),
+        players: Option<&PlayerNames>,
+        two_col_auctions: bool,
+    ) -> f32 {
         let (ox, oy) = origin;
         let col_width = self.settings.bid_column_width;
         let row_height = self.settings.bid_row_height;
 
+        // Check if we should use two-column mode for this auction
+        let uncontested_pair = if two_col_auctions {
+            auction.uncontested_pair()
+        } else {
+            None
+        };
+
         // Render header row with spelled-out, italicized direction names
         layer.set_fill_color(Color::Rgb(BLACK));
-        for (i, dir) in [
-            Direction::West,
-            Direction::North,
-            Direction::East,
-            Direction::South,
-        ]
-        .iter()
-        .enumerate()
+
+        // Choose which directions to show in header
+        let directions: &[Direction] = if let Some((d1, _d2)) = uncontested_pair
         {
+            // Two-column mode: show only the bidding pair
+            static WE: [Direction; 2] = [Direction::West, Direction::East];
+            static NS: [Direction; 2] = [Direction::North, Direction::South];
+            if d1 == Direction::West || d1 == Direction::East {
+                &WE[..]
+            } else {
+                &NS[..]
+            }
+        } else {
+            // Standard 4-column mode
+            static ALL: [Direction; 4] = [
+                Direction::West,
+                Direction::North,
+                Direction::East,
+                Direction::South,
+            ];
+            &ALL[..]
+        };
+
+        // Add spacing before header row to separate from content above
+        let header_y = Mm(oy.0 - row_height);
+
+        for (i, dir) in directions.iter().enumerate() {
             let x = ox.0 + (i as f32 * col_width);
             layer.use_text(
                 format!("{}", dir), // Use Display trait for full name
                 self.settings.header_font_size,
                 Mm(x),
-                oy,
-                self.italic_font, // Use italic font
+                header_y,
+                self.font, // Use regular font for direction names
             );
+        }
+
+        // Render player names below direction headers if provided
+        let has_player_names = players.is_some_and(|p| p.has_any());
+        if has_player_names {
+            let players = players.unwrap();
+            let name_y = Mm(header_y.0 - row_height);
+
+            for (i, dir) in directions.iter().enumerate() {
+                if let Some(name) = players.get(*dir) {
+                    if !name.is_empty() {
+                        let x = ox.0 + (i as f32 * col_width);
+                        layer.use_text(
+                            name,
+                            self.settings.header_font_size,
+                            Mm(x),
+                            name_y,
+                            self.italic_font,
+                        );
+                    }
+                }
+            }
         }
 
         let calls = &auction.calls;
@@ -168,13 +286,14 @@ impl<'a> BiddingTableRenderer<'a> {
             calls.len()
         };
 
-        // Determine starting column based on dealer
-        let start_col = auction.dealer.table_position();
-        let mut row = 1;
-        let mut col = start_col;
+        // Start row accounting for spacing + header + optional player names row
+        // Row 0 is spacing, Row 1 is header, Row 2 is player names (if present)
+        let mut row = if has_player_names { 3 } else { 2 };
 
         // Handle passed out auction
         if is_passed_out {
+            // In two-column mode, show "Passed Out" at column 0
+            let col = if uncontested_pair.is_some() { 0 } else { auction.dealer.table_position() };
             let x = ox.0 + (col as f32 * col_width);
             let y = oy.0 - (row as f32 * row_height);
 
@@ -187,7 +306,51 @@ impl<'a> BiddingTableRenderer<'a> {
                 self.font,
             );
             row += 1;
+        } else if let Some(pair) = uncontested_pair {
+            // Two-column mode: only show the bidding pair's calls
+            let (d1, d2) = pair;
+            let mut col = 0;
+            let mut current_player = auction.dealer;
+
+            for annotated in calls.iter().take(calls_to_render) {
+                // Only render calls from the bidding pair
+                if current_player == d1 || current_player == d2 {
+                    // Determine which column (0 or 1) based on which player in the pair
+                    let display_col = if current_player == d1 { 0 } else { 1 };
+                    let x = ox.0 + (display_col as f32 * col_width);
+                    let y = oy.0 - (row as f32 * row_height);
+
+                    self.render_annotated_call(layer, annotated, (Mm(x), Mm(y)));
+
+                    col += 1;
+                    if col >= 2 {
+                        col = 0;
+                        row += 1;
+                    }
+                }
+                current_player = current_player.next();
+            }
+
+            // Render "All Pass" or "?" for incomplete
+            if show_all_pass {
+                let x = ox.0 + (col as f32 * col_width);
+                let y = oy.0 - (row as f32 * row_height);
+
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text(
+                    "All Pass",
+                    self.settings.body_font_size,
+                    Mm(x),
+                    Mm(y),
+                    self.font,
+                );
+                row += 1;
+            }
         } else {
+            // Standard 4-column mode
+            let start_col = auction.dealer.table_position();
+            let mut col = start_col;
+
             // Render regular calls (excluding trailing passes if we'll show "All Pass")
             for annotated in calls.iter().take(calls_to_render) {
                 let x = ox.0 + (col as f32 * col_width);
@@ -283,6 +446,12 @@ impl<'a> BiddingTableRenderer<'a> {
                 let suit_x = Mm(x.0 + level_width);
                 let suit_width = self.render_bid_suit(layer, *suit, (suit_x, y));
                 level_width + suit_width
+            }
+            Call::Continue => {
+                // "+" in PBN becomes "?" in display (student fills in next bid)
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text("?", self.settings.body_font_size, x, y, self.font);
+                measurer.measure_width_mm("?", self.settings.body_font_size)
             }
         }
     }

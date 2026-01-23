@@ -114,6 +114,8 @@ pub struct BCOptions {
     pub justify: bool,
     pub show_hcp: bool,
     pub float: bool,
+    pub center: bool,
+    pub two_col_auctions: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -281,7 +283,7 @@ fn parse_translate(value: &str) -> Option<(String, String)> {
     Some((from, to))
 }
 
-/// Parse BCOptions line: "Float Justify NoHRStats STBorder STShade ShowHCP"
+/// Parse BCOptions line: "Float Justify NoHRStats STBorder STShade ShowHCP Center TwoColAuctions"
 fn parse_bc_options(value: &str) -> BCOptions {
     let mut options = BCOptions::default();
 
@@ -291,7 +293,9 @@ fn parse_bc_options(value: &str) -> BCOptions {
             "Justify" => options.justify = true,
             "ShowHCP" => options.show_hcp = true,
             "Float" => options.float = true,
-            _ => {} // Ignore unknown options like NoHRStats, STBorder, STShade
+            "Center" => options.center = true,
+            "TwoColAuctions" => options.two_col_auctions = true,
+            _ => {} // Ignore unknown options like NoHRStats, STBorder, STShade, GutterH, GutterV, PageHeader
         }
     }
 
@@ -335,6 +339,12 @@ pub fn parse_headers(lines: &[&str]) -> PbnMetadata {
                     }
                     if opts.justify {
                         metadata.layout.justify = true;
+                    }
+                    if opts.center {
+                        metadata.layout.center = true;
+                    }
+                    if opts.two_col_auctions {
+                        metadata.layout.two_col_auctions = true;
                     }
                 }
                 HeaderDirective::BoardLabelFormat(fmt) => {

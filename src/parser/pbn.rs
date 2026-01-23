@@ -317,6 +317,34 @@ fn process_tag(
                 board.hidden = HiddenHands::from_pbn(&tag.value);
             }
         }
+        "North" => {
+            if let Some(ref mut board) = current_board {
+                if !tag.value.is_empty() {
+                    board.players.north = Some(tag.value);
+                }
+            }
+        }
+        "East" => {
+            if let Some(ref mut board) = current_board {
+                if !tag.value.is_empty() {
+                    board.players.east = Some(tag.value);
+                }
+            }
+        }
+        "South" => {
+            if let Some(ref mut board) = current_board {
+                if !tag.value.is_empty() {
+                    board.players.south = Some(tag.value);
+                }
+            }
+        }
+        "West" => {
+            if let Some(ref mut board) = current_board {
+                if !tag.value.is_empty() {
+                    board.players.west = Some(tag.value);
+                }
+            }
+        }
         _ => {
             // Unknown tag, skip
             log::debug!("Skipping unknown tag: {}", tag.name);
