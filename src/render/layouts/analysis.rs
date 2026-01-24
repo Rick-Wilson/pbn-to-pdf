@@ -183,7 +183,7 @@ impl DocumentRenderer {
         // Commentary height
         if visibility.show_commentary {
             for block in &board.commentary {
-                height += self.measure_commentary_height(block, column_width) + 2.0;
+                height += self.measure_commentary_height(block, column_width) + line_height;
             }
         }
 
@@ -764,7 +764,7 @@ impl DocumentRenderer {
             for block in &board.commentary {
                 let height =
                     commentary_renderer.render(layer, block, (Mm(column_x), Mm(current_y)), column_width);
-                current_y -= height + 2.0;
+                current_y -= height + line_height;
             }
         }
 
@@ -819,7 +819,7 @@ impl DocumentRenderer {
                     (Mm(column_x), Mm(current_y)),
                     column_width,
                 );
-                current_y -= height + 2.0;
+                current_y -= height + line_height;
             }
         }
 
@@ -1219,7 +1219,7 @@ impl DocumentRenderer {
                         (Mm(float_layout.float_left), Mm(commentary_y)),
                         &float_layout,
                     );
-                    commentary_y = result.final_y - 3.0;
+                    commentary_y = result.final_y - line_height;
                     first_block = false;
 
                     // Update content_y if commentary went below the deal content
@@ -1236,7 +1236,7 @@ impl DocumentRenderer {
                             (Mm(float_layout.float_left), Mm(commentary_y)),
                             &float_layout,
                         );
-                        commentary_y = result.final_y - 3.0;
+                        commentary_y = result.final_y - line_height;
                     } else {
                         // Below float zone, use full width
                         let height = commentary_renderer.render(
@@ -1245,7 +1245,7 @@ impl DocumentRenderer {
                             (Mm(margin_left), Mm(commentary_y)),
                             full_width,
                         );
-                        commentary_y -= height + 3.0;
+                        commentary_y -= height + line_height;
                     }
 
                     if commentary_y < content_y.0 {

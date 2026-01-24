@@ -126,6 +126,8 @@ pub enum Layout {
     BiddingSheets,
     /// Declarer's plan practice sheets (4 deals per page)
     DeclarersPlan,
+    /// Dealer summary showing board, dealer, contract, declarer, and lead (6 per page)
+    DealerSummary,
 }
 
 impl Layout {
@@ -135,6 +137,7 @@ impl Layout {
             Layout::Analysis => None,
             Layout::BiddingSheets => Some(" - Bidding Sheets"),
             Layout::DeclarersPlan => Some(" - Declarers Plan"),
+            Layout::DealerSummary => Some(" - Dealer Summary"),
         }
     }
 }

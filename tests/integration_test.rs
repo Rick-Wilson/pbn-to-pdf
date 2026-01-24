@@ -283,6 +283,29 @@ fn test_generate_all_pdfs() {
             stem
         );
 
+        // Generate dealer summary PDF
+        let dealer_summary_output = output_dir.join(format!("{} - Dealer Summary.pdf", stem));
+        let status = Command::new(&binary)
+            .args([
+                "--layout",
+                "dealer-summary",
+                pbn_path.to_str().unwrap(),
+                "-o",
+                dealer_summary_output.to_str().unwrap(),
+            ])
+            .status()
+            .expect("Failed to run pbn-to-pdf for dealer-summary");
+        assert!(
+            status.success(),
+            "Failed to generate dealer summary PDF for {}",
+            stem
+        );
+        assert!(
+            dealer_summary_output.exists(),
+            "Dealer summary PDF not created for {}",
+            stem
+        );
+
         println!("Generated PDFs for: {}", stem);
     }
 }
