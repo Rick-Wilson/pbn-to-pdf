@@ -8,6 +8,46 @@ pub fn parse_commentary(input: &str) -> Result<CommentaryBlock, String> {
     Ok(CommentaryBlock::new(content))
 }
 
+/// Replace suit escape sequences (\S, \H, \D, \C) with Unicode symbols.
+/// Used to process text inside bold/italic tags where we can't create
+/// separate SuitSymbol spans.
+fn replace_suit_escapes(input: &str) -> String {
+    let mut result = String::with_capacity(input.len());
+    let mut chars = input.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            if let Some(&next) = chars.peek() {
+                match next {
+                    'S' | 's' => {
+                        result.push('♠');
+                        chars.next();
+                    }
+                    'H' | 'h' => {
+                        result.push('♥');
+                        chars.next();
+                    }
+                    'D' | 'd' => {
+                        result.push('♦');
+                        chars.next();
+                    }
+                    'C' | 'c' => {
+                        result.push('♣');
+                        chars.next();
+                    }
+                    _ => result.push(c),
+                }
+            } else {
+                result.push(c);
+            }
+        } else {
+            result.push(c);
+        }
+    }
+
+    result
+}
+
 /// Parse formatted text with HTML-like tags and suit symbols
 pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
     let mut text = FormattedText::new();
@@ -29,9 +69,9 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
             if bold_content.starts_with("<i>") && bold_content.ends_with("</i>") {
                 // Extract the content inside both tags
                 let inner = &bold_content[3..bold_content.len() - 4];
-                text.push(TextSpan::bold_italic(inner));
+                text.push(TextSpan::bold_italic(replace_suit_escapes(inner)));
             } else {
-                text.push(TextSpan::bold(bold_content));
+                text.push(TextSpan::bold(replace_suit_escapes(bold_content)));
             }
             remaining = &remaining[end + 4..];
         } else if remaining.starts_with("<i>") {
@@ -48,9 +88,9 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
             if italic_content.starts_with("<b>") && italic_content.ends_with("</b>") {
                 // Extract the content inside both tags
                 let inner = &italic_content[3..italic_content.len() - 4];
-                text.push(TextSpan::bold_italic(inner));
+                text.push(TextSpan::bold_italic(replace_suit_escapes(inner)));
             } else {
-                text.push(TextSpan::italic(italic_content));
+                text.push(TextSpan::italic(replace_suit_escapes(italic_content)));
             }
             remaining = &remaining[end + 4..];
         } else if remaining.starts_with('\\') && remaining.len() >= 2 {
@@ -294,6 +334,39 @@ mod tests {
         assert_eq!(
             text.spans[0],
             TextSpan::BoldItalic("Also Bold Italic".to_string())
+        );
+    }
+
+    #[test]
+    fn test_suit_symbol_in_italic() {
+        // Test suit symbols inside italic text are converted to Unicode
+        let text = parse_formatted_text(r"<i>Opener would have rebid 1\S with four spades.</i>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::Italic("Opener would have rebid 1♠ with four spades.".to_string())
+        );
+    }
+
+    #[test]
+    fn test_suit_symbol_in_bold() {
+        // Test suit symbols inside bold text are converted to Unicode
+        let text = parse_formatted_text(r"<b>Open 1\D</b>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::Bold("Open 1♦".to_string())
+        );
+    }
+
+    #[test]
+    fn test_suit_symbol_in_bold_italic() {
+        // Test suit symbols inside bold-italic text are converted to Unicode
+        let text = parse_formatted_text(r"<b><i>Bid 2\H</i></b>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::BoldItalic("Bid 2♥".to_string())
         );
     }
 }
