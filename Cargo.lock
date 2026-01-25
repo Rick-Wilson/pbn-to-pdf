@@ -288,7 +288,7 @@ dependencies = [
 [[package]]
 name = "bridge-types"
 version = "0.1.0"
-source = "git+https://github.com/Rick-Wilson/bridge-types#45120f28f06918f89fcdaf012afce737e9e76002"
+source = "git+https://github.com/Rick-Wilson/bridge-types#de90796d91d701d1e58ad26f8f98f203df0d60e3"
 
 [[package]]
 name = "brotli-decompressor"

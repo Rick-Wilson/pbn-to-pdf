@@ -434,7 +434,7 @@ impl<'a> BiddingTableRenderer<'a> {
                 layer.use_text("Rdbl", self.settings.body_font_size, x, y, self.font);
                 measurer.measure_width_mm("Rdbl", self.settings.body_font_size)
             }
-            Call::Bid { level, suit } => {
+            Call::Bid { level, strain: suit } => {
                 // Render level
                 layer.set_fill_color(Color::Rgb(BLACK));
                 let level_str = level.to_string();

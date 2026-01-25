@@ -1181,7 +1181,7 @@ impl BiddingSheetsRenderer {
                 let position = if current_seat == lho { "LHO" } else { "RHO" };
 
                 match &annotated.call {
-                    Call::Bid { level, suit } => {
+                    Call::Bid { level, strain: suit } => {
                         let action = if is_opening_bid { "opens" } else { "bids" };
                         lines.push(MixedText::bid_action_with_position(
                             current_seat,
@@ -1216,7 +1216,7 @@ impl BiddingSheetsRenderer {
                 }
             } else {
                 // Track N/S bids for "doubles X" context
-                if let Call::Bid { level, suit } = &annotated.call {
+                if let Call::Bid { level, strain: suit } = &annotated.call {
                     prev_bid = Some((*level, *suit));
                     is_opening_bid = false;
                 }
@@ -1506,7 +1506,7 @@ impl BiddingSheetsRenderer {
                 layer.use_text("XX", font_size, Mm(x), Mm(y), text_font);
                 measurer.measure_width_mm("XX", font_size)
             }
-            Call::Bid { level, suit } => {
+            Call::Bid { level, strain: suit } => {
                 // Level
                 let level_str = level.to_string();
                 layer.set_fill_color(Color::Rgb(BLACK));

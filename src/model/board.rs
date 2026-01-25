@@ -4,8 +4,8 @@ use super::commentary::CommentaryBlock;
 use super::deal::{Deal, Direction};
 use super::play::PlaySequence;
 
-// Re-export Vulnerability from bridge-types
-pub use bridge_types::Vulnerability;
+// Re-export types from bridge-types
+pub use bridge_types::{PlayerNames, Vulnerability};
 
 /// Tracks which hands should be hidden in display
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -46,35 +46,6 @@ impl HiddenHands {
     /// Returns true if no hands are hidden
     pub fn none_hidden(&self) -> bool {
         !self.north && !self.east && !self.south && !self.west
-    }
-}
-
-/// Player names for each seat
-#[derive(Debug, Clone, Default)]
-pub struct PlayerNames {
-    pub north: Option<String>,
-    pub east: Option<String>,
-    pub south: Option<String>,
-    pub west: Option<String>,
-}
-
-impl PlayerNames {
-    /// Get the player name for a direction
-    pub fn get(&self, direction: Direction) -> Option<&str> {
-        match direction {
-            Direction::North => self.north.as_deref(),
-            Direction::East => self.east.as_deref(),
-            Direction::South => self.south.as_deref(),
-            Direction::West => self.west.as_deref(),
-        }
-    }
-
-    /// Returns true if any player name is set (non-empty)
-    pub fn has_any(&self) -> bool {
-        self.north.as_ref().is_some_and(|s| !s.is_empty())
-            || self.east.as_ref().is_some_and(|s| !s.is_empty())
-            || self.south.as_ref().is_some_and(|s| !s.is_empty())
-            || self.west.as_ref().is_some_and(|s| !s.is_empty())
     }
 }
 

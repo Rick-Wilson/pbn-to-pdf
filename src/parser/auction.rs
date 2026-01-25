@@ -122,7 +122,7 @@ fn extract_annotation(token: &str) -> (String, Option<String>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::BidSuit;
+    use crate::model::Strain;
 
     #[test]
     fn test_simple_auction() {
@@ -136,14 +136,14 @@ mod tests {
             auction.calls[0].call,
             Call::Bid {
                 level: 1,
-                suit: BidSuit::Diamonds
+                strain: Strain::Diamonds
             }
         );
         assert_eq!(
             auction.calls[1].call,
             Call::Bid {
                 level: 1,
-                suit: BidSuit::Spades
+                strain: Strain::Spades
             }
         );
         assert_eq!(auction.calls[2].call, Call::Double);
@@ -165,7 +165,7 @@ mod tests {
             auction.calls[0].call,
             Call::Bid {
                 level: 1,
-                suit: BidSuit::Clubs
+                strain: Strain::Clubs
             }
         );
         // Check that ! annotation is preserved
@@ -190,7 +190,7 @@ mod tests {
             auction.calls[3].call,
             Call::Bid {
                 level: 2,
-                suit: BidSuit::NoTrump
+                strain: Strain::NoTrump
             }
         );
         assert_eq!(auction.calls[3].annotation, Some("1".to_string()));
@@ -199,7 +199,7 @@ mod tests {
             auction.calls[5].call,
             Call::Bid {
                 level: 3,
-                suit: BidSuit::Hearts
+                strain: Strain::Hearts
             }
         );
         assert_eq!(auction.calls[5].annotation, Some("2".to_string()));
@@ -232,7 +232,7 @@ mod tests {
         let contract = auction.final_contract().unwrap();
 
         assert_eq!(contract.level, 3);
-        assert_eq!(contract.suit, BidSuit::NoTrump);
+        assert_eq!(contract.suit, Strain::NoTrump);
         assert!(!contract.doubled);
         assert!(!contract.redoubled);
         assert_eq!(contract.declarer, Direction::South);
@@ -244,7 +244,7 @@ mod tests {
         let contract = auction.final_contract().unwrap();
 
         assert_eq!(contract.level, 1);
-        assert_eq!(contract.suit, BidSuit::Spades);
+        assert_eq!(contract.suit, Strain::Spades);
         assert!(!contract.doubled);
         assert!(contract.redoubled);
     }

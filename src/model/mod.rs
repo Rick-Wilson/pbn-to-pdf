@@ -9,7 +9,7 @@ pub mod hand;
 pub mod metadata;
 pub mod play;
 
-pub use auction::{AnnotatedCall, Auction, BidSuit, Call, Contract};
+pub use auction::{AnnotatedCall, Auction, BidSuit, Call, CallExt, Contract, FinalContract, Strain};
 pub use bcflags::BCFlags;
 pub use board::{Board, HiddenHands, PlayerNames, Vulnerability};
 pub use card::{Card, Rank, RankExt, Suit, SuitExt, RANKS_DISPLAY_ORDER, SUITS_DISPLAY_ORDER};
