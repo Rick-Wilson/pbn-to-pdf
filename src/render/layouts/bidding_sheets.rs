@@ -12,7 +12,7 @@ use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOption
 use crate::config::Settings;
 use crate::error::RenderError;
 use crate::model::{
-    AnnotatedCall, Auction, BidSuit, Board, Call, Direction, Hand, Suit, Vulnerability,
+    AnnotatedCall, Auction, BidSuit, Board, Call, Direction, DirectionExt, Hand, Suit, Vulnerability,
 };
 
 use crate::render::helpers::colors::{SuitColors, BLACK, WHITE};

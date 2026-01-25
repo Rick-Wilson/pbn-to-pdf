@@ -1,154 +1,73 @@
-use std::fmt;
+//! Card, Suit, and Rank types for bridge.
+//!
+//! This module re-exports types from bridge-types and provides additional
+//! display-oriented helpers for PDF rendering.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Suit {
-    Spades,
-    Hearts,
-    Diamonds,
-    Clubs,
+// Re-export core types from bridge-types
+pub use bridge_types::{Card, Rank, Suit};
+
+/// Suits in display order (Spades first, as shown in bridge diagrams)
+pub const SUITS_DISPLAY_ORDER: [Suit; 4] = [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
+
+/// Ranks in display order (Ace first, high to low)
+pub const RANKS_DISPLAY_ORDER: [Rank; 13] = [
+    Rank::Ace,
+    Rank::King,
+    Rank::Queen,
+    Rank::Jack,
+    Rank::Ten,
+    Rank::Nine,
+    Rank::Eight,
+    Rank::Seven,
+    Rank::Six,
+    Rank::Five,
+    Rank::Four,
+    Rank::Three,
+    Rank::Two,
+];
+
+/// Extension trait for Suit providing display-oriented methods
+pub trait SuitExt {
+    fn all_display() -> [Suit; 4];
 }
 
-impl Suit {
-    pub fn symbol(&self) -> char {
-        match self {
-            Suit::Spades => '\u{2660}',   // ♠
-            Suit::Hearts => '\u{2665}',   // ♥
-            Suit::Diamonds => '\u{2666}', // ♦
-            Suit::Clubs => '\u{2663}',    // ♣
-        }
-    }
-
-    pub fn is_red(&self) -> bool {
-        matches!(self, Suit::Hearts | Suit::Diamonds)
-    }
-
-    pub fn from_char(c: char) -> Option<Self> {
-        match c.to_ascii_uppercase() {
-            'S' => Some(Suit::Spades),
-            'H' => Some(Suit::Hearts),
-            'D' => Some(Suit::Diamonds),
-            'C' => Some(Suit::Clubs),
-            _ => None,
-        }
-    }
-
-    pub fn all() -> [Suit; 4] {
-        [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs]
-    }
-}
-
-impl fmt::Display for Suit {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.symbol())
+impl SuitExt for Suit {
+    /// Returns suits in display order (Spades first)
+    fn all_display() -> [Suit; 4] {
+        SUITS_DISPLAY_ORDER
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Rank {
-    Ace,
-    King,
-    Queen,
-    Jack,
-    Ten,
-    Nine,
-    Eight,
-    Seven,
-    Six,
-    Five,
-    Four,
-    Three,
-    Two,
+/// Extension trait for Rank providing display-oriented methods
+pub trait RankExt {
+    fn all_display() -> [Rank; 13];
+    fn from_pbn_char(c: char) -> Option<Rank>;
+    fn hcp_value(&self) -> u8;
 }
 
-impl Rank {
-    pub fn from_pbn_char(c: char) -> Option<Self> {
-        match c.to_ascii_uppercase() {
-            'A' => Some(Rank::Ace),
-            'K' => Some(Rank::King),
-            'Q' => Some(Rank::Queen),
-            'J' => Some(Rank::Jack),
-            'T' => Some(Rank::Ten),
-            '9' => Some(Rank::Nine),
-            '8' => Some(Rank::Eight),
-            '7' => Some(Rank::Seven),
-            '6' => Some(Rank::Six),
-            '5' => Some(Rank::Five),
-            '4' => Some(Rank::Four),
-            '3' => Some(Rank::Three),
-            '2' => Some(Rank::Two),
-            _ => None,
-        }
+impl RankExt for Rank {
+    /// Returns ranks in display order (Ace first)
+    fn all_display() -> [Rank; 13] {
+        RANKS_DISPLAY_ORDER
     }
 
-    pub fn to_char(&self) -> char {
-        match self {
-            Rank::Ace => 'A',
-            Rank::King => 'K',
-            Rank::Queen => 'Q',
-            Rank::Jack => 'J',
-            Rank::Ten => 'T',
-            Rank::Nine => '9',
-            Rank::Eight => '8',
-            Rank::Seven => '7',
-            Rank::Six => '6',
-            Rank::Five => '5',
-            Rank::Four => '4',
-            Rank::Three => '3',
-            Rank::Two => '2',
-        }
+    /// Parse rank from a PBN character (alias for from_char)
+    fn from_pbn_char(c: char) -> Option<Rank> {
+        Rank::from_char(c)
     }
 
-    pub fn hcp_value(&self) -> u8 {
-        match self {
-            Rank::Ace => 4,
-            Rank::King => 3,
-            Rank::Queen => 2,
-            Rank::Jack => 1,
-            _ => 0,
-        }
-    }
-
-    pub fn all() -> [Rank; 13] {
-        [
-            Rank::Ace,
-            Rank::King,
-            Rank::Queen,
-            Rank::Jack,
-            Rank::Ten,
-            Rank::Nine,
-            Rank::Eight,
-            Rank::Seven,
-            Rank::Six,
-            Rank::Five,
-            Rank::Four,
-            Rank::Three,
-            Rank::Two,
-        ]
+    /// Get HCP value (alias for hcp)
+    fn hcp_value(&self) -> u8 {
+        self.hcp()
     }
 }
 
-impl fmt::Display for Rank {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_char())
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Card {
-    pub suit: Suit,
-    pub rank: Rank,
-}
-
-impl Card {
-    pub fn new(suit: Suit, rank: Rank) -> Self {
-        Self { suit, rank }
-    }
-}
-
-impl fmt::Display for Card {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.suit.symbol(), self.rank.to_char())
-    }
+/// Compare ranks in display order (Ace > King > ... > Two)
+pub fn rank_display_cmp(a: &Rank, b: &Rank) -> std::cmp::Ordering {
+    // In bridge-types, Two=2, Three=3, ... Ace=14
+    // For display, we want reverse order: Ace > King > ... > Two
+    // So we compare in reverse
+    (*b as u8).cmp(&(*a as u8))
 }
 
 #[cfg(test)]
@@ -186,5 +105,22 @@ mod tests {
         assert_eq!(Rank::Queen.hcp_value(), 2);
         assert_eq!(Rank::Jack.hcp_value(), 1);
         assert_eq!(Rank::Ten.hcp_value(), 0);
+    }
+
+    #[test]
+    fn test_display_order() {
+        // First suit in display order should be Spades
+        assert_eq!(SUITS_DISPLAY_ORDER[0], Suit::Spades);
+        // First rank in display order should be Ace
+        assert_eq!(RANKS_DISPLAY_ORDER[0], Rank::Ace);
+        // Last rank should be Two
+        assert_eq!(RANKS_DISPLAY_ORDER[12], Rank::Two);
+    }
+
+    #[test]
+    fn test_rank_display_ordering() {
+        use std::cmp::Ordering;
+        assert_eq!(rank_display_cmp(&Rank::Ace, &Rank::King), Ordering::Less); // Ace sorts before King in display
+        assert_eq!(rank_display_cmp(&Rank::Two, &Rank::Three), Ordering::Greater); // Two sorts after Three
     }
 }

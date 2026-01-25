@@ -70,7 +70,7 @@ fn parse_card(input: &str) -> Option<Card> {
     let rank_char = chars.next()?;
 
     let suit = Suit::from_char(suit_char)?;
-    let rank = Rank::from_pbn_char(rank_char)?;
+    let rank = Rank::from_char(rank_char)?;
 
     Some(Card::new(suit, rank))
 }

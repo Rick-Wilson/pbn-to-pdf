@@ -67,7 +67,7 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
                     // Check if followed by a rank (card reference)
                     if remaining.len() >= 3 {
                         let rank_char = remaining.chars().nth(2).unwrap();
-                        if let Some(rank) = Rank::from_pbn_char(rank_char) {
+                        if let Some(rank) = Rank::from_char(rank_char) {
                             text.push(TextSpan::CardRef {
                                 suit: Suit::Spades,
                                 rank,
@@ -86,7 +86,7 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
 
                     if remaining.len() >= 3 {
                         let rank_char = remaining.chars().nth(2).unwrap();
-                        if let Some(rank) = Rank::from_pbn_char(rank_char) {
+                        if let Some(rank) = Rank::from_char(rank_char) {
                             text.push(TextSpan::CardRef {
                                 suit: Suit::Hearts,
                                 rank,
@@ -105,7 +105,7 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
 
                     if remaining.len() >= 3 {
                         let rank_char = remaining.chars().nth(2).unwrap();
-                        if let Some(rank) = Rank::from_pbn_char(rank_char) {
+                        if let Some(rank) = Rank::from_char(rank_char) {
                             text.push(TextSpan::CardRef {
                                 suit: Suit::Diamonds,
                                 rank,
@@ -124,7 +124,7 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
 
                     if remaining.len() >= 3 {
                         let rank_char = remaining.chars().nth(2).unwrap();
-                        if let Some(rank) = Rank::from_pbn_char(rank_char) {
+                        if let Some(rank) = Rank::from_char(rank_char) {
                             text.push(TextSpan::CardRef {
                                 suit: Suit::Clubs,
                                 rank,

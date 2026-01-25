@@ -4,46 +4,8 @@ use super::commentary::CommentaryBlock;
 use super::deal::{Deal, Direction};
 use super::play::PlaySequence;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Vulnerability {
-    #[default]
-    None,
-    NorthSouth,
-    EastWest,
-    Both,
-}
-
-impl Vulnerability {
-    pub fn from_pbn(s: &str) -> Option<Self> {
-        match s.to_uppercase().as_str() {
-            "NONE" | "-" | "LOVE" => Some(Vulnerability::None),
-            "NS" | "N-S" => Some(Vulnerability::NorthSouth),
-            "EW" | "E-W" => Some(Vulnerability::EastWest),
-            "BOTH" | "ALL" => Some(Vulnerability::Both),
-            _ => None,
-        }
-    }
-
-    pub fn is_vulnerable(&self, direction: Direction) -> bool {
-        match self {
-            Vulnerability::None => false,
-            Vulnerability::Both => true,
-            Vulnerability::NorthSouth => matches!(direction, Direction::North | Direction::South),
-            Vulnerability::EastWest => matches!(direction, Direction::East | Direction::West),
-        }
-    }
-}
-
-impl std::fmt::Display for Vulnerability {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Vulnerability::None => write!(f, "None Vul"),
-            Vulnerability::NorthSouth => write!(f, "N-S Vul"),
-            Vulnerability::EastWest => write!(f, "E-W Vul"),
-            Vulnerability::Both => write!(f, "Both Vul"),
-        }
-    }
-}
+// Re-export Vulnerability from bridge-types
+pub use bridge_types::Vulnerability;
 
 /// Tracks which hands should be hidden in display
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

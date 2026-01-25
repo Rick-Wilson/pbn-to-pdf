@@ -82,7 +82,7 @@ enum RenderToken {
 /// - Digits: 2-9
 /// - Lowercase 'x' representing a low/unknown card
 fn is_card_char(c: char) -> bool {
-    c == 'x' || ((c.is_ascii_uppercase() || c.is_ascii_digit()) && Rank::from_pbn_char(c).is_some())
+    c == 'x' || ((c.is_ascii_uppercase() || c.is_ascii_digit()) && Rank::from_char(c).is_some())
 }
 
 /// Check if a character is a valid card rank character for card lists in commentary.

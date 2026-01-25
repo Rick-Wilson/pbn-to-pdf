@@ -140,7 +140,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let hand_circled: HashMap<Card, Rgb> = self
             .circled_cards
             .iter()
-            .filter(|(card, _)| hand.contains(**card))
+            .filter(|(card, _)| hand.contains(card.suit, card.rank))
             .map(|(card, color)| (*card, color.clone()))
             .collect();
         DummyRenderer::with_overlap(self.card_assets, self.card_scale, self.dummy_overlap)
@@ -195,7 +195,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let hand_circled: HashMap<Card, Rgb> = self
             .circled_cards
             .iter()
-            .filter(|(card, _)| hand.contains(**card))
+            .filter(|(card, _)| hand.contains(card.suit, card.rank))
             .map(|(card, color)| (*card, color.clone()))
             .collect();
 

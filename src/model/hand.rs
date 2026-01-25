@@ -1,29 +1,37 @@
-use std::collections::BTreeSet;
 use std::fmt;
 
-use super::card::{Card, Rank, Suit};
+use super::card::{rank_display_cmp, Rank, RankExt, Suit, SUITS_DISPLAY_ORDER};
 
-/// Cards held in a single suit
+/// Cards held in a single suit, stored in display order (Ace first)
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Holding {
-    pub ranks: BTreeSet<Rank>,
+    /// Ranks stored in display order (Ace, King, Queen, ... Two)
+    pub ranks: Vec<Rank>,
 }
 
 impl Holding {
     pub fn new() -> Self {
-        Self {
-            ranks: BTreeSet::new(),
-        }
+        Self { ranks: Vec::new() }
     }
 
     pub fn from_ranks(ranks: impl IntoIterator<Item = Rank>) -> Self {
-        Self {
+        let mut holding = Self {
             ranks: ranks.into_iter().collect(),
-        }
+        };
+        holding.sort_display_order();
+        holding
+    }
+
+    /// Sort ranks in display order (Ace first, Two last)
+    fn sort_display_order(&mut self) {
+        self.ranks.sort_by(rank_display_cmp);
     }
 
     pub fn add(&mut self, rank: Rank) {
-        self.ranks.insert(rank);
+        if !self.ranks.contains(&rank) {
+            self.ranks.push(rank);
+            self.sort_display_order();
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -40,6 +48,10 @@ impl Holding {
 
     pub fn is_void(&self) -> bool {
         self.ranks.is_empty()
+    }
+
+    pub fn contains(&self, rank: &Rank) -> bool {
+        self.ranks.contains(rank)
     }
 }
 
@@ -109,7 +121,7 @@ impl Hand {
     /// Calculate length points (1 point for each card beyond 4 in each suit)
     pub fn length_points(&self) -> u8 {
         let mut points = 0u8;
-        for suit in [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs] {
+        for suit in SUITS_DISPLAY_ORDER {
             let len = self.holding(suit).len();
             if len > 4 {
                 points += (len - 4) as u8;
@@ -132,8 +144,8 @@ impl Hand {
     }
 
     /// Check if the hand contains a specific card
-    pub fn contains(&self, card: Card) -> bool {
-        self.holding(card.suit).ranks.contains(&card.rank)
+    pub fn contains(&self, suit: Suit, rank: Rank) -> bool {
+        self.holding(suit).contains(&rank)
     }
 }
 
@@ -169,6 +181,13 @@ mod tests {
         let holding = Holding::new();
         assert!(holding.is_void());
         assert_eq!(holding.to_string(), "-");
+    }
+
+    #[test]
+    fn test_holding_display_order() {
+        // Even if we add ranks in wrong order, they should display in correct order
+        let holding = Holding::from_ranks([Rank::Two, Rank::Ace, Rank::King]);
+        assert_eq!(holding.to_string(), "AK2");
     }
 
     #[test]
@@ -223,5 +242,15 @@ mod tests {
         hand3.clubs = Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen]);
 
         assert_eq!(hand3.length_points(), 0);
+    }
+
+    #[test]
+    fn test_contains() {
+        let mut hand = Hand::new();
+        hand.spades = Holding::from_ranks([Rank::Ace, Rank::King]);
+
+        assert!(hand.contains(Suit::Spades, Rank::Ace));
+        assert!(!hand.contains(Suit::Spades, Rank::Queen));
+        assert!(!hand.contains(Suit::Hearts, Rank::Ace));
     }
 }

@@ -1,5 +1,5 @@
 use crate::config::Settings;
-use crate::model::{Deal, Hand, HiddenHands, Suit};
+use crate::model::{Deal, Hand, HiddenHands, Suit, SUITS_DISPLAY_ORDER};
 use printpdf::{Color, FontId, Mm, PaintMode, Rgb};
 
 use crate::render::helpers::colors::{self, SuitColors};
@@ -116,7 +116,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let measurer = text_metrics::get_measurer();
         let font_size = self.settings.card_font_size;
 
-        Suit::all()
+        SUITS_DISPLAY_ORDER
             .iter()
             .map(|suit| {
                 let holding = hand.holding(*suit);
@@ -601,7 +601,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let first_baseline = oy.0 - cap_height;
 
         // Render each suit
-        for (i, suit) in Suit::all().iter().enumerate() {
+        for (i, suit) in SUITS_DISPLAY_ORDER.iter().enumerate() {
             let y = first_baseline - (i as f32 * line_height);
             self.render_suit_line(layer, *suit, hand.holding(*suit), (Mm(ox.0), Mm(y)));
         }

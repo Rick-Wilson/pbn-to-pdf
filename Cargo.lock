@@ -286,6 +286,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "bridge-types"
+version = "0.1.0"
+source = "git+https://github.com/Rick-Wilson/bridge-types#45120f28f06918f89fcdaf012afce737e9e76002"
+
+[[package]]
 name = "brotli-decompressor"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1444,6 +1449,7 @@ name = "pbn-to-pdf"
 version = "1.0.0"
 dependencies = [
  "anyhow",
+ "bridge-types",
  "clap",
  "env_logger",
  "log",

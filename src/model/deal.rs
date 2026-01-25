@@ -1,81 +1,28 @@
-use std::fmt;
-
-use super::card::Suit;
+use super::card::{Suit, SUITS_DISPLAY_ORDER};
 use super::hand::Hand;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Direction {
-    North,
-    East,
-    South,
-    West,
+// Re-export Direction from bridge-types
+pub use bridge_types::Direction;
+
+/// Extension trait for Direction with display-oriented methods
+pub trait DirectionExt {
+    /// Returns all directions in clockwise order
+    fn all() -> [Direction; 4];
+    /// Returns the table position (0-3) for bidding display (West=0, North=1, East=2, South=3)
+    fn table_position(&self) -> usize;
 }
 
-impl Direction {
-    pub fn from_char(c: char) -> Option<Self> {
-        match c.to_ascii_uppercase() {
-            'N' => Some(Direction::North),
-            'E' => Some(Direction::East),
-            'S' => Some(Direction::South),
-            'W' => Some(Direction::West),
-            _ => None,
-        }
+impl DirectionExt for Direction {
+    fn all() -> [Direction; 4] {
+        Direction::ALL
     }
 
-    pub fn to_char(&self) -> char {
-        match self {
-            Direction::North => 'N',
-            Direction::East => 'E',
-            Direction::South => 'S',
-            Direction::West => 'W',
-        }
-    }
-
-    pub fn next(&self) -> Direction {
-        match self {
-            Direction::North => Direction::East,
-            Direction::East => Direction::South,
-            Direction::South => Direction::West,
-            Direction::West => Direction::North,
-        }
-    }
-
-    pub fn partner(&self) -> Direction {
-        match self {
-            Direction::North => Direction::South,
-            Direction::East => Direction::West,
-            Direction::South => Direction::North,
-            Direction::West => Direction::East,
-        }
-    }
-
-    /// Returns the table position (0-3) for bidding display (West=0, North=1, East=2, South=3)
-    pub fn table_position(&self) -> usize {
+    fn table_position(&self) -> usize {
         match self {
             Direction::West => 0,
             Direction::North => 1,
             Direction::East => 2,
             Direction::South => 3,
-        }
-    }
-
-    pub fn all() -> [Direction; 4] {
-        [
-            Direction::North,
-            Direction::East,
-            Direction::South,
-            Direction::West,
-        ]
-    }
-}
-
-impl fmt::Display for Direction {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Direction::North => write!(f, "North"),
-            Direction::East => write!(f, "East"),
-            Direction::South => write!(f, "South"),
-            Direction::West => write!(f, "West"),
         }
     }
 }
@@ -123,7 +70,7 @@ impl Deal {
     /// Returns which suits have at least one card across all four hands.
     /// Used to detect hand fragments that only show certain suits.
     pub fn suits_present(&self) -> Vec<Suit> {
-        Suit::all()
+        SUITS_DISPLAY_ORDER
             .into_iter()
             .filter(|suit| {
                 !self.north.holding(*suit).is_void()
@@ -148,6 +95,8 @@ impl Deal {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::card::Rank;
+    use super::super::hand::Holding;
 
     #[test]
     fn test_direction_from_char() {
@@ -180,9 +129,6 @@ mod tests {
 
     #[test]
     fn test_suits_present_full_deal() {
-        use super::super::hand::Holding;
-        use super::super::card::Rank;
-
         let mut deal = Deal::new();
         deal.north.spades = Holding::from_ranks([Rank::Ace, Rank::King]);
         deal.north.hearts = Holding::from_ranks([Rank::Ace]);
@@ -196,9 +142,6 @@ mod tests {
 
     #[test]
     fn test_suits_present_spades_only() {
-        use super::super::hand::Holding;
-        use super::super::card::Rank;
-
         let mut deal = Deal::new();
         deal.north.spades = Holding::from_ranks([Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]);
         deal.east.spades = Holding::from_ranks([Rank::Seven, Rank::Six, Rank::Four, Rank::Two]);
@@ -220,9 +163,6 @@ mod tests {
 
     #[test]
     fn test_is_empty_with_cards() {
-        use super::super::card::Rank;
-        use super::super::hand::Holding;
-
         let mut deal = Deal::new();
         deal.north.spades = Holding::from_ranks([Rank::Ace]);
 

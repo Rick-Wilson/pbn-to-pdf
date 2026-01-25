@@ -1,5 +1,5 @@
 use crate::config::Settings;
-use crate::model::{AnnotatedCall, Auction, BidSuit, Call, Direction, PlayerNames};
+use crate::model::{AnnotatedCall, Auction, BidSuit, Call, Direction, DirectionExt, PlayerNames};
 use printpdf::{Color, FontId, Mm};
 
 use crate::render::helpers::colors::{SuitColors, BLACK};

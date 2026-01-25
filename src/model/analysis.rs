@@ -3,7 +3,7 @@
 //! Provides functions to identify card patterns useful for declarer play planning,
 //! such as sure winners (cards that can win tricks without losing the lead).
 
-use super::card::{Card, Rank, Suit};
+use super::card::{rank_display_cmp, Card, Rank, Suit, RANKS_DISPLAY_ORDER, SUITS_DISPLAY_ORDER};
 use super::hand::Hand;
 
 /// Find all sure winners in a NT contract by combining dummy and declarer hands.
@@ -47,7 +47,7 @@ use super::hand::Hand;
 pub fn find_sure_winners(dummy: &Hand, declarer: &Hand) -> Vec<Card> {
     let mut winners = Vec::new();
 
-    for suit in Suit::all() {
+    for suit in SUITS_DISPLAY_ORDER {
         let suit_winners = find_sure_winners_in_suit(dummy, declarer, suit);
         winners.extend(suit_winners);
     }
@@ -79,9 +79,8 @@ fn find_sure_winners_in_suit(dummy: &Hand, declarer: &Hand, suit: Suit) -> Vec<C
         .copied()
         .collect();
 
-    // Sort by rank (Ace highest, so it comes first in BTreeSet order which is already correct)
-    // Rank ordering: Ace > King > Queen > Jack > Ten > ... > Two
-    combined_ranks.sort();
+    // Sort by rank in display order (Ace highest first, Two last)
+    combined_ranks.sort_by(rank_display_cmp);
 
     if combined_ranks.is_empty() {
         return Vec::new();
@@ -94,7 +93,7 @@ fn find_sure_winners_in_suit(dummy: &Hand, declarer: &Hand, suit: Suit) -> Vec<C
 
     // Find the continuous sequence starting from Ace
     let mut sequence = Vec::new();
-    let expected_sequence = Rank::all();
+    let expected_sequence = RANKS_DISPLAY_ORDER;
     let mut combined_iter = combined_ranks.iter().peekable();
 
     for expected_rank in expected_sequence {
@@ -220,7 +219,7 @@ pub fn find_length_winners(dummy: &Hand, declarer: &Hand) -> LengthResult {
 
     let mut result = LengthResult::new();
 
-    for suit in Suit::all() {
+    for suit in SUITS_DISPLAY_ORDER {
         let suit_result =
             find_length_winners_in_suit(dummy, declarer, suit, &sure_winners, &promotion_result);
         result.merge(suit_result);
@@ -333,16 +332,16 @@ fn find_length_winners_in_suit(
     let (dummy_available, declarer_available) = if dummy_len >= declarer_len {
         // Declarer is shorter, remove lowest `companion_count` cards
         let mut declarer_sorted: Vec<Rank> = declarer_ranks.clone();
-        declarer_sorted.sort(); // highest first
-        declarer_sorted.reverse(); // now lowest first
+        declarer_sorted.sort_by(rank_display_cmp); // highest first (Ace)
+        declarer_sorted.reverse(); // now lowest first (Two)
         let declarer_after_companions: Vec<Rank> =
             declarer_sorted.into_iter().skip(companion_count).collect();
         (dummy_ranks.clone(), declarer_after_companions)
     } else {
         // Dummy is shorter, remove lowest `companion_count` cards
         let mut dummy_sorted: Vec<Rank> = dummy_ranks.clone();
-        dummy_sorted.sort(); // highest first
-        dummy_sorted.reverse(); // now lowest first
+        dummy_sorted.sort_by(rank_display_cmp); // highest first (Ace)
+        dummy_sorted.reverse(); // now lowest first (Two)
         let dummy_after_companions: Vec<Rank> =
             dummy_sorted.into_iter().skip(companion_count).collect();
         (dummy_after_companions, declarer_ranks.clone())
@@ -365,19 +364,22 @@ fn find_length_winners_in_suit(
         // Equal length - assign to hand with stronger remaining cards
         let mut dummy_sorted = dummy_available.clone();
         let mut declarer_sorted = declarer_available.clone();
-        dummy_sorted.sort();
-        declarer_sorted.sort();
+        dummy_sorted.sort_by(rank_display_cmp);
+        declarer_sorted.sort_by(rank_display_cmp);
         let dummy_best = dummy_sorted.first();
         let declarer_best = declarer_sorted.first();
+        // After display sort, first element is highest (Ace > King > ...)
+        // In display order comparison, Ace comes before King (Ace < King in the sort comparison)
+        // So the smaller comparison value = higher bridge rank
         match (dummy_best, declarer_best) {
-            (Some(d), Some(c)) if d < c => (dummy_available.clone(), declarer_available.clone()),
+            (Some(d), Some(c)) if rank_display_cmp(d, c).is_lt() => (dummy_available.clone(), declarer_available.clone()),
             _ => (declarer_available.clone(), dummy_available.clone()),
         }
     };
 
     // Sort winner hand ranks to identify length winners
     let mut sorted_winner_ranks = winner_hand_ranks.clone();
-    sorted_winner_ranks.sort(); // Derived Ord puts Ace first (lowest enum value = highest bridge rank)
+    sorted_winner_ranks.sort_by(rank_display_cmp); // Ace first (highest bridge rank)
 
     // Length winners are the HIGHEST cards in the winner hand
     // After sort(), Ace is first, then King, etc. (because Rank enum ordering)
@@ -459,7 +461,7 @@ fn find_length_winners_in_suit(
 pub fn find_promotable_winners(dummy: &Hand, declarer: &Hand) -> PromotionResult {
     let mut result = PromotionResult::new();
 
-    for suit in Suit::all() {
+    for suit in SUITS_DISPLAY_ORDER {
         let suit_result = find_promotable_winners_in_suit(dummy, declarer, suit);
         result.merge(suit_result);
     }
@@ -492,8 +494,8 @@ fn find_promotable_winners_in_suit(dummy: &Hand, declarer: &Hand, suit: Suit) ->
         .copied()
         .collect();
 
-    // Sort by rank (Ace highest first)
-    combined_ranks.sort();
+    // Sort by rank in display order (Ace highest first)
+    combined_ranks.sort_by(rank_display_cmp);
 
     if combined_ranks.is_empty() {
         return PromotionResult::new();
@@ -508,7 +510,7 @@ fn find_promotable_winners_in_suit(dummy: &Hand, declarer: &Hand, suit: Suit) ->
     }
 
     // Count how many higher honors we're missing
-    let all_ranks = Rank::all();
+    let all_ranks = RANKS_DISPLAY_ORDER;
     let highest_idx = all_ranks.iter().position(|&r| r == highest_rank).unwrap();
     let missing_higher = highest_idx; // Number of ranks above our highest
 

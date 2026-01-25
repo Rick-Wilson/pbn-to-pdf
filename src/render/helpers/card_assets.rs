@@ -6,7 +6,7 @@
 use printpdf::{PdfDocument, PdfWarnMsg, Pt, Px, Svg, XObjectId, XObjectTransform};
 use std::collections::HashMap;
 
-use crate::model::{Rank, Suit};
+use crate::model::{Rank, Suit, RANKS_DISPLAY_ORDER, SUITS_DISPLAY_ORDER};
 
 /// Card dimensions based on actual SVG assets
 /// SVG viewport: 167.0869141pt × 242.6669922pt
@@ -31,8 +31,8 @@ impl CardAssets {
         let mut warnings: Vec<PdfWarnMsg> = Vec::new();
 
         // Load all 52 cards
-        for suit in Suit::all() {
-            for rank in Rank::all() {
+        for suit in SUITS_DISPLAY_ORDER {
+            for rank in RANKS_DISPLAY_ORDER {
                 let svg_content = get_card_svg(suit, rank)?;
                 let xobject = Svg::parse(svg_content, &mut warnings).map_err(|e| {
                     CardLoadError::SvgParseError {

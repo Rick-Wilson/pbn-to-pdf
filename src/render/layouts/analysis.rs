@@ -1,6 +1,6 @@
 use crate::config::Settings;
 use crate::error::RenderError;
-use crate::model::{BidSuit, Board};
+use crate::model::{BidSuit, Board, DirectionExt};
 use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
 use crate::render::components::bidding_table::BiddingTableRenderer;
