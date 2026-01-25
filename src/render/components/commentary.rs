@@ -9,6 +9,17 @@ use crate::render::helpers::text_metrics::{
     get_measurer, get_sans_bold_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer,
 };
 
+/// Check if a character is a Unicode suit symbol and return the corresponding Suit
+fn suit_from_symbol(c: char) -> Option<Suit> {
+    match c {
+        '♠' => Some(Suit::Spades),
+        '♥' => Some(Suit::Hearts),
+        '♦' => Some(Suit::Diamonds),
+        '♣' => Some(Suit::Clubs),
+        _ => None,
+    }
+}
+
 /// Parameters for floating layout
 #[derive(Debug, Clone)]
 pub struct FloatLayout {
@@ -220,6 +231,22 @@ fn tokenize_spans(
                             // Add space token
                             tokens.push(RenderToken::Space);
                         }
+                    } else if let Some(suit) = suit_from_symbol(c) {
+                        // Unicode suit symbol - handle specially for correct coloring
+                        // First flush any accumulated word
+                        if !current_word.is_empty() {
+                            let w = measurer.measure_width_mm(&current_word, font_size);
+                            current_group.push(RenderFragment::Text {
+                                text: std::mem::take(&mut current_word),
+                                style,
+                            });
+                            current_group_width += w;
+                        }
+                        // Add suit symbol fragment
+                        let symbol_w = symbol_measurer.measure_width_mm(&c.to_string(), font_size);
+                        current_group.push(RenderFragment::SuitSymbol(suit));
+                        current_group_width += symbol_w;
+                        in_card_list = true;
                     } else {
                         current_word.push(c);
                     }
