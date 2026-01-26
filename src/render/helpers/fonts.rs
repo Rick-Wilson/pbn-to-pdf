@@ -1,27 +1,16 @@
 use crate::error::RenderError;
-use printpdf::{FontId, ParsedFont, PdfDocument};
+use printpdf::{BuiltinFont, FontId, ParsedFont, PdfDocument};
 
-// Embed full fonts at compile time - printpdf 0.8 handles subsetting automatically
-const DEJAVU_SANS_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans.ttf");
-const DEJAVU_SANS_BOLD_FULL: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Bold.ttf");
-const DEJAVU_SANS_OBLIQUE_FULL: &[u8] =
-    include_bytes!("../../../assets/fonts/DejaVuSans-Oblique.ttf");
-const DEJAVU_SANS_BOLD_OBLIQUE_FULL: &[u8] =
-    include_bytes!("../../../assets/fonts/DejaVuSans-BoldOblique.ttf");
+// Only embed a minimal DejaVu Sans subset for suit symbols (♠♥♦♣)
+// Regular text uses PDF builtin fonts (Times-Roman, Helvetica)
+// The subsetted font is ~4KB vs 757KB for the full font
+const DEJAVU_SANS_SUITS: &[u8] = include_bytes!("../../../assets/fonts/DejaVuSans-Suits.ttf");
 
-// TeX Gyre Termes - Times New Roman clone for professional typesetting
-const TERMES_REGULAR_FULL: &[u8] =
-    include_bytes!("../../../assets/fonts/texgyretermes-regular.ttf");
-const TERMES_BOLD_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-bold.ttf");
-const TERMES_ITALIC_FULL: &[u8] = include_bytes!("../../../assets/fonts/texgyretermes-italic.ttf");
-const TERMES_BOLD_ITALIC_FULL: &[u8] =
-    include_bytes!("../../../assets/fonts/texgyretermes-bolditalic.ttf");
-
-/// Font family for a font set
+/// Font family for text rendering
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FontFamily {
-    SansSerif, // Arial, Helvetica -> DejaVu Sans
-    Serif,     // Times New Roman, Times -> DejaVu Serif
+    SansSerif, // Helvetica (PDF builtin)
+    Serif,     // Times-Roman (PDF builtin)
 }
 
 impl FontFamily {
@@ -42,7 +31,38 @@ impl FontFamily {
     }
 }
 
-/// A set of fonts (regular, bold, italic, bold-italic) for one family
+/// A set of builtin PDF fonts (regular, bold, italic, bold-italic) for one family
+#[derive(Debug, Clone, Copy)]
+pub struct BuiltinFontSet {
+    pub regular: BuiltinFont,
+    pub bold: BuiltinFont,
+    pub italic: BuiltinFont,
+    pub bold_italic: BuiltinFont,
+}
+
+impl BuiltinFontSet {
+    /// Get the Times font set (serif)
+    pub const fn times() -> Self {
+        Self {
+            regular: BuiltinFont::TimesRoman,
+            bold: BuiltinFont::TimesBold,
+            italic: BuiltinFont::TimesItalic,
+            bold_italic: BuiltinFont::TimesBoldItalic,
+        }
+    }
+
+    /// Get the Helvetica font set (sans-serif)
+    pub const fn helvetica() -> Self {
+        Self {
+            regular: BuiltinFont::Helvetica,
+            bold: BuiltinFont::HelveticaBold,
+            italic: BuiltinFont::HelveticaOblique,
+            bold_italic: BuiltinFont::HelveticaBoldOblique,
+        }
+    }
+}
+
+/// Legacy: A set of external fonts (for backwards compatibility during migration)
 #[derive(Clone)]
 pub struct FontSet {
     pub regular: FontId,
@@ -53,123 +73,72 @@ pub struct FontSet {
 
 /// Font manager for PDF rendering
 ///
-/// Uses embedded fonts with Unicode suit symbol support.
-/// Provides sans-serif (DejaVu Sans) and serif (TeX Gyre Termes) font families.
+/// Uses PDF builtin fonts (Times-Roman, Helvetica) for regular text
+/// and an embedded DejaVu Sans font for suit symbols (♠♥♦♣).
 #[derive(Clone)]
 pub struct FontManager {
-    pub sans: FontSet,
-    pub serif: FontSet,
-    // Aliases for backward compatibility - points to serif (default for bridge docs)
-    pub regular: FontId,
-    pub bold: FontId,
-    pub italic: FontId,
+    /// Suit symbol font (DejaVu Sans with Unicode suit symbols)
+    pub symbol_font: FontId,
+    /// Builtin sans-serif fonts (Helvetica family)
+    pub sans: BuiltinFontSet,
+    /// Builtin serif fonts (Times family)
+    pub serif: BuiltinFontSet,
 }
 
 impl FontManager {
     /// Load fonts into the document
     ///
-    /// printpdf 0.8 handles subsetting automatically when saving the PDF,
-    /// so we just load the full fonts here.
+    /// Only loads DejaVu Sans for suit symbols - regular text uses PDF builtin fonts.
     pub fn new(doc: &mut PdfDocument) -> Result<Self, RenderError> {
         let mut warnings = Vec::new();
 
-        // Load DejaVu Sans family
-        let sans_regular_font = ParsedFont::from_bytes(DEJAVU_SANS_FULL, 0, &mut warnings)
-            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans".to_string()))?;
-        let sans_regular = doc.add_font(&sans_regular_font);
-
-        let sans_bold_font = ParsedFont::from_bytes(DEJAVU_SANS_BOLD_FULL, 0, &mut warnings)
-            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-Bold".to_string()))?;
-        let sans_bold = doc.add_font(&sans_bold_font);
-
-        let sans_oblique_font = ParsedFont::from_bytes(DEJAVU_SANS_OBLIQUE_FULL, 0, &mut warnings)
-            .ok_or_else(|| {
-                RenderError::FontLoad("Failed to parse DejaVuSans-Oblique".to_string())
-            })?;
-        let sans_italic = doc.add_font(&sans_oblique_font);
-
-        let sans_bold_oblique_font =
-            ParsedFont::from_bytes(DEJAVU_SANS_BOLD_OBLIQUE_FULL, 0, &mut warnings).ok_or_else(
-                || RenderError::FontLoad("Failed to parse DejaVuSans-BoldOblique".to_string()),
-            )?;
-        let sans_bold_italic = doc.add_font(&sans_bold_oblique_font);
-
-        // Load TeX Gyre Termes family (serif)
-        let serif_regular_font = ParsedFont::from_bytes(TERMES_REGULAR_FULL, 0, &mut warnings)
-            .ok_or_else(|| {
-                RenderError::FontLoad("Failed to parse TeXGyreTermes-Regular".to_string())
-            })?;
-        let serif_regular = doc.add_font(&serif_regular_font);
-
-        let serif_bold_font = ParsedFont::from_bytes(TERMES_BOLD_FULL, 0, &mut warnings)
-            .ok_or_else(|| {
-                RenderError::FontLoad("Failed to parse TeXGyreTermes-Bold".to_string())
-            })?;
-        let serif_bold = doc.add_font(&serif_bold_font);
-
-        let serif_italic_font = ParsedFont::from_bytes(TERMES_ITALIC_FULL, 0, &mut warnings)
-            .ok_or_else(|| {
-                RenderError::FontLoad("Failed to parse TeXGyreTermes-Italic".to_string())
-            })?;
-        let serif_italic = doc.add_font(&serif_italic_font);
-
-        let serif_bold_italic_font =
-            ParsedFont::from_bytes(TERMES_BOLD_ITALIC_FULL, 0, &mut warnings).ok_or_else(|| {
-                RenderError::FontLoad("Failed to parse TeXGyreTermes-BoldItalic".to_string())
-            })?;
-        let serif_bold_italic = doc.add_font(&serif_bold_italic_font);
+        // Load minimal DejaVu Sans subset for suit symbols only
+        let symbol_font_parsed = ParsedFont::from_bytes(DEJAVU_SANS_SUITS, 0, &mut warnings)
+            .ok_or_else(|| RenderError::FontLoad("Failed to parse DejaVuSans-Suits".to_string()))?;
+        let symbol_font = doc.add_font(&symbol_font_parsed);
 
         Ok(Self {
-            sans: FontSet {
-                regular: sans_regular.clone(),
-                bold: sans_bold.clone(),
-                italic: sans_italic.clone(),
-                bold_italic: sans_bold_italic,
-            },
-            serif: FontSet {
-                regular: serif_regular.clone(),
-                bold: serif_bold.clone(),
-                italic: serif_italic.clone(),
-                bold_italic: serif_bold_italic.clone(),
-            },
-            // Default aliases point to serif (Times New Roman is default for bridge docs)
-            regular: serif_regular,
-            bold: serif_bold,
-            italic: serif_italic,
+            symbol_font,
+            sans: BuiltinFontSet::helvetica(),
+            serif: BuiltinFontSet::times(),
         })
     }
 
-    /// Get the font set for a given family
-    pub fn family(&self, family: FontFamily) -> &FontSet {
+    /// Get the builtin font set for a given family
+    pub fn builtin_family(&self, family: FontFamily) -> BuiltinFontSet {
         match family {
-            FontFamily::SansSerif => &self.sans,
-            FontFamily::Serif => &self.serif,
+            FontFamily::SansSerif => self.sans,
+            FontFamily::Serif => self.serif,
         }
     }
 
-    /// Get the appropriate font for a font specification
-    pub fn for_spec(&self, family_name: &str, bold: bool, italic: bool) -> &FontId {
+    /// Get the appropriate builtin font for a font specification
+    pub fn builtin_for_spec(&self, family_name: &str, bold: bool, italic: bool) -> BuiltinFont {
         let family = FontFamily::from_name(family_name);
-        let set = self.family(family);
+        let set = self.builtin_family(family);
 
-        if bold {
-            &set.bold
-        } else if italic {
-            &set.italic
-        } else {
-            &set.regular
+        match (bold, italic) {
+            (true, true) => set.bold_italic,
+            (true, false) => set.bold,
+            (false, true) => set.italic,
+            (false, false) => set.regular,
         }
     }
 
-    /// Get the appropriate font set for a font specification
-    pub fn set_for_spec(&self, spec: Option<&crate::model::FontSpec>) -> &FontSet {
+    /// Get the appropriate builtin font set for a font specification
+    pub fn builtin_set_for_spec(&self, spec: Option<&crate::model::FontSpec>) -> BuiltinFontSet {
         match spec {
             Some(s) => {
                 let family = FontFamily::from_name(&s.family);
-                self.family(family)
+                self.builtin_family(family)
             }
-            None => &self.serif, // Default to serif
+            None => self.serif, // Default to serif (Times)
         }
+    }
+
+    /// Get the symbol font for suit symbols
+    pub fn symbol_font(&self) -> &FontId {
+        &self.symbol_font
     }
 }
 

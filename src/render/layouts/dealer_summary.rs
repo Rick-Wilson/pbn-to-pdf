@@ -12,6 +12,7 @@ use crate::error::RenderError;
 use crate::model::Board;
 
 use crate::render::helpers::colors::{SuitColors, BLACK};
+use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::get_measurer;
@@ -91,7 +92,9 @@ impl DealerSummaryRenderer {
         let mut warnings = Vec::new();
         let bytes = doc.save(&PdfSaveOptions::default(), &mut warnings);
 
-        Ok(bytes)
+        // Compress PDF streams to reduce file size
+        let compressed = compress_pdf(bytes.clone()).unwrap_or(bytes);
+        Ok(compressed)
     }
 
     /// Render a single page with up to 6 boards
@@ -178,12 +181,12 @@ impl DealerSummaryRenderer {
         // Board number
         if let Some(ref board_id) = board.board_id {
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("Board: {}", board_id),
                 font_size,
                 Mm(x),
                 Mm(current_y),
-                &fonts.sans.regular,
+                fonts.sans.regular,
             );
             current_y -= line_height;
         }
@@ -192,18 +195,18 @@ impl DealerSummaryRenderer {
         if let Some(dealer) = board.dealer {
             // "Dealer: " in regular
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text("Dealer: ", font_size, Mm(x), Mm(current_y), &fonts.sans.regular);
+            layer.use_text_builtin("Dealer: ", font_size, Mm(x), Mm(current_y), fonts.sans.regular);
 
             // Measure "Dealer: " width to position the bold name
             let dealer_label_width = measurer.measure_width_mm("Dealer: ", font_size);
 
             // Direction name in bold
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("{}", dealer),
                 font_size,
                 Mm(x + dealer_label_width),
                 Mm(current_y),
-                &fonts.sans.bold,
+                fonts.sans.bold,
             );
             current_y -= line_height;
         }
@@ -214,23 +217,23 @@ impl DealerSummaryRenderer {
         // Contract with suit symbol
         if let Some(ref contract) = board.contract {
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text("Contract: ", font_size, Mm(x), Mm(current_y), &fonts.sans.regular);
+            layer.use_text_builtin("Contract: ", font_size, Mm(x), Mm(current_y), fonts.sans.regular);
 
             let contract_label_width = measurer.measure_width_mm("Contract: ", font_size);
             let mut contract_x = x + contract_label_width;
 
             // Level
             let level_str = format!("{}", contract.level);
-            layer.use_text(
+            layer.use_text_builtin(
                 &level_str,
                 font_size,
                 Mm(contract_x),
                 Mm(current_y),
-                &fonts.sans.regular,
+                fonts.sans.regular,
             );
             contract_x += measurer.measure_width_mm(&level_str, font_size);
 
-            // Suit symbol (colored)
+            // Suit symbol (colored) - use symbol font
             let suit_color = if contract.suit.is_red() {
                 colors.hearts.clone()
             } else {
@@ -243,16 +246,16 @@ impl DealerSummaryRenderer {
                 font_size,
                 Mm(contract_x),
                 Mm(current_y),
-                &fonts.sans.regular,
+                fonts.symbol_font(),
             );
             contract_x += measurer.measure_width_mm(suit_str, font_size);
 
             // Doubled/Redoubled indicator
             layer.set_fill_color(Color::Rgb(BLACK));
             if contract.redoubled {
-                layer.use_text("XX", font_size, Mm(contract_x), Mm(current_y), &fonts.sans.regular);
+                layer.use_text_builtin("XX", font_size, Mm(contract_x), Mm(current_y), fonts.sans.regular);
             } else if contract.doubled {
-                layer.use_text("X", font_size, Mm(contract_x), Mm(current_y), &fonts.sans.regular);
+                layer.use_text_builtin("X", font_size, Mm(contract_x), Mm(current_y), fonts.sans.regular);
             }
 
             current_y -= line_height;
@@ -261,12 +264,12 @@ impl DealerSummaryRenderer {
         // Declarer
         if let Some(ref contract) = board.contract {
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("Declarer: {}", contract.declarer),
                 font_size,
                 Mm(x),
                 Mm(current_y),
-                &fonts.sans.regular,
+                fonts.sans.regular,
             );
             current_y -= line_height;
         }
@@ -276,12 +279,12 @@ impl DealerSummaryRenderer {
             if let Some(first_trick) = play.tricks.first() {
                 if let Some(lead_card) = first_trick.cards[0] {
                     layer.set_fill_color(Color::Rgb(BLACK));
-                    layer.use_text("Lead: ", font_size, Mm(x), Mm(current_y), &fonts.sans.regular);
+                    layer.use_text_builtin("Lead: ", font_size, Mm(x), Mm(current_y), fonts.sans.regular);
 
                     let lead_label_width = measurer.measure_width_mm("Lead: ", font_size);
                     let mut lead_x = x + lead_label_width;
 
-                    // Suit symbol (colored)
+                    // Suit symbol (colored) - use symbol font
                     let suit_color = if lead_card.suit.is_red() {
                         colors.hearts.clone()
                     } else {
@@ -294,18 +297,18 @@ impl DealerSummaryRenderer {
                         font_size,
                         Mm(lead_x),
                         Mm(current_y),
-                        &fonts.sans.regular,
+                        fonts.symbol_font(),
                     );
                     lead_x += measurer.measure_width_mm(&suit_str, font_size);
 
                     // Rank
                     layer.set_fill_color(Color::Rgb(BLACK));
-                    layer.use_text(
+                    layer.use_text_builtin(
                         lead_card.rank.to_char().to_string(),
                         font_size,
                         Mm(lead_x),
                         Mm(current_y),
-                        &fonts.sans.regular,
+                        fonts.sans.regular,
                     );
                 }
             }

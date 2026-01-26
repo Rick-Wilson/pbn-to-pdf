@@ -4,7 +4,7 @@
 //! - Losers section (by suit + total)
 //! - Techniques section (Promo, Length, Finesse, Ruffs, Pitch)
 
-use printpdf::{Color, FontId, Mm, PaintMode, Rgb};
+use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, Rgb};
 
 use crate::render::helpers::colors::{SuitColors, BLACK, WHITE};
 use crate::render::helpers::layer::LayerBuilder;
@@ -28,8 +28,8 @@ const HEADER_GREEN: Rgb = Rgb {
 
 /// Renderer for the losers/techniques table
 pub struct LosersTableRenderer<'a> {
-    font: &'a FontId,
-    bold_font: &'a FontId,
+    font: BuiltinFont,
+    bold_font: BuiltinFont,
     symbol_font: &'a FontId,
     colors: SuitColors,
     /// Font size for header text (e.g., "Losers", "Techniques")
@@ -49,8 +49,8 @@ pub struct LosersTableRenderer<'a> {
 impl<'a> LosersTableRenderer<'a> {
     /// Create a new losers table renderer with default settings
     pub fn new(
-        font: &'a FontId,
-        bold_font: &'a FontId,
+        font: BuiltinFont,
+        bold_font: BuiltinFont,
         symbol_font: &'a FontId,
         colors: SuitColors,
     ) -> Self {
@@ -198,7 +198,7 @@ impl<'a> LosersTableRenderer<'a> {
             + 1.0;
 
         layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text(
+        layer.use_text_builtin(
             text,
             self.header_font_size,
             Mm(text_x),
@@ -275,7 +275,7 @@ impl<'a> LosersTableRenderer<'a> {
         let text_y = y - self.row_height + (self.row_height - self.label_font_size * 0.35) / 2.0;
 
         layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text(
+        layer.use_text_builtin(
             "Total",
             self.label_font_size,
             Mm(text_x),
@@ -322,7 +322,7 @@ impl<'a> LosersTableRenderer<'a> {
                 y - self.row_height + (self.row_height - self.label_font_size * 0.35) / 2.0;
 
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(
+            layer.use_text_builtin(
                 *label,
                 self.label_font_size,
                 Mm(text_x),

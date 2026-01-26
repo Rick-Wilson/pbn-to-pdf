@@ -1,6 +1,6 @@
 use crate::config::Settings;
 use crate::model::{Deal, Direction, Hand, HiddenHands, Suit, SUITS_DISPLAY_ORDER};
-use printpdf::{Color, FontId, Mm, PaintMode, Rgb};
+use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, Rgb};
 
 use crate::render::helpers::colors::{self, SuitColors};
 use crate::render::helpers::layer::LayerBuilder;
@@ -73,9 +73,9 @@ impl DiagramDisplayOptions {
 
 /// Renderer for hand diagrams
 pub struct HandDiagramRenderer<'a> {
-    font: &'a FontId,
-    bold_font: &'a FontId,
-    compass_font: &'a FontId,
+    font: BuiltinFont,
+    bold_font: BuiltinFont,
+    compass_font: BuiltinFont,
     symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
@@ -84,9 +84,9 @@ pub struct HandDiagramRenderer<'a> {
 
 impl<'a> HandDiagramRenderer<'a> {
     pub fn new(
-        font: &'a FontId,
-        bold_font: &'a FontId,
-        compass_font: &'a FontId,
+        font: BuiltinFont,
+        bold_font: BuiltinFont,
+        compass_font: BuiltinFont,
         symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
@@ -521,7 +521,7 @@ impl<'a> HandDiagramRenderer<'a> {
                 .join(" ")
         };
 
-        layer.use_text(
+        layer.use_text_builtin(
             &cards_str,
             self.settings.card_font_size,
             ox,
@@ -693,7 +693,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
         // Offset for cards (after suit symbol)
         let cards_x = Mm(ox.0 + 5.0);
-        layer.use_text(
+        layer.use_text_builtin(
             &cards_str,
             self.settings.card_font_size,
             cards_x,
@@ -753,7 +753,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let padding = 1.5;
 
         // N (top center) - baseline positioned so cap-height reaches near top edge
-        layer.use_text(
+        layer.use_text_builtin(
             "N",
             font_size,
             Mm(cx.0 - n_width / 2.0),
@@ -762,7 +762,7 @@ impl<'a> HandDiagramRenderer<'a> {
         );
 
         // S (bottom center) - baseline near bottom edge
-        layer.use_text(
+        layer.use_text_builtin(
             "S",
             font_size,
             Mm(cx.0 - s_width / 2.0),
@@ -771,7 +771,7 @@ impl<'a> HandDiagramRenderer<'a> {
         );
 
         // W (left center) - vertically centered
-        layer.use_text(
+        layer.use_text_builtin(
             "W",
             font_size,
             Mm(cx.0 - half_box + padding),
@@ -780,7 +780,7 @@ impl<'a> HandDiagramRenderer<'a> {
         );
 
         // E (right center) - vertically centered
-        layer.use_text(
+        layer.use_text_builtin(
             "E",
             font_size,
             Mm(cx.0 + half_box - padding - e_width),
@@ -822,7 +822,7 @@ impl<'a> HandDiagramRenderer<'a> {
         // N (top center)
         let n_text = format!("{}", north_hcp);
         let n_width = bold_measurer.measure_width_mm(&n_text, font_size);
-        layer.use_text(
+        layer.use_text_builtin(
             &n_text,
             font_size,
             Mm(center_x - n_width / 2.0),
@@ -833,7 +833,7 @@ impl<'a> HandDiagramRenderer<'a> {
         // S (bottom center)
         let s_text = format!("{}", south_hcp);
         let s_width = bold_measurer.measure_width_mm(&s_text, font_size);
-        layer.use_text(
+        layer.use_text_builtin(
             &s_text,
             font_size,
             Mm(center_x - s_width / 2.0),
@@ -843,7 +843,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
         // W (left center)
         let w_text = format!("{}", west_hcp);
-        layer.use_text(
+        layer.use_text_builtin(
             &w_text,
             font_size,
             Mm(ox.0 + 2.0),
@@ -854,7 +854,7 @@ impl<'a> HandDiagramRenderer<'a> {
         // E (right center)
         let e_text = format!("{}", east_hcp);
         let e_width = bold_measurer.measure_width_mm(&e_text, font_size);
-        layer.use_text(
+        layer.use_text_builtin(
             &e_text,
             font_size,
             Mm(ox.0 + box_size - e_width - 2.0),

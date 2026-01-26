@@ -18,6 +18,7 @@ use crate::model::{BidSuit, Board, Deal, Direction, Hand};
 use crate::render::components::DeclarersPlanSmallRenderer;
 use crate::render::helpers::card_assets::CardAssets;
 use crate::render::helpers::colors::SuitColors;
+use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
 
@@ -78,7 +79,9 @@ impl DeclarersPlanRenderer {
         let mut warnings = Vec::new();
         let bytes = doc.save(&PdfSaveOptions::default(), &mut warnings);
 
-        Ok(bytes)
+        // Compress PDF streams to reduce file size
+        let compressed = compress_pdf(bytes.clone()).unwrap_or(bytes);
+        Ok(compressed)
     }
 
     /// Render a single page with up to 4 deals
@@ -93,9 +96,9 @@ impl DeclarersPlanRenderer {
 
         let renderer = DeclarersPlanSmallRenderer::new(
             card_assets,
-            &fonts.serif.regular,
-            &fonts.serif.bold,
-            &fonts.sans.regular,
+            fonts.serif.regular,
+            fonts.serif.bold,
+            fonts.symbol_font(),
             colors,
         )
         .show_bounds(self.settings.debug_boxes);

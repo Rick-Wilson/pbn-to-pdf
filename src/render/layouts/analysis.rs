@@ -1,12 +1,13 @@
 use crate::config::Settings;
 use crate::error::RenderError;
 use crate::model::{BidSuit, Board};
-use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
+use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
 use crate::render::components::bidding_table::BiddingTableRenderer;
 use crate::render::components::commentary::{CommentaryRenderer, FloatLayout};
 use crate::render::components::hand_diagram::{DiagramDisplayOptions, HandDiagramRenderer};
 use crate::render::helpers::colors::{SuitColors, BLACK};
+use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::get_measurer;
@@ -358,7 +359,9 @@ impl DocumentRenderer {
         let mut warnings = Vec::new();
         let bytes = doc.save(&PdfSaveOptions::default(), &mut warnings);
 
-        Ok(bytes)
+        // Compress PDF streams to reduce file size
+        let compressed = compress_pdf(bytes.clone()).unwrap_or(bytes);
+        Ok(compressed)
     }
 
     /// Render boards in two-column layout with multiple boards per page
@@ -567,10 +570,10 @@ impl DocumentRenderer {
         let line_height = self.settings.line_height;
 
         // Get font sets
-        let diagram_fonts = fonts.set_for_spec(self.settings.fonts.diagram.as_ref());
-        let card_table_fonts = fonts.set_for_spec(self.settings.fonts.card_table.as_ref());
-        let hand_record_fonts = fonts.set_for_spec(self.settings.fonts.hand_record.as_ref());
-        let commentary_fonts = fonts.set_for_spec(self.settings.fonts.commentary.as_ref());
+        let diagram_fonts = fonts.builtin_set_for_spec(self.settings.fonts.diagram.as_ref());
+        let card_table_fonts = fonts.builtin_set_for_spec(self.settings.fonts.card_table.as_ref());
+        let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
+        let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
         let measurer = get_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
@@ -623,12 +626,12 @@ impl DocumentRenderer {
                 let y = first_baseline - (title_line as f32 * line_height);
                 // Use board label format from settings (e.g., "Board %" -> "Board 1", "%)" -> "1)")
                 let label = self.settings.board_label_format.replace('%', board_id);
-                layer.use_text(
+                layer.use_text_builtin(
                     label,
                     font_size,
                     Mm(column_x),
                     Mm(y),
-                    &hand_record_fonts.bold_italic,
+                    hand_record_fonts.bold_italic,
                 );
                 title_line += 1;
             }
@@ -637,12 +640,12 @@ impl DocumentRenderer {
         if show_dealer {
             if let Some(dealer) = board.dealer {
                 let y = first_baseline - (title_line as f32 * line_height);
-                layer.use_text(
+                layer.use_text_builtin(
                     format!("{} Deals", dealer),
                     font_size,
                     Mm(column_x),
                     Mm(y),
-                    &hand_record_fonts.regular,
+                    hand_record_fonts.regular,
                 );
                 title_line += 1;
             }
@@ -650,12 +653,12 @@ impl DocumentRenderer {
 
         if show_vulnerable {
             let y = first_baseline - (title_line as f32 * line_height);
-            layer.use_text(
+            layer.use_text_builtin(
                 board.vulnerable.to_string(),
                 font_size,
                 Mm(column_x),
                 Mm(y),
-                &hand_record_fonts.regular,
+                hand_record_fonts.regular,
             );
         }
 
@@ -676,10 +679,10 @@ impl DocumentRenderer {
             };
 
             let hand_renderer = HandDiagramRenderer::new(
-                &diagram_fonts.regular,
-                &diagram_fonts.bold,
-                &card_table_fonts.regular,
-                &fonts.sans.regular,
+                diagram_fonts.regular,
+                diagram_fonts.bold,
+                card_table_fonts.regular,
+                fonts.symbol_font(),
                 &self.settings,
             );
             let diagram_height = hand_renderer.render_deal_with_options(
@@ -702,10 +705,10 @@ impl DocumentRenderer {
         if show_auction {
             if let Some(ref auction) = board.auction {
                 let bidding_renderer = BiddingTableRenderer::new(
-                    &hand_record_fonts.regular,
-                    &hand_record_fonts.bold,
-                    &hand_record_fonts.italic,
-                    &fonts.sans.regular,
+                    hand_record_fonts.regular,
+                    hand_record_fonts.bold,
+                    hand_record_fonts.italic,
+                    fonts.symbol_font(),
                     &self.settings,
                 );
                 // Calculate actual table width for centering
@@ -754,8 +757,8 @@ impl DocumentRenderer {
                         &contract,
                         Mm(column_x),
                         Mm(current_y),
-                        &hand_record_fonts.regular,
-                        &fonts.sans.regular,
+                        hand_record_fonts.regular,
+                        fonts.symbol_font(),
                         &colors,
                     );
                     // Only add spacing if there's more content below
@@ -775,8 +778,8 @@ impl DocumentRenderer {
                                 &lead_card,
                                 Mm(column_x),
                                 Mm(current_y),
-                                &hand_record_fonts.regular,
-                                &fonts.sans.regular,
+                                hand_record_fonts.regular,
+                                fonts.symbol_font(),
                                 &colors,
                             );
                             // Only add spacing if there's more content below
@@ -792,11 +795,11 @@ impl DocumentRenderer {
         // Render commentary - simplified for column layout (no floating)
         if show_commentary {
             let commentary_renderer = CommentaryRenderer::new(
-                &commentary_fonts.regular,
-                &commentary_fonts.bold,
-                &commentary_fonts.italic,
-                &commentary_fonts.bold_italic,
-                &fonts.sans.regular,
+                commentary_fonts.regular,
+                commentary_fonts.bold,
+                commentary_fonts.italic,
+                commentary_fonts.bold_italic,
+                fonts.symbol_font(),
                 &self.settings,
             );
 
@@ -838,10 +841,10 @@ impl DocumentRenderer {
             visibility;
 
         // Get font sets
-        let diagram_fonts = fonts.set_for_spec(self.settings.fonts.diagram.as_ref());
-        let card_table_fonts = fonts.set_for_spec(self.settings.fonts.card_table.as_ref());
-        let hand_record_fonts = fonts.set_for_spec(self.settings.fonts.hand_record.as_ref());
-        let commentary_fonts = fonts.set_for_spec(self.settings.fonts.commentary.as_ref());
+        let diagram_fonts = fonts.builtin_set_for_spec(self.settings.fonts.diagram.as_ref());
+        let card_table_fonts = fonts.builtin_set_for_spec(self.settings.fonts.card_table.as_ref());
+        let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
+        let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
         let measurer = get_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
@@ -854,11 +857,11 @@ impl DocumentRenderer {
         // In Center layout: render commentary FIRST
         if show_commentary {
             let commentary_renderer = CommentaryRenderer::new(
-                &commentary_fonts.regular,
-                &commentary_fonts.bold,
-                &commentary_fonts.italic,
-                &commentary_fonts.bold_italic,
-                &fonts.sans.regular,
+                commentary_fonts.regular,
+                commentary_fonts.bold,
+                commentary_fonts.italic,
+                commentary_fonts.bold_italic,
+                fonts.symbol_font(),
                 &self.settings,
             );
 
@@ -889,10 +892,10 @@ impl DocumentRenderer {
             // Calculate diagram width to center it
             let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
             let hand_renderer = HandDiagramRenderer::new(
-                &diagram_fonts.regular,
-                &diagram_fonts.bold,
-                &card_table_fonts.regular,
-                &fonts.sans.regular,
+                diagram_fonts.regular,
+                diagram_fonts.bold,
+                card_table_fonts.regular,
+                fonts.symbol_font(),
                 &self.settings,
             );
 
@@ -930,12 +933,12 @@ impl DocumentRenderer {
                 let label = self.settings.board_label_format.replace('%', board_id);
                 let label_width = measurer.measure_width_mm(&label, font_size);
                 let x = column_center_x - label_width / 2.0;
-                layer.use_text(
+                layer.use_text_builtin(
                     label,
                     font_size,
                     Mm(x),
                     Mm(current_y),
-                    &hand_record_fonts.bold_italic,
+                    hand_record_fonts.bold_italic,
                 );
                 current_y -= line_height;
             }
@@ -946,7 +949,7 @@ impl DocumentRenderer {
                 let text = format!("{} Deals", dealer);
                 let text_width = measurer.measure_width_mm(&text, font_size);
                 let x = column_center_x - text_width / 2.0;
-                layer.use_text(text, font_size, Mm(x), Mm(current_y), &hand_record_fonts.regular);
+                layer.use_text_builtin(text, font_size, Mm(x), Mm(current_y), hand_record_fonts.regular);
                 current_y -= line_height;
             }
         }
@@ -955,7 +958,7 @@ impl DocumentRenderer {
             let text = board.vulnerable.to_string();
             let text_width = measurer.measure_width_mm(&text, font_size);
             let x = column_center_x - text_width / 2.0;
-            layer.use_text(text, font_size, Mm(x), Mm(current_y), &hand_record_fonts.regular);
+            layer.use_text_builtin(text, font_size, Mm(x), Mm(current_y), hand_record_fonts.regular);
             current_y -= line_height;
         }
 
@@ -963,10 +966,10 @@ impl DocumentRenderer {
         if show_auction {
             if let Some(ref auction) = board.auction {
                 let bidding_renderer = BiddingTableRenderer::new(
-                    &hand_record_fonts.regular,
-                    &hand_record_fonts.bold,
-                    &hand_record_fonts.italic,
-                    &fonts.sans.regular,
+                    hand_record_fonts.regular,
+                    hand_record_fonts.bold,
+                    hand_record_fonts.italic,
+                    fonts.symbol_font(),
                     &self.settings,
                 );
 
@@ -1002,8 +1005,8 @@ impl DocumentRenderer {
                         &contract,
                         Mm(table_x),
                         Mm(current_y),
-                        &hand_record_fonts.regular,
-                        &fonts.sans.regular,
+                        hand_record_fonts.regular,
+                        fonts.symbol_font(),
                         &colors,
                     );
                     current_y -= line_height;
@@ -1020,8 +1023,8 @@ impl DocumentRenderer {
                                 &lead_card,
                                 Mm(table_x),
                                 Mm(current_y),
-                                &hand_record_fonts.regular,
-                                &fonts.sans.regular,
+                                hand_record_fonts.regular,
+                                fonts.symbol_font(),
                                 &colors,
                             );
                             current_y -= line_height;
@@ -1064,10 +1067,10 @@ impl DocumentRenderer {
         let line_height = self.settings.line_height;
 
         // Get font sets based on PBN font specifications
-        let diagram_fonts = fonts.set_for_spec(self.settings.fonts.diagram.as_ref());
-        let card_table_fonts = fonts.set_for_spec(self.settings.fonts.card_table.as_ref());
-        let hand_record_fonts = fonts.set_for_spec(self.settings.fonts.hand_record.as_ref());
-        let commentary_fonts = fonts.set_for_spec(self.settings.fonts.commentary.as_ref());
+        let diagram_fonts = fonts.builtin_set_for_spec(self.settings.fonts.diagram.as_ref());
+        let card_table_fonts = fonts.builtin_set_for_spec(self.settings.fonts.card_table.as_ref());
+        let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
+        let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
         // Get font metrics for accurate box heights
         let measurer = get_measurer();
@@ -1122,12 +1125,12 @@ impl DocumentRenderer {
                 let y = first_baseline - (current_line as f32 * line_height);
                 // Use board label format from settings (e.g., "Board %" -> "Board 1", "%)" -> "1)")
                 let label = self.settings.board_label_format.replace('%', board_id);
-                layer.use_text(
+                layer.use_text_builtin(
                     label,
                     self.settings.body_font_size,
                     Mm(title_x),
                     Mm(y),
-                    &hand_record_fonts.bold_italic,
+                    hand_record_fonts.bold_italic,
                 );
                 current_line += 1;
             }
@@ -1135,24 +1138,24 @@ impl DocumentRenderer {
             // Line 2: Dealer - use hand_record font
             if let Some(dealer) = board.dealer {
                 let y = first_baseline - (current_line as f32 * line_height);
-                layer.use_text(
+                layer.use_text_builtin(
                     format!("{} Deals", dealer),
                     self.settings.body_font_size,
                     Mm(title_x),
                     Mm(y),
-                    &hand_record_fonts.regular,
+                    hand_record_fonts.regular,
                 );
                 current_line += 1;
             }
 
             // Line 3: Vulnerability - use hand_record font
             let y = first_baseline - (current_line as f32 * line_height);
-            layer.use_text(
+            layer.use_text_builtin(
                 board.vulnerable.to_string(),
                 self.settings.body_font_size,
                 Mm(title_x),
                 Mm(y),
-                &hand_record_fonts.regular,
+                hand_record_fonts.regular,
             );
         }
 
@@ -1170,10 +1173,10 @@ impl DocumentRenderer {
             let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
 
             let hand_renderer = HandDiagramRenderer::new(
-                &diagram_fonts.regular,
-                &diagram_fonts.bold,
-                &card_table_fonts.regular, // Compass uses CardTable font
-                &fonts.sans.regular,       // DejaVu Sans for suit symbols
+                diagram_fonts.regular,
+                diagram_fonts.bold,
+                card_table_fonts.regular, // Compass uses CardTable font
+                fonts.symbol_font(),       // DejaVu Sans for suit symbols
                 &self.settings,
             );
             let diagram_height = hand_renderer.render_deal_with_options(
@@ -1194,10 +1197,10 @@ impl DocumentRenderer {
         if self.settings.show_bidding {
             if let Some(ref auction) = board.auction {
                 let bidding_renderer = BiddingTableRenderer::new(
-                    &hand_record_fonts.regular,
-                    &hand_record_fonts.bold,
-                    &hand_record_fonts.italic,
-                    &fonts.sans.regular, // DejaVu Sans for suit symbols
+                    hand_record_fonts.regular,
+                    hand_record_fonts.bold,
+                    hand_record_fonts.italic,
+                    fonts.symbol_font(), // DejaVu Sans for suit symbols
                     &self.settings,
                 );
                 let table_height = bidding_renderer.render_with_players(
@@ -1217,8 +1220,8 @@ impl DocumentRenderer {
                         &contract,
                         Mm(margin_left),
                         content_y,
-                        &hand_record_fonts.regular,
-                        &fonts.sans.regular,
+                        hand_record_fonts.regular,
+                        fonts.symbol_font(),
                         &colors,
                     );
                     // Continue after contract text
@@ -1237,8 +1240,8 @@ impl DocumentRenderer {
                                 &lead_card,
                                 Mm(margin_left),
                                 content_y,
-                                &hand_record_fonts.regular,
-                                &fonts.sans.regular,
+                                hand_record_fonts.regular,
+                                fonts.symbol_font(),
                                 &colors,
                             );
                             content_y = Mm(content_y.0 - line_height);
@@ -1253,11 +1256,11 @@ impl DocumentRenderer {
         // Render commentary if present - using floating layout
         if self.settings.show_commentary && !board.commentary.is_empty() {
             let commentary_renderer = CommentaryRenderer::new(
-                &commentary_fonts.regular,
-                &commentary_fonts.bold,
-                &commentary_fonts.italic,
-                &commentary_fonts.bold_italic,
-                &fonts.sans.regular, // DejaVu Sans for suit symbols
+                commentary_fonts.regular,
+                commentary_fonts.bold,
+                commentary_fonts.italic,
+                commentary_fonts.bold_italic,
+                fonts.symbol_font(), // DejaVu Sans for suit symbols
                 &self.settings,
             );
 
@@ -1340,7 +1343,7 @@ impl DocumentRenderer {
         contract: &crate::model::Contract,
         x: Mm,
         y: Mm,
-        text_font: &FontId,
+        text_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) -> f32 {
@@ -1351,7 +1354,7 @@ impl DocumentRenderer {
         // Render level
         let level_str = contract.level.to_string();
         layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text(&level_str, font_size, Mm(current_x), y, text_font);
+        layer.use_text_builtin(&level_str, font_size, Mm(current_x), y, text_font);
         current_x += measurer.measure_width_mm(&level_str, font_size);
 
         // Render suit symbol (or NT)
@@ -1369,27 +1372,26 @@ impl DocumentRenderer {
             layer.set_fill_color(Color::Rgb(BLACK));
         }
 
-        let font = if use_symbol_font {
-            symbol_font
+        if use_symbol_font {
+            layer.use_text(symbol, font_size, Mm(current_x), y, symbol_font);
         } else {
-            text_font
-        };
-        layer.use_text(symbol, font_size, Mm(current_x), y, font);
+            layer.use_text_builtin(symbol, font_size, Mm(current_x), y, text_font);
+        }
         current_x += measurer.measure_width_mm(symbol, font_size);
 
         // Render doubled/redoubled
         layer.set_fill_color(Color::Rgb(BLACK));
         if contract.redoubled {
-            layer.use_text("XX", font_size, Mm(current_x), y, text_font);
+            layer.use_text_builtin("XX", font_size, Mm(current_x), y, text_font);
             current_x += measurer.measure_width_mm("XX", font_size);
         } else if contract.doubled {
-            layer.use_text("X", font_size, Mm(current_x), y, text_font);
+            layer.use_text_builtin("X", font_size, Mm(current_x), y, text_font);
             current_x += measurer.measure_width_mm("X", font_size);
         }
 
         // Render " by [declarer]"
         let by_text = format!(" by {}", contract.declarer);
-        layer.use_text(&by_text, font_size, Mm(current_x), y, text_font);
+        layer.use_text_builtin(&by_text, font_size, Mm(current_x), y, text_font);
         current_x += measurer.measure_width_mm(&by_text, font_size);
 
         current_x
@@ -1403,7 +1405,7 @@ impl DocumentRenderer {
         card: &crate::model::Card,
         x: Mm,
         y: Mm,
-        text_font: &FontId,
+        text_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
@@ -1414,7 +1416,7 @@ impl DocumentRenderer {
         // Render "Lead: "
         let prefix = "Lead: ";
         layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text(prefix, font_size, Mm(current_x), y, text_font);
+        layer.use_text_builtin(prefix, font_size, Mm(current_x), y, text_font);
         current_x += measurer.measure_width_mm(prefix, font_size);
 
         // Render suit symbol with color
@@ -1427,7 +1429,7 @@ impl DocumentRenderer {
         // Render rank in black
         let rank = card.rank.to_char().to_string();
         layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text(&rank, font_size, Mm(current_x), y, text_font);
+        layer.use_text_builtin(&rank, font_size, Mm(current_x), y, text_font);
     }
 }
 

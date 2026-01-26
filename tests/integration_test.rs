@@ -712,9 +712,9 @@ fn test_losers_table_generates_pdf() {
     // Create renderer with default colors
     let colors = SuitColors::default();
     let renderer = LosersTableRenderer::new(
-        &fonts.serif.regular,
-        &fonts.serif.bold,
-        &fonts.sans.regular, // Sans for suit symbols
+        fonts.serif.regular,
+        fonts.serif.bold,
+        fonts.symbol_font(), // DejaVu Sans for suit symbols
         colors,
     );
 
@@ -763,9 +763,9 @@ fn test_winners_table_generates_pdf() {
     // Create renderer with default colors
     let colors = SuitColors::default();
     let renderer = WinnersTableRenderer::new(
-        &fonts.serif.regular,
-        &fonts.serif.bold,
-        &fonts.sans.regular, // Sans for suit symbols
+        fonts.serif.regular,
+        fonts.serif.bold,
+        fonts.symbol_font(), // DejaVu Sans for suit symbols
         colors,
     );
 
@@ -831,9 +831,9 @@ fn test_declarers_plan_small_generates_pdf() {
     let colors = SuitColors::default();
     let renderer = DeclarersPlanSmallRenderer::new(
         &card_assets,
-        &fonts.serif.regular,
-        &fonts.serif.bold,
-        &fonts.sans.regular,
+        fonts.serif.regular,
+        fonts.serif.bold,
+        fonts.symbol_font(),
         colors.clone(),
     )
     .show_bounds(true);
@@ -1087,9 +1087,9 @@ fn test_declarers_plan_with_sure_winners() {
         // Create renderer with circled cards
         let renderer = DeclarersPlanSmallRenderer::new(
             &card_assets,
-            &fonts.serif.regular,
-            &fonts.serif.bold,
-            &fonts.sans.regular,
+            fonts.serif.regular,
+            fonts.serif.bold,
+            fonts.symbol_font(),
             colors.clone(),
         )
         .circled_cards(circled_cards);
@@ -1251,9 +1251,9 @@ fn test_declarers_plan_with_promotable_winners() {
         // Create renderer with circled cards
         let renderer = DeclarersPlanSmallRenderer::new(
             &card_assets,
-            &fonts.serif.regular,
-            &fonts.serif.bold,
-            &fonts.sans.regular,
+            fonts.serif.regular,
+            fonts.serif.bold,
+            fonts.symbol_font(),
             colors.clone(),
         )
         .circled_cards(circled_cards);
@@ -1431,9 +1431,9 @@ fn test_declarers_plan_with_length_winners() {
         // Create renderer with circled cards
         let renderer = DeclarersPlanSmallRenderer::new(
             &card_assets,
-            &fonts.serif.regular,
-            &fonts.serif.bold,
-            &fonts.sans.regular,
+            fonts.serif.regular,
+            fonts.serif.bold,
+            fonts.symbol_font(),
             colors.clone(),
         )
         .circled_cards(circled_cards);

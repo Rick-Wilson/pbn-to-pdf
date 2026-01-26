@@ -1,6 +1,6 @@
 use crate::config::Settings;
 use crate::model::{AnnotatedCall, Auction, BidSuit, Call, Direction, DirectionExt, PlayerNames};
-use printpdf::{Color, FontId, Mm};
+use printpdf::{BuiltinFont, Color, FontId, Mm};
 
 use crate::render::helpers::colors::{SuitColors, BLACK};
 use crate::render::helpers::layer::LayerBuilder;
@@ -13,10 +13,10 @@ const SUPERSCRIPT_RISE: f32 = 0.4;
 
 /// Renderer for bidding tables
 pub struct BiddingTableRenderer<'a> {
-    font: &'a FontId,
+    font: BuiltinFont,
     #[allow(dead_code)]
-    bold_font: &'a FontId,
-    italic_font: &'a FontId,
+    bold_font: BuiltinFont,
+    italic_font: BuiltinFont,
     symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
@@ -25,9 +25,9 @@ pub struct BiddingTableRenderer<'a> {
 
 impl<'a> BiddingTableRenderer<'a> {
     pub fn new(
-        font: &'a FontId,
-        bold_font: &'a FontId,
-        italic_font: &'a FontId,
+        font: BuiltinFont,
+        bold_font: BuiltinFont,
+        italic_font: BuiltinFont,
         symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
@@ -240,7 +240,7 @@ impl<'a> BiddingTableRenderer<'a> {
 
         for (i, dir) in directions.iter().enumerate() {
             let x = ox.0 + (i as f32 * col_width);
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("{}", dir), // Use Display trait for full name
                 self.settings.header_font_size,
                 Mm(x),
@@ -259,7 +259,7 @@ impl<'a> BiddingTableRenderer<'a> {
                 if let Some(name) = players.get(*dir) {
                     if !name.is_empty() {
                         let x = ox.0 + (i as f32 * col_width);
-                        layer.use_text(
+                        layer.use_text_builtin(
                             name,
                             self.settings.header_font_size,
                             Mm(x),
@@ -301,7 +301,7 @@ impl<'a> BiddingTableRenderer<'a> {
             let y = oy.0 - (row as f32 * row_height);
 
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(
+            layer.use_text_builtin(
                 "Passed Out",
                 self.settings.body_font_size,
                 Mm(x),
@@ -344,7 +344,7 @@ impl<'a> BiddingTableRenderer<'a> {
                 let y = oy.0 - (row as f32 * row_height);
 
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text(
+                layer.use_text_builtin(
                     "All Pass",
                     self.settings.body_font_size,
                     Mm(x),
@@ -382,7 +382,7 @@ impl<'a> BiddingTableRenderer<'a> {
                 let y = oy.0 - (row as f32 * row_height);
 
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text(
+                layer.use_text_builtin(
                     "All Pass",
                     self.settings.body_font_size,
                     Mm(x),
@@ -421,7 +421,7 @@ impl<'a> BiddingTableRenderer<'a> {
             let sup_size = self.settings.body_font_size * SUPERSCRIPT_RATIO;
 
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(annotation, sup_size, sup_x, sup_y, self.font);
+            layer.use_text_builtin(annotation, sup_size, sup_x, sup_y, self.font);
         }
     }
 
@@ -433,24 +433,24 @@ impl<'a> BiddingTableRenderer<'a> {
         match call {
             Call::Pass => {
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("Pass", self.settings.body_font_size, x, y, self.font);
+                layer.use_text_builtin("Pass", self.settings.body_font_size, x, y, self.font);
                 measurer.measure_width_mm("Pass", self.settings.body_font_size)
             }
             Call::Double => {
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("Dbl", self.settings.body_font_size, x, y, self.font);
+                layer.use_text_builtin("Dbl", self.settings.body_font_size, x, y, self.font);
                 measurer.measure_width_mm("Dbl", self.settings.body_font_size)
             }
             Call::Redouble => {
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("Rdbl", self.settings.body_font_size, x, y, self.font);
+                layer.use_text_builtin("Rdbl", self.settings.body_font_size, x, y, self.font);
                 measurer.measure_width_mm("Rdbl", self.settings.body_font_size)
             }
             Call::Bid { level, strain: suit } => {
                 // Render level
                 layer.set_fill_color(Color::Rgb(BLACK));
                 let level_str = level.to_string();
-                layer.use_text(&level_str, self.settings.body_font_size, x, y, self.font);
+                layer.use_text_builtin(&level_str, self.settings.body_font_size, x, y, self.font);
 
                 // Render suit symbol immediately after level (no gap)
                 let level_width =
@@ -462,7 +462,7 @@ impl<'a> BiddingTableRenderer<'a> {
             Call::Continue => {
                 // "+" in PBN becomes "?" in display (student fills in next bid)
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("?", self.settings.body_font_size, x, y, self.font);
+                layer.use_text_builtin("?", self.settings.body_font_size, x, y, self.font);
                 measurer.measure_width_mm("?", self.settings.body_font_size)
             }
             Call::Blank => {
@@ -496,7 +496,7 @@ impl<'a> BiddingTableRenderer<'a> {
             if let Some(text) = auction.notes.get(num) {
                 let note_text = format!("{}. {}", num, text);
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text(&note_text, note_font_size, ox, Mm(current_y), self.font);
+                layer.use_text_builtin(&note_text, note_font_size, ox, Mm(current_y), self.font);
                 current_y -= line_height;
             }
         }
@@ -525,12 +525,11 @@ impl<'a> BiddingTableRenderer<'a> {
         }
 
         // Use symbol font for suit symbols, regular font for "NT"
-        let font = if use_symbol_font {
-            self.symbol_font
+        if use_symbol_font {
+            layer.use_text(text, self.settings.body_font_size, x, y, self.symbol_font);
         } else {
-            self.font
-        };
-        layer.use_text(text, self.settings.body_font_size, x, y, font);
+            layer.use_text_builtin(text, self.settings.body_font_size, x, y, self.font);
+        }
 
         // Measure width (use sans for symbols, serif for NT)
         if use_symbol_font {

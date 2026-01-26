@@ -7,7 +7,7 @@
 //! 3. South practice page (shows only South's hand)
 //! 4. Answers page (repeated for duplex printing)
 
-use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
+use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
 use crate::config::Settings;
 use crate::error::RenderError;
@@ -16,6 +16,7 @@ use crate::model::{
 };
 
 use crate::render::helpers::colors::{SuitColors, BLACK, WHITE};
+use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::{
@@ -135,7 +136,7 @@ impl BiddingSheetsRenderer {
         left_text_short: &str, // Shortened version without "(Practice Page)" etc
         title: Option<&str>,
         header_color: Rgb,
-        font: &FontId,
+        font: BuiltinFont,
         measurer: &dyn TextMeasure,
     ) {
         let margin_left = self.settings.margin_left;
@@ -158,7 +159,7 @@ impl BiddingSheetsRenderer {
         layer.set_fill_color(Color::Rgb(WHITE));
 
         // Draw left text
-        layer.use_text(
+        layer.use_text_builtin(
             left_text,
             HEADER_FONT_SIZE,
             Mm(margin_left + banner_padding),
@@ -197,7 +198,7 @@ impl BiddingSheetsRenderer {
 
                 if !final_title.is_empty() {
                     let title_x = margin_left + content_width - banner_padding - final_width;
-                    layer.use_text(
+                    layer.use_text_builtin(
                         &final_title,
                         HEADER_FONT_SIZE,
                         Mm(title_x),
@@ -316,7 +317,9 @@ impl BiddingSheetsRenderer {
         let mut warnings = Vec::new();
         let bytes = doc.save(&PdfSaveOptions::default(), &mut warnings);
 
-        Ok(bytes)
+        // Compress PDF streams to reduce file size
+        let compressed = compress_pdf(bytes.clone()).unwrap_or(bytes);
+        Ok(compressed)
     }
 
     /// Calculate available content height on a page (after banner and gaps)
@@ -344,9 +347,9 @@ impl BiddingSheetsRenderer {
         let line_height = ANSWERS_FONT_SIZE * LINE_HEIGHT_MULTIPLIER * 0.4;
         let practice_line_height = PRACTICE_FONT_SIZE * LINE_HEIGHT_MULTIPLIER * 0.4;
 
-        let text_font = &fonts.serif.regular;
-        let bold_font = &fonts.serif.bold;
-        let symbol_font = &fonts.sans.regular;
+        let text_font = fonts.serif.regular;
+        let bold_font = fonts.serif.bold;
+        let symbol_font = fonts.symbol_font();
         let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
 
         boards
@@ -519,10 +522,10 @@ impl BiddingSheetsRenderer {
         let measurer = get_measurer();
         let sans_bold_measurer = get_sans_bold_measurer();
 
-        let text_font = &fonts.serif.regular;
-        let bold_font = &fonts.serif.bold;
-        let sans_bold_font = &fonts.sans.bold;
-        let symbol_font = &fonts.sans.regular;
+        let text_font = fonts.serif.regular;
+        let bold_font = fonts.serif.bold;
+        let sans_bold_font = fonts.sans.bold;
+        let symbol_font = fonts.symbol_font();
         let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
 
         // Color for player identification
@@ -667,10 +670,10 @@ impl BiddingSheetsRenderer {
         let measurer = get_measurer();
         let sans_bold_measurer = get_sans_bold_measurer();
 
-        let text_font = &fonts.serif.regular;
-        let bold_font = &fonts.serif.bold;
-        let sans_bold_font = &fonts.sans.bold;
-        let symbol_font = &fonts.sans.regular;
+        let text_font = fonts.serif.regular;
+        let bold_font = fonts.serif.bold;
+        let sans_bold_font = fonts.sans.bold;
+        let symbol_font = fonts.symbol_font();
         let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
 
         // Header banner - dark gray for answers (no title on answers page since it's the back of practice page)
@@ -711,7 +714,7 @@ impl BiddingSheetsRenderer {
             // Column 2: North's hand
             let col2_x = margin_left + CONTEXT_COLUMN_WIDTH;
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(
+            layer.use_text_builtin(
                 "North:",
                 ANSWERS_FONT_SIZE,
                 Mm(col2_x),
@@ -732,7 +735,7 @@ impl BiddingSheetsRenderer {
             // Column 3: South's hand
             let col3_x = margin_left + CONTEXT_COLUMN_WIDTH + HAND_COLUMN_WIDTH;
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(
+            layer.use_text_builtin(
                 "South:",
                 ANSWERS_FONT_SIZE,
                 Mm(col3_x),
@@ -849,8 +852,8 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
-        bold_font: &FontId,
+        text_font: BuiltinFont,
+        bold_font: BuiltinFont,
     ) {
         let line_height = font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
         let mut current_y = y;
@@ -859,7 +862,7 @@ impl BiddingSheetsRenderer {
 
         // Board number
         if let Some(num) = board.number {
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("Board: {}", num),
                 font_size,
                 Mm(x),
@@ -871,7 +874,7 @@ impl BiddingSheetsRenderer {
 
         // Dealer
         if let Some(dealer) = board.dealer {
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("Dealer: {}", dealer),
                 font_size,
                 Mm(x),
@@ -888,7 +891,7 @@ impl BiddingSheetsRenderer {
             Vulnerability::EastWest => "E-W",
             Vulnerability::Both => "Both",
         };
-        layer.use_text(
+        layer.use_text_builtin(
             format!("Vul: {}", vul_str),
             font_size,
             Mm(x),
@@ -907,7 +910,7 @@ impl BiddingSheetsRenderer {
             } else {
                 format!("HCP: {}", hcp)
             };
-            layer.use_text(hcp_str, font_size, Mm(x), Mm(current_y), text_font);
+            layer.use_text_builtin(hcp_str, font_size, Mm(x), Mm(current_y), text_font);
         }
     }
 
@@ -920,8 +923,8 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
-        bold_font: &FontId,
+        text_font: BuiltinFont,
+        bold_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
@@ -933,7 +936,7 @@ impl BiddingSheetsRenderer {
 
         // Board number
         if let Some(num) = board.number {
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("Board: {}", num),
                 font_size,
                 Mm(x),
@@ -945,7 +948,7 @@ impl BiddingSheetsRenderer {
 
         // Dealer
         if let Some(dealer) = board.dealer {
-            layer.use_text(
+            layer.use_text_builtin(
                 format!("Dealer: {}", dealer),
                 font_size,
                 Mm(x),
@@ -962,7 +965,7 @@ impl BiddingSheetsRenderer {
             Vulnerability::EastWest => "E-W",
             Vulnerability::Both => "Both",
         };
-        layer.use_text(
+        layer.use_text_builtin(
             format!("Vul: {}", vul_str),
             font_size,
             Mm(x),
@@ -979,7 +982,7 @@ impl BiddingSheetsRenderer {
         } else {
             format!("North HCP: {}", north_hcp)
         };
-        layer.use_text(north_hcp_str, font_size, Mm(x), Mm(current_y), text_font);
+        layer.use_text_builtin(north_hcp_str, font_size, Mm(x), Mm(current_y), text_font);
         current_y -= line_height;
 
         // South HCP with length points
@@ -990,21 +993,21 @@ impl BiddingSheetsRenderer {
         } else {
             format!("South HCP: {}", south_hcp)
         };
-        layer.use_text(south_hcp_str, font_size, Mm(x), Mm(current_y), text_font);
+        layer.use_text_builtin(south_hcp_str, font_size, Mm(x), Mm(current_y), text_font);
         current_y -= line_height;
 
         // Contract (if available)
         if let Some(ref auction) = board.auction {
             if let Some(contract) = auction.final_contract() {
                 let prefix = "Contract: ";
-                layer.use_text(prefix, font_size, Mm(x), Mm(current_y), text_font);
+                layer.use_text_builtin(prefix, font_size, Mm(x), Mm(current_y), text_font);
 
                 let prefix_width = measurer.measure_width_mm(prefix, font_size);
                 let mut contract_x = x + prefix_width;
 
                 // Level
                 let level_str = contract.level.to_string();
-                layer.use_text(
+                layer.use_text_builtin(
                     &level_str,
                     font_size,
                     Mm(contract_x),
@@ -1014,12 +1017,12 @@ impl BiddingSheetsRenderer {
                 contract_x += measurer.measure_width_mm(&level_str, font_size);
 
                 // Suit symbol
-                let (symbol, use_symbol_font) = match contract.suit {
-                    BidSuit::Clubs => ("\u{2663}", true),
-                    BidSuit::Diamonds => ("\u{2666}", true),
-                    BidSuit::Hearts => ("\u{2665}", true),
-                    BidSuit::Spades => ("\u{2660}", true),
-                    BidSuit::NoTrump => ("NT", false),
+                let symbol = match contract.suit {
+                    BidSuit::Clubs => "\u{2663}",
+                    BidSuit::Diamonds => "\u{2666}",
+                    BidSuit::Hearts => "\u{2665}",
+                    BidSuit::Spades => "\u{2660}",
+                    BidSuit::NoTrump => "NT",
                 };
 
                 if contract.suit.is_red() {
@@ -1028,28 +1031,27 @@ impl BiddingSheetsRenderer {
                     layer.set_fill_color(Color::Rgb(BLACK));
                 }
 
-                let font = if use_symbol_font {
-                    symbol_font
+                if contract.suit == BidSuit::NoTrump {
+                    layer.use_text_builtin(symbol, font_size, Mm(contract_x), Mm(current_y), text_font);
                 } else {
-                    text_font
-                };
-                layer.use_text(symbol, font_size, Mm(contract_x), Mm(current_y), font);
+                    layer.use_text(symbol, font_size, Mm(contract_x), Mm(current_y), symbol_font);
+                }
                 contract_x += measurer.measure_width_mm(symbol, font_size);
 
                 layer.set_fill_color(Color::Rgb(BLACK));
 
                 // Doubled/Redoubled
                 if contract.redoubled {
-                    layer.use_text("XX", font_size, Mm(contract_x), Mm(current_y), text_font);
+                    layer.use_text_builtin("XX", font_size, Mm(contract_x), Mm(current_y), text_font);
                     contract_x += measurer.measure_width_mm("XX", font_size);
                 } else if contract.doubled {
-                    layer.use_text("X", font_size, Mm(contract_x), Mm(current_y), text_font);
+                    layer.use_text_builtin("X", font_size, Mm(contract_x), Mm(current_y), text_font);
                     contract_x += measurer.measure_width_mm("X", font_size);
                 }
 
                 // Declarer
                 let declarer_str = format!(" {}", contract.declarer);
-                layer.use_text(
+                layer.use_text_builtin(
                     &declarer_str,
                     font_size,
                     Mm(contract_x),
@@ -1069,7 +1071,7 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
+        text_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
@@ -1103,7 +1105,7 @@ impl BiddingSheetsRenderer {
             } else {
                 holding.to_string()
             };
-            layer.use_text(
+            layer.use_text_builtin(
                 &holding_str,
                 font_size,
                 Mm(x + symbol_width + 1.0),
@@ -1125,7 +1127,7 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
+        text_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
@@ -1135,7 +1137,7 @@ impl BiddingSheetsRenderer {
         // Who bids first (at the top)
         let who_first = self.who_bids_first(board, player);
         layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text(&who_first, font_size, Mm(x), Mm(current_y), text_font);
+        layer.use_text_builtin(&who_first, font_size, Mm(x), Mm(current_y), text_font);
         current_y -= line_height;
 
         // Opposition bidding
@@ -1262,7 +1264,7 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
+        text_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
@@ -1276,7 +1278,7 @@ impl BiddingSheetsRenderer {
             match segment {
                 TextSegment::Plain(s) => {
                     layer.set_fill_color(Color::Rgb(BLACK));
-                    layer.use_text(s, font_size, Mm(current_x), Mm(y), text_font);
+                    layer.use_text_builtin(s, font_size, Mm(current_x), Mm(y), text_font);
                     current_x += text_measurer.measure_width_mm(s, font_size);
                 }
                 TextSegment::Suit(suit) => {
@@ -1300,8 +1302,8 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
-        bold_font: &FontId,
+        text_font: BuiltinFont,
+        bold_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) -> (f32, f32) {
@@ -1311,16 +1313,16 @@ impl BiddingSheetsRenderer {
 
         // Header row
         layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text("W", font_size, Mm(x), Mm(current_y), bold_font);
-        layer.use_text("N", font_size, Mm(x + col_width), Mm(current_y), bold_font);
-        layer.use_text(
+        layer.use_text_builtin("W", font_size, Mm(x), Mm(current_y), bold_font);
+        layer.use_text_builtin("N", font_size, Mm(x + col_width), Mm(current_y), bold_font);
+        layer.use_text_builtin(
             "E",
             font_size,
             Mm(x + 2.0 * col_width),
             Mm(current_y),
             bold_font,
         );
-        layer.use_text(
+        layer.use_text_builtin(
             "S",
             font_size,
             Mm(x + 3.0 * col_width),
@@ -1387,7 +1389,7 @@ impl BiddingSheetsRenderer {
             // Four passes: show "Pass Out" in dealer's column
             let col_x = x + start_col as f32 * col_width;
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text("Pass Out", font_size, Mm(col_x), Mm(row_y), text_font);
+            layer.use_text_builtin("Pass Out", font_size, Mm(col_x), Mm(row_y), text_font);
             col = start_col + 1;
             if col >= 4 {
                 col = 0;
@@ -1397,7 +1399,7 @@ impl BiddingSheetsRenderer {
             // Show "All Pass" in the position of the first of the three passes
             let col_x = x + col as f32 * col_width;
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text("All Pass", font_size, Mm(col_x), Mm(row_y), text_font);
+            layer.use_text_builtin("All Pass", font_size, Mm(col_x), Mm(row_y), text_font);
             col += 1;
             if col >= 4 {
                 col = 0;
@@ -1428,7 +1430,7 @@ impl BiddingSheetsRenderer {
                 if let Some(text) = auction.notes.get(num) {
                     let note_text = format!("{}. {}", num, text);
                     layer.set_fill_color(Color::Rgb(BLACK));
-                    layer.use_text(&note_text, note_font_size, Mm(x), Mm(row_y), text_font);
+                    layer.use_text_builtin(&note_text, note_font_size, Mm(x), Mm(row_y), text_font);
                     row_y -= note_line_height;
                 }
             }
@@ -1449,7 +1451,7 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
+        text_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
@@ -1471,7 +1473,7 @@ impl BiddingSheetsRenderer {
             let sup_size = font_size * SUPERSCRIPT_RATIO;
 
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(annotation, sup_size, Mm(sup_x), Mm(sup_y), text_font);
+            layer.use_text_builtin(annotation, sup_size, Mm(sup_x), Mm(sup_y), text_font);
         }
     }
 
@@ -1484,7 +1486,7 @@ impl BiddingSheetsRenderer {
         x: f32,
         y: f32,
         font_size: f32,
-        text_font: &FontId,
+        text_font: BuiltinFont,
         symbol_font: &FontId,
         colors: &SuitColors,
     ) -> f32 {
@@ -1493,34 +1495,34 @@ impl BiddingSheetsRenderer {
         match call {
             Call::Pass => {
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("Pass", font_size, Mm(x), Mm(y), text_font);
+                layer.use_text_builtin("Pass", font_size, Mm(x), Mm(y), text_font);
                 measurer.measure_width_mm("Pass", font_size)
             }
             Call::Double => {
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("X", font_size, Mm(x), Mm(y), text_font);
+                layer.use_text_builtin("X", font_size, Mm(x), Mm(y), text_font);
                 measurer.measure_width_mm("X", font_size)
             }
             Call::Redouble => {
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("XX", font_size, Mm(x), Mm(y), text_font);
+                layer.use_text_builtin("XX", font_size, Mm(x), Mm(y), text_font);
                 measurer.measure_width_mm("XX", font_size)
             }
             Call::Bid { level, strain: suit } => {
                 // Level
                 let level_str = level.to_string();
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text(&level_str, font_size, Mm(x), Mm(y), text_font);
+                layer.use_text_builtin(&level_str, font_size, Mm(x), Mm(y), text_font);
 
                 let level_width = measurer.measure_width_mm(&level_str, font_size);
 
                 // Suit
-                let (symbol, use_symbol_font) = match suit {
-                    BidSuit::Clubs => ("\u{2663}", true),
-                    BidSuit::Diamonds => ("\u{2666}", true),
-                    BidSuit::Hearts => ("\u{2665}", true),
-                    BidSuit::Spades => ("\u{2660}", true),
-                    BidSuit::NoTrump => ("NT", false),
+                let symbol = match suit {
+                    BidSuit::Clubs => "\u{2663}",
+                    BidSuit::Diamonds => "\u{2666}",
+                    BidSuit::Hearts => "\u{2665}",
+                    BidSuit::Spades => "\u{2660}",
+                    BidSuit::NoTrump => "NT",
                 };
 
                 if suit.is_red() {
@@ -1529,12 +1531,11 @@ impl BiddingSheetsRenderer {
                     layer.set_fill_color(Color::Rgb(BLACK));
                 }
 
-                let font = if use_symbol_font {
-                    symbol_font
+                if *suit == BidSuit::NoTrump {
+                    layer.use_text_builtin(symbol, font_size, Mm(x + level_width), Mm(y), text_font);
                 } else {
-                    text_font
-                };
-                layer.use_text(symbol, font_size, Mm(x + level_width), Mm(y), font);
+                    layer.use_text(symbol, font_size, Mm(x + level_width), Mm(y), symbol_font);
+                }
 
                 let symbol_width = measurer.measure_width_mm(symbol, font_size);
                 level_width + symbol_width
@@ -1542,7 +1543,7 @@ impl BiddingSheetsRenderer {
             Call::Continue => {
                 // "+" in PBN becomes "?" in display
                 layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text("?", font_size, Mm(x), Mm(y), text_font);
+                layer.use_text_builtin("?", font_size, Mm(x), Mm(y), text_font);
                 measurer.measure_width_mm("?", font_size)
             }
             Call::Blank => {

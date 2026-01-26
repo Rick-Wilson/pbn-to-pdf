@@ -2,7 +2,11 @@
 //!
 //! This module provides functions to measure text dimensions before rendering,
 //! allowing for precise layout calculations.
+//!
+//! Supports both external (embedded) fonts via rustybuzz and PDF builtin fonts
+//! via hardcoded Adobe AFM metrics.
 
+use printpdf::BuiltinFont;
 use rustybuzz::{Face, UnicodeBuffer};
 
 /// Trait for text measurement operations
@@ -220,6 +224,282 @@ pub fn get_measurer_for_font(font: MeasurementFont) -> &'static TextMeasurer {
         MeasurementFont::Serif => get_serif_measurer(),
     }
 }
+
+// =============================================================================
+// Builtin PDF Font Metrics
+// =============================================================================
+//
+// PDF's Standard 14 fonts have well-defined metrics from Adobe's AFM files.
+// Character widths are in 1000 units per em.
+
+/// Text measurer for PDF builtin fonts
+///
+/// Uses hardcoded Adobe AFM metrics for accurate text measurement.
+pub struct BuiltinFontMeasurer {
+    font: BuiltinFont,
+}
+
+impl BuiltinFontMeasurer {
+    pub fn new(font: BuiltinFont) -> Self {
+        Self { font }
+    }
+
+    /// Get character width in 1000 units per em
+    fn char_width(&self, c: char) -> u16 {
+        // ASCII printable range only - builtin fonts are Win-1252
+        if !c.is_ascii() {
+            return 500; // Default width for non-ASCII
+        }
+
+        let code = c as u8;
+        match self.font {
+            BuiltinFont::TimesRoman => TIMES_ROMAN_WIDTHS.get(code as usize).copied().unwrap_or(250),
+            BuiltinFont::TimesBold => TIMES_BOLD_WIDTHS.get(code as usize).copied().unwrap_or(250),
+            BuiltinFont::TimesItalic => {
+                TIMES_ITALIC_WIDTHS.get(code as usize).copied().unwrap_or(250)
+            }
+            BuiltinFont::TimesBoldItalic => TIMES_BOLD_ITALIC_WIDTHS
+                .get(code as usize)
+                .copied()
+                .unwrap_or(250),
+            BuiltinFont::Helvetica => HELVETICA_WIDTHS.get(code as usize).copied().unwrap_or(278),
+            BuiltinFont::HelveticaBold => {
+                HELVETICA_BOLD_WIDTHS.get(code as usize).copied().unwrap_or(278)
+            }
+            BuiltinFont::HelveticaOblique => {
+                HELVETICA_WIDTHS.get(code as usize).copied().unwrap_or(278)
+            }
+            BuiltinFont::HelveticaBoldOblique => HELVETICA_BOLD_WIDTHS
+                .get(code as usize)
+                .copied()
+                .unwrap_or(278),
+            BuiltinFont::Courier
+            | BuiltinFont::CourierBold
+            | BuiltinFont::CourierOblique
+            | BuiltinFont::CourierBoldOblique => 600, // Monospace
+            BuiltinFont::Symbol | BuiltinFont::ZapfDingbats => 500,
+        }
+    }
+
+    /// Measure text width in points
+    pub fn measure_width_pt(&self, text: &str, font_size: f32) -> f32 {
+        let total_width: u32 = text.chars().map(|c| self.char_width(c) as u32).sum();
+        (total_width as f32 / 1000.0) * font_size
+    }
+
+    /// Measure text width in mm
+    pub fn measure_width_mm(&self, text: &str, font_size: f32) -> f32 {
+        self.measure_width_pt(text, font_size) * 0.3528
+    }
+
+    /// Get cap height in mm for the font at given size
+    pub fn cap_height_mm(&self, font_size: f32) -> f32 {
+        let cap_height = match self.font {
+            BuiltinFont::TimesRoman
+            | BuiltinFont::TimesBold
+            | BuiltinFont::TimesItalic
+            | BuiltinFont::TimesBoldItalic => 662, // Times
+            BuiltinFont::Helvetica
+            | BuiltinFont::HelveticaBold
+            | BuiltinFont::HelveticaOblique
+            | BuiltinFont::HelveticaBoldOblique => 718, // Helvetica
+            BuiltinFont::Courier
+            | BuiltinFont::CourierBold
+            | BuiltinFont::CourierOblique
+            | BuiltinFont::CourierBoldOblique => 562, // Courier
+            BuiltinFont::Symbol | BuiltinFont::ZapfDingbats => 700,
+        };
+        (cap_height as f32 / 1000.0) * font_size * 0.3528
+    }
+
+    /// Get ascender height in mm
+    pub fn ascender_mm(&self, font_size: f32) -> f32 {
+        let ascender = match self.font {
+            BuiltinFont::TimesRoman
+            | BuiltinFont::TimesBold
+            | BuiltinFont::TimesItalic
+            | BuiltinFont::TimesBoldItalic => 683,
+            BuiltinFont::Helvetica
+            | BuiltinFont::HelveticaBold
+            | BuiltinFont::HelveticaOblique
+            | BuiltinFont::HelveticaBoldOblique => 718,
+            BuiltinFont::Courier
+            | BuiltinFont::CourierBold
+            | BuiltinFont::CourierOblique
+            | BuiltinFont::CourierBoldOblique => 629,
+            BuiltinFont::Symbol | BuiltinFont::ZapfDingbats => 800,
+        };
+        (ascender as f32 / 1000.0) * font_size * 0.3528
+    }
+
+    /// Get descender depth in mm (positive value)
+    pub fn descender_mm(&self, font_size: f32) -> f32 {
+        let descender = match self.font {
+            BuiltinFont::TimesRoman
+            | BuiltinFont::TimesBold
+            | BuiltinFont::TimesItalic
+            | BuiltinFont::TimesBoldItalic => 217,
+            BuiltinFont::Helvetica
+            | BuiltinFont::HelveticaBold
+            | BuiltinFont::HelveticaOblique
+            | BuiltinFont::HelveticaBoldOblique => 207,
+            BuiltinFont::Courier
+            | BuiltinFont::CourierBold
+            | BuiltinFont::CourierOblique
+            | BuiltinFont::CourierBoldOblique => 157,
+            BuiltinFont::Symbol | BuiltinFont::ZapfDingbats => 200,
+        };
+        (descender as f32 / 1000.0) * font_size * 0.3528
+    }
+}
+
+impl TextMeasure for BuiltinFontMeasurer {
+    fn measure_text(&self, text: &str, font_size: f32) -> f32 {
+        self.measure_width_mm(text, font_size)
+    }
+
+    fn cap_height_mm(&self, font_size: f32) -> f32 {
+        self.cap_height_mm(font_size)
+    }
+
+    fn descender_mm(&self, font_size: f32) -> f32 {
+        self.descender_mm(font_size)
+    }
+}
+
+/// Get a builtin font measurer for Times-Roman (serif regular)
+pub fn get_times_measurer() -> &'static BuiltinFontMeasurer {
+    use std::sync::OnceLock;
+    static MEASURER: OnceLock<BuiltinFontMeasurer> = OnceLock::new();
+    MEASURER.get_or_init(|| BuiltinFontMeasurer::new(BuiltinFont::TimesRoman))
+}
+
+/// Get a builtin font measurer for Times-Bold
+pub fn get_times_bold_measurer() -> &'static BuiltinFontMeasurer {
+    use std::sync::OnceLock;
+    static MEASURER: OnceLock<BuiltinFontMeasurer> = OnceLock::new();
+    MEASURER.get_or_init(|| BuiltinFontMeasurer::new(BuiltinFont::TimesBold))
+}
+
+/// Get a builtin font measurer for Times-Italic
+pub fn get_times_italic_measurer() -> &'static BuiltinFontMeasurer {
+    use std::sync::OnceLock;
+    static MEASURER: OnceLock<BuiltinFontMeasurer> = OnceLock::new();
+    MEASURER.get_or_init(|| BuiltinFontMeasurer::new(BuiltinFont::TimesItalic))
+}
+
+/// Get a builtin font measurer for Times-BoldItalic
+pub fn get_times_bold_italic_measurer() -> &'static BuiltinFontMeasurer {
+    use std::sync::OnceLock;
+    static MEASURER: OnceLock<BuiltinFontMeasurer> = OnceLock::new();
+    MEASURER.get_or_init(|| BuiltinFontMeasurer::new(BuiltinFont::TimesBoldItalic))
+}
+
+/// Get a builtin font measurer for Helvetica (sans-serif regular)
+pub fn get_helvetica_measurer() -> &'static BuiltinFontMeasurer {
+    use std::sync::OnceLock;
+    static MEASURER: OnceLock<BuiltinFontMeasurer> = OnceLock::new();
+    MEASURER.get_or_init(|| BuiltinFontMeasurer::new(BuiltinFont::Helvetica))
+}
+
+/// Get a builtin font measurer for Helvetica-Bold
+pub fn get_helvetica_bold_measurer() -> &'static BuiltinFontMeasurer {
+    use std::sync::OnceLock;
+    static MEASURER: OnceLock<BuiltinFontMeasurer> = OnceLock::new();
+    MEASURER.get_or_init(|| BuiltinFontMeasurer::new(BuiltinFont::HelveticaBold))
+}
+
+// =============================================================================
+// Adobe AFM Character Width Tables (ASCII subset, in 1000 units per em)
+// =============================================================================
+//
+// These are the standard character widths from Adobe's AFM files for the
+// Standard 14 PDF fonts. Only ASCII printable characters (32-126) are included.
+
+/// Times-Roman character widths (indices 0-127, only 32-126 are valid)
+#[rustfmt::skip]
+static TIMES_ROMAN_WIDTHS: [u16; 128] = [
+    // 0-31: Control characters (use 0)
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    // 32-47: space ! " # $ % & ' ( ) * + , - . /
+    250, 333, 408, 500, 500, 833, 778, 180, 333, 333, 500, 564, 250, 333, 250, 278,
+    // 48-63: 0 1 2 3 4 5 6 7 8 9 : ; < = > ?
+    500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 278, 278, 564, 564, 564, 444,
+    // 64-79: @ A B C D E F G H I J K L M N O
+    921, 722, 667, 667, 722, 611, 556, 722, 722, 333, 389, 722, 611, 889, 722, 722,
+    // 80-95: P Q R S T U V W X Y Z [ \ ] ^ _
+    556, 722, 667, 556, 611, 722, 722, 944, 722, 722, 611, 333, 278, 333, 469, 500,
+    // 96-111: ` a b c d e f g h i j k l m n o
+    333, 444, 500, 444, 500, 444, 333, 500, 500, 278, 278, 500, 278, 778, 500, 500,
+    // 112-127: p q r s t u v w x y z { | } ~ DEL
+    500, 500, 333, 389, 278, 500, 500, 722, 500, 500, 444, 480, 200, 480, 541, 0,
+];
+
+/// Times-Bold character widths
+#[rustfmt::skip]
+static TIMES_BOLD_WIDTHS: [u16; 128] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    250, 333, 555, 500, 500, 1000, 833, 278, 333, 333, 500, 570, 250, 333, 250, 278,
+    500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 333, 333, 570, 570, 570, 500,
+    930, 722, 667, 722, 722, 667, 611, 778, 778, 389, 500, 778, 667, 944, 722, 778,
+    611, 778, 722, 556, 667, 722, 722, 1000, 722, 722, 667, 333, 278, 333, 581, 500,
+    333, 500, 556, 444, 556, 444, 333, 500, 556, 278, 333, 556, 278, 833, 556, 500,
+    556, 556, 444, 389, 333, 556, 500, 722, 500, 500, 444, 394, 220, 394, 520, 0,
+];
+
+/// Times-Italic character widths
+#[rustfmt::skip]
+static TIMES_ITALIC_WIDTHS: [u16; 128] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    250, 333, 420, 500, 500, 833, 778, 214, 333, 333, 500, 675, 250, 333, 250, 278,
+    500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 333, 333, 675, 675, 675, 500,
+    920, 611, 611, 667, 722, 611, 611, 722, 722, 333, 444, 667, 556, 833, 667, 722,
+    611, 722, 611, 500, 556, 722, 611, 833, 611, 556, 556, 389, 278, 389, 422, 500,
+    333, 500, 500, 444, 500, 444, 278, 500, 500, 278, 278, 444, 278, 722, 500, 500,
+    500, 500, 389, 389, 278, 500, 444, 667, 444, 444, 389, 400, 275, 400, 541, 0,
+];
+
+/// Times-BoldItalic character widths
+#[rustfmt::skip]
+static TIMES_BOLD_ITALIC_WIDTHS: [u16; 128] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    250, 389, 555, 500, 500, 833, 778, 278, 333, 333, 500, 570, 250, 333, 250, 278,
+    500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 333, 333, 570, 570, 570, 500,
+    832, 667, 667, 667, 722, 667, 667, 722, 778, 389, 500, 667, 611, 889, 722, 722,
+    611, 722, 667, 556, 611, 722, 667, 889, 667, 611, 611, 333, 278, 333, 570, 500,
+    333, 500, 500, 444, 500, 444, 333, 500, 556, 278, 278, 500, 278, 778, 556, 500,
+    500, 500, 389, 389, 278, 556, 444, 667, 500, 444, 389, 348, 220, 348, 570, 0,
+];
+
+/// Helvetica character widths
+#[rustfmt::skip]
+static HELVETICA_WIDTHS: [u16; 128] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278,
+    556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556,
+    1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778,
+    667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556,
+    333, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556,
+    556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584, 0,
+];
+
+/// Helvetica-Bold character widths
+#[rustfmt::skip]
+static HELVETICA_BOLD_WIDTHS: [u16; 128] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278,
+    556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611,
+    975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778,
+    667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556,
+    333, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611,
+    611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584, 0,
+];
 
 #[cfg(test)]
 mod tests {

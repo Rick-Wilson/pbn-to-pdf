@@ -8,7 +8,7 @@
 //!   - NT contracts: Winners table
 //!   - Suit contracts: Losers table
 
-use printpdf::{Color, FontId, Mm, Rgb};
+use printpdf::{BuiltinFont, Color, FontId, Mm, Rgb};
 use std::collections::HashMap;
 
 use crate::model::{BidSuit, Board, Card, Hand, Suit};
@@ -47,8 +47,8 @@ const TABLE_RAISE: f32 = 11.5;
 /// Renderer for a small declarer's plan layout (one quadrant of a page)
 pub struct DeclarersPlanSmallRenderer<'a> {
     card_assets: &'a CardAssets,
-    font: &'a FontId,
-    bold_font: &'a FontId,
+    font: BuiltinFont,
+    bold_font: BuiltinFont,
     symbol_font: &'a FontId,
     colors: SuitColors,
     /// Scale factor for card rendering
@@ -67,8 +67,8 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     /// Create a new declarer's plan small renderer
     pub fn new(
         card_assets: &'a CardAssets,
-        font: &'a FontId,
-        bold_font: &'a FontId,
+        font: BuiltinFont,
+        bold_font: BuiltinFont,
         symbol_font: &'a FontId,
         colors: SuitColors,
     ) -> Self {
@@ -361,7 +361,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         if let Some(deal_num) = deal_number {
             let deal_text = format!("Deal {}", deal_num);
             let deal_width = measurer.measure_width_mm(&deal_text, HEADER_FONT_SIZE);
-            layer.use_text(
+            layer.use_text_builtin(
                 &deal_text,
                 HEADER_FONT_SIZE,
                 Mm(text_x),
@@ -378,7 +378,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             let label = "Ctr: ";
             let label_width = measurer.measure_width_mm(label, HEADER_FONT_SIZE);
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(label, HEADER_FONT_SIZE, Mm(text_x), Mm(header_y), self.font);
+            layer.use_text_builtin(label, HEADER_FONT_SIZE, Mm(text_x), Mm(header_y), self.font);
 
             // Render contract with colored suit symbol
             let contract_x = text_x + label_width;
@@ -394,7 +394,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         };
         let goal_width = measurer.measure_width_mm(goal_text, HEADER_FONT_SIZE);
         let goal_x = right_edge - goal_width;
-        layer.use_text(
+        layer.use_text_builtin(
             goal_text,
             HEADER_FONT_SIZE,
             Mm(goal_x),

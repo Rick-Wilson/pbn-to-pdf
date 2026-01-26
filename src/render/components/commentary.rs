@@ -1,6 +1,6 @@
 use crate::config::Settings;
 use crate::model::{CommentaryBlock, FormattedText, Suit, TextSpan};
-use printpdf::{Color, FontId, Mm};
+use printpdf::{BuiltinFont, Color, FontId, Mm};
 
 use crate::model::card::Rank;
 use crate::render::helpers::colors::{SuitColors, BLACK};
@@ -46,10 +46,10 @@ pub struct FloatRenderResult {
 
 /// Renderer for commentary text
 pub struct CommentaryRenderer<'a> {
-    font: &'a FontId,
-    bold_font: &'a FontId,
-    italic_font: &'a FontId,
-    bold_italic_font: &'a FontId,
+    font: BuiltinFont,
+    bold_font: BuiltinFont,
+    italic_font: BuiltinFont,
+    bold_italic_font: BuiltinFont,
     symbol_font: &'a FontId, // Font with Unicode suit symbols (DejaVu Sans)
     colors: SuitColors,
     settings: &'a Settings,
@@ -317,10 +317,10 @@ fn tokenize_spans(
 
 impl<'a> CommentaryRenderer<'a> {
     pub fn new(
-        font: &'a FontId,
-        bold_font: &'a FontId,
-        italic_font: &'a FontId,
-        bold_italic_font: &'a FontId,
+        font: BuiltinFont,
+        bold_font: BuiltinFont,
+        italic_font: BuiltinFont,
+        bold_italic_font: BuiltinFont,
         symbol_font: &'a FontId,
         settings: &'a Settings,
     ) -> Self {
@@ -623,7 +623,7 @@ impl<'a> CommentaryRenderer<'a> {
                             let width = measurer.measure_width_mm(txt, font_size);
 
                             layer.set_fill_color(Color::Rgb(BLACK));
-                            layer.use_text(txt, font_size, Mm(x), Mm(y), font);
+                            layer.use_text_builtin(txt, font_size, Mm(x), Mm(y), font);
                             x += width;
                         }
                         RenderFragment::SuitSymbol(suit) => {
@@ -650,7 +650,7 @@ impl<'a> CommentaryRenderer<'a> {
 
                             // Render rank in black
                             layer.set_fill_color(Color::Rgb(BLACK));
-                            layer.use_text(&rank_str, font_size, Mm(x), Mm(y), self.font);
+                            layer.use_text_builtin(&rank_str, font_size, Mm(x), Mm(y), self.font);
                             x += rank_width;
                         }
                     }
