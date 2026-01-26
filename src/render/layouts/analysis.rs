@@ -10,7 +10,7 @@ use crate::render::helpers::colors::{SuitColors, BLACK};
 use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
-use crate::render::helpers::text_metrics::get_measurer;
+use crate::render::helpers::text_metrics::get_times_measurer;
 
 /// Light gray color for debug boxes (component level)
 const DEBUG_BOX_COLOR: Rgb = Rgb {
@@ -131,7 +131,7 @@ impl DocumentRenderer {
         }
 
         let line_height = self.settings.line_height;
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
 
         // Count title lines
@@ -229,7 +229,7 @@ impl DocumentRenderer {
 
     /// Measure diagram height without rendering
     fn measure_diagram_height(&self, options: &DiagramDisplayOptions) -> f32 {
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let line_height = self.settings.line_height;
         let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
         let descender = measurer.descender_mm(self.settings.card_font_size);
@@ -279,7 +279,7 @@ impl DocumentRenderer {
         let line_height = self.settings.line_height;
 
         // Use the default measurer for estimation
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let base_space_width = measurer.measure_width_mm(" ", font_size);
 
         // Simple line counting based on text width
@@ -575,7 +575,7 @@ impl DocumentRenderer {
         let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
         let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
 
         let mut current_y: f32;
@@ -846,7 +846,7 @@ impl DocumentRenderer {
         let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
         let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
 
         // Start rendering from the top
@@ -1073,7 +1073,7 @@ impl DocumentRenderer {
         let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
         // Get font metrics for accurate box heights
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
         let descender = measurer.descender_mm(self.settings.body_font_size);
 
@@ -1347,7 +1347,7 @@ impl DocumentRenderer {
         symbol_font: &FontId,
         colors: &SuitColors,
     ) -> f32 {
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let font_size = self.settings.body_font_size;
         let mut current_x = x.0;
 
@@ -1409,7 +1409,7 @@ impl DocumentRenderer {
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
-        let measurer = get_measurer();
+        let measurer = get_times_measurer();
         let font_size = self.settings.body_font_size;
         let mut current_x = x.0;
 

@@ -6,7 +6,8 @@ use crate::model::card::Rank;
 use crate::render::helpers::colors::{SuitColors, BLACK};
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::{
-    get_measurer, get_sans_bold_measurer, get_serif_bold_measurer, get_serif_measurer, TextMeasurer,
+    get_helvetica_bold_measurer, get_helvetica_measurer, get_times_bold_measurer,
+    get_times_measurer, BuiltinFontMeasurer,
 };
 
 /// Check if a character is a Unicode suit symbol and return the corresponding Suit
@@ -131,9 +132,9 @@ fn is_rank_char(c: char) -> bool {
 fn tokenize_spans(
     spans: &[TextSpan],
     font_size: f32,
-    regular_measurer: &TextMeasurer,
-    bold_measurer: &TextMeasurer,
-    symbol_measurer: &TextMeasurer,
+    regular_measurer: &BuiltinFontMeasurer,
+    bold_measurer: &BuiltinFontMeasurer,
+    symbol_measurer: &BuiltinFontMeasurer,
 ) -> Vec<RenderToken> {
     let mut tokens: Vec<RenderToken> = Vec::new();
     let mut current_group: Vec<RenderFragment> = Vec::new();
@@ -345,20 +346,20 @@ impl<'a> CommentaryRenderer<'a> {
     }
 
     /// Get the appropriate text measurer for regular text
-    fn get_regular_measurer(&self) -> &'static TextMeasurer {
+    fn get_regular_measurer(&self) -> &'static BuiltinFontMeasurer {
         if self.use_sans_measurer {
-            get_measurer()
+            get_helvetica_measurer()
         } else {
-            get_serif_measurer()
+            get_times_measurer()
         }
     }
 
     /// Get the appropriate text measurer for bold text
-    fn get_bold_measurer(&self) -> &'static TextMeasurer {
+    fn get_bold_measurer(&self) -> &'static BuiltinFontMeasurer {
         if self.use_sans_measurer {
-            get_sans_bold_measurer()
+            get_helvetica_bold_measurer()
         } else {
-            get_serif_bold_measurer()
+            get_times_bold_measurer()
         }
     }
 
@@ -374,7 +375,7 @@ impl<'a> CommentaryRenderer<'a> {
 
         let regular_measurer = self.get_regular_measurer();
         let bold_measurer = self.get_bold_measurer();
-        let symbol_measurer = get_measurer();
+        let symbol_measurer = get_helvetica_measurer();
 
         let base_space_width = regular_measurer.measure_width_mm(" ", font_size);
 
@@ -485,7 +486,7 @@ impl<'a> CommentaryRenderer<'a> {
         // Symbol font (DejaVu Sans) always uses sans measurer
         let regular_measurer = self.get_regular_measurer();
         let bold_measurer = self.get_bold_measurer();
-        let symbol_measurer = get_measurer();
+        let symbol_measurer = get_helvetica_measurer();
 
         let base_space_width = regular_measurer.measure_width_mm(" ", font_size);
 

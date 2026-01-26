@@ -15,7 +15,7 @@ use crate::render::helpers::colors::{SuitColors, BLACK};
 use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
-use crate::render::helpers::text_metrics::get_measurer;
+use crate::render::helpers::text_metrics::get_helvetica_measurer;
 
 /// Border color for cells
 const BORDER_COLOR: Rgb = Rgb {
@@ -176,7 +176,7 @@ impl DealerSummaryRenderer {
         let font_size = FONT_SIZE;
         let line_height = font_size * LINE_HEIGHT_MULT * 0.352778; // Convert pt to mm
         let mut current_y = y;
-        let measurer = get_measurer(); // Sans-serif measurer for DejaVu Sans
+        let measurer = get_helvetica_measurer(); // Sans-serif measurer for Helvetica
 
         // Board number
         if let Some(ref board_id) = board.board_id {

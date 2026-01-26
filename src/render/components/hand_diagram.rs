@@ -119,7 +119,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Calculate hand height for a specific number of suits
     fn hand_height_for_suits(&self, num_suits: usize) -> f32 {
-        let measurer = text_metrics::get_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let line_height = self.settings.line_height;
         let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
         let descender = measurer.descender_mm(self.settings.card_font_size);
@@ -134,7 +134,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Calculate the actual width of a hand by measuring all suit lines
     fn actual_hand_width(&self, hand: &Hand) -> f32 {
-        let measurer = text_metrics::get_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let font_size = self.settings.card_font_size;
 
         SUITS_DISPLAY_ORDER
@@ -445,7 +445,7 @@ impl<'a> HandDiagramRenderer<'a> {
         suits_present: &[Suit],
         show_suit_symbol: bool,
     ) -> f32 {
-        let measurer = text_metrics::get_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let font_size = self.settings.card_font_size;
 
         suits_present
@@ -484,7 +484,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let (ox, oy) = origin;
         let line_height = self.settings.line_height;
 
-        let measurer = text_metrics::get_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
 
         let first_baseline = oy.0 - cap_height;
@@ -639,7 +639,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let line_height = self.settings.line_height;
 
         // Use actual font metrics to get cap-height
-        let measurer = text_metrics::get_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.card_font_size);
 
         // First baseline is below the top by cap-height
@@ -704,7 +704,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Calculate compass box size based on font metrics
     fn compass_box_size(&self) -> f32 {
-        let measurer = text_metrics::get_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let font_size = self.settings.compass_font_size;
 
         // Measure the widest letter (W is typically widest)
@@ -725,7 +725,7 @@ impl<'a> HandDiagramRenderer<'a> {
     /// Render compass rose with green filled box and white letters
     fn render_compass(&self, layer: &mut LayerBuilder, center: (Mm, Mm)) {
         let (cx, cy) = center;
-        let measurer = text_metrics::get_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let font_size = self.settings.compass_font_size;
 
         let box_size = self.compass_box_size();
@@ -817,7 +817,7 @@ impl<'a> HandDiagramRenderer<'a> {
         let west_hcp = deal.west.total_hcp();
 
         // Use bold measurer for HCP values
-        let bold_measurer = text_metrics::get_serif_bold_measurer();
+        let bold_measurer = text_metrics::get_times_bold_measurer();
 
         // N (top center)
         let n_text = format!("{}", north_hcp);

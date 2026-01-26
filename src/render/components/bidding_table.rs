@@ -51,11 +51,11 @@ impl<'a> BiddingTableRenderer<'a> {
     }
 
     /// Get the appropriate text measurer based on font type
-    fn get_measurer(&self) -> &'static text_metrics::TextMeasurer {
+    fn get_measurer(&self) -> &'static text_metrics::BuiltinFontMeasurer {
         if self.use_sans_measurer {
-            text_metrics::get_measurer()
+            text_metrics::get_helvetica_measurer()
         } else {
-            text_metrics::get_serif_measurer()
+            text_metrics::get_times_measurer()
         }
     }
 
@@ -531,9 +531,9 @@ impl<'a> BiddingTableRenderer<'a> {
             layer.use_text_builtin(text, self.settings.body_font_size, x, y, self.font);
         }
 
-        // Measure width (use sans for symbols, serif for NT)
+        // Measure width (use Helvetica for symbols, Times for NT)
         if use_symbol_font {
-            let sans_measurer = text_metrics::get_measurer();
+            let sans_measurer = text_metrics::get_helvetica_measurer();
             sans_measurer.measure_width_mm(text, self.settings.body_font_size)
         } else {
             measurer.measure_width_mm(text, self.settings.body_font_size)

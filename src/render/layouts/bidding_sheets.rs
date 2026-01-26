@@ -20,7 +20,7 @@ use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::{
-    get_measurer, get_sans_bold_measurer, get_serif_measurer, TextMeasure,
+    get_helvetica_bold_measurer, get_helvetica_measurer, get_times_measurer, TextMeasure,
 };
 
 /// Light gray color for debug boxes
@@ -519,8 +519,8 @@ impl BiddingSheetsRenderer {
         let margin_top = self.settings.margin_top;
         let page_top = self.settings.page_height - margin_top;
         let content_width = self.settings.content_width();
-        let measurer = get_measurer();
-        let sans_bold_measurer = get_sans_bold_measurer();
+        let measurer = get_helvetica_measurer();
+        let sans_bold_measurer = get_helvetica_bold_measurer();
 
         let text_font = fonts.serif.regular;
         let bold_font = fonts.serif.bold;
@@ -667,8 +667,8 @@ impl BiddingSheetsRenderer {
         let margin_top = self.settings.margin_top;
         let page_top = self.settings.page_height - margin_top;
         let content_width = self.settings.content_width();
-        let measurer = get_measurer();
-        let sans_bold_measurer = get_sans_bold_measurer();
+        let measurer = get_helvetica_measurer();
+        let sans_bold_measurer = get_helvetica_bold_measurer();
 
         let text_font = fonts.serif.regular;
         let bold_font = fonts.serif.bold;
@@ -930,7 +930,7 @@ impl BiddingSheetsRenderer {
     ) {
         let line_height = font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
         let mut current_y = y;
-        let measurer = get_measurer();
+        let measurer = get_helvetica_measurer();
 
         layer.set_fill_color(Color::Rgb(BLACK));
 
@@ -1076,7 +1076,7 @@ impl BiddingSheetsRenderer {
         colors: &SuitColors,
     ) {
         let line_height = font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
-        let measurer = get_measurer();
+        let measurer = get_helvetica_measurer();
         let mut current_y = y;
 
         let suits = [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
@@ -1268,10 +1268,10 @@ impl BiddingSheetsRenderer {
         symbol_font: &FontId,
         colors: &SuitColors,
     ) {
-        // Use serif measurer for text (matches text_font which is serif)
-        // and sans measurer for symbols (matches symbol_font which is sans)
-        let text_measurer = get_serif_measurer();
-        let symbol_measurer = get_measurer();
+        // Use Times measurer for text (matches text_font which is serif)
+        // and Helvetica measurer for symbols
+        let text_measurer = get_times_measurer();
+        let symbol_measurer = get_helvetica_measurer();
         let mut current_x = x;
 
         for segment in &text.segments {
@@ -1490,7 +1490,7 @@ impl BiddingSheetsRenderer {
         symbol_font: &FontId,
         colors: &SuitColors,
     ) -> f32 {
-        let measurer = get_measurer();
+        let measurer = get_helvetica_measurer();
 
         match call {
             Call::Pass => {

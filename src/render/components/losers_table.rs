@@ -189,7 +189,7 @@ impl<'a> LosersTableRenderer<'a> {
         ); // Right
 
         // Draw centered text
-        let measurer = text_metrics::get_serif_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let text_width = measurer.measure_width_mm(text, self.header_font_size);
         let text_x = x + (width - text_width) / 2.0;
         // Vertical center: baseline position accounts for font metrics (descender ~20% of font size)
@@ -231,7 +231,7 @@ impl<'a> LosersTableRenderer<'a> {
         // Draw row border
         self.draw_row_border_width(layer, x, y, width, 5);
 
-        let measurer = text_metrics::get_measurer(); // Sans for symbols
+        let measurer = text_metrics::get_helvetica_measurer(); // Sans for symbols
 
         for (i, (symbol, is_red)) in suits.iter().enumerate() {
             let cell_x = x + (i as f32 * self.col_width);
@@ -269,7 +269,7 @@ impl<'a> LosersTableRenderer<'a> {
         layer.set_outline_thickness(self.line_thickness);
         layer.add_line(Mm(total_x), Mm(y), Mm(total_x), Mm(y - self.row_height));
 
-        let measurer = text_metrics::get_serif_measurer();
+        let measurer = text_metrics::get_times_measurer();
         let text_width = measurer.measure_width_mm("Total", self.label_font_size);
         let text_x = total_x + (self.col_width - text_width) / 2.0;
         let text_y = y - self.row_height + (self.row_height - self.label_font_size * 0.35) / 2.0;
@@ -303,7 +303,7 @@ impl<'a> LosersTableRenderer<'a> {
         // Draw row border
         self.draw_row_border_width(layer, x, y, total_width, 4);
 
-        let measurer = text_metrics::get_serif_measurer();
+        let measurer = text_metrics::get_times_measurer();
 
         for (i, label) in labels.iter().enumerate() {
             let cell_x = x + (i as f32 * tech_col_width);

@@ -354,7 +354,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let header_y = oy - HEADER_HEIGHT + 2.0; // 2mm from bottom of header area
 
         layer.set_fill_color(Color::Rgb(BLACK));
-        let measurer = text_metrics::get_serif_measurer();
+        let measurer = text_metrics::get_times_measurer();
 
         // Left: "Deal #" followed by "Ctr: xx"
         let mut text_x = content_x;
@@ -446,7 +446,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         y: Mm,
     ) {
         // Use sans bold measurer for approximate width (close enough for single digit)
-        let measurer = text_metrics::get_sans_bold_measurer();
+        let measurer = text_metrics::get_helvetica_bold_measurer();
 
         // Determine if trump suit is red
         let is_red = trump.map(|t| t.is_red()).unwrap_or(false);

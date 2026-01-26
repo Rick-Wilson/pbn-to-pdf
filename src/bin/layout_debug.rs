@@ -2,33 +2,27 @@
 //! Run with: cargo run --bin layout_debug
 
 use pbn_to_pdf::config::Settings;
-use pbn_to_pdf::render::get_measurer;
+use pbn_to_pdf::render::get_times_measurer;
 use printpdf::{
-    Color, FontId, Line, LinePoint, Mm, Op, PaintMode, ParsedFont, PdfDocument, PdfFontHandle,
-    PdfPage, PdfSaveOptions, Point, Polygon, PolygonRing, Pt, Rgb, TextItem, WindingOrder,
+    BuiltinFont, Color, Line, LinePoint, Mm, Op, PaintMode, PdfDocument, PdfFontHandle, PdfPage,
+    PdfSaveOptions, Point, Polygon, PolygonRing, Pt, Rgb, TextItem, WindingOrder,
 };
 use std::fs::File;
 use std::io::BufWriter;
 
-// Font constants for embedded fonts
-const DEJAVU_SANS: &[u8] = include_bytes!("../../assets/fonts/DejaVuSans.ttf");
-
 fn main() {
     let settings = Settings::default();
 
-    // Get actual font metrics
-    let measurer = get_measurer();
+    // Get actual font metrics using builtin Times-Roman
+    let measurer = get_times_measurer();
     let font_size = settings.card_font_size; // 11pt
     let cap_height = measurer.cap_height_mm(font_size);
 
     // Create PDF
     let mut doc = PdfDocument::new("Layout Debug");
 
-    // Load font
-    let mut warnings = Vec::new();
-    let parsed_font =
-        ParsedFont::from_bytes(DEJAVU_SANS, 0, &mut warnings).expect("Failed to parse font");
-    let font = doc.add_font(&parsed_font);
+    // Use builtin font
+    let font = BuiltinFont::TimesRoman;
 
     // Layout constants (same as hand_diagram.rs)
     let margin = settings.margin;
@@ -214,7 +208,7 @@ fn main() {
     let north_first_baseline = north_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = north_first_baseline - (i as f32 * line_height);
-        add_text_ops(&mut ops, suit_text, font_size, north_x, y, &font);
+        add_text_ops(&mut ops, suit_text, font_size, north_x, y, font);
         add_baseline_marker_ops(&mut ops, north_x - 2.0, y, &gray);
     }
 
@@ -222,7 +216,7 @@ fn main() {
     let west_first_baseline = row2_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = west_first_baseline - (i as f32 * line_height);
-        add_text_ops(&mut ops, suit_text, font_size, west_x, y, &font);
+        add_text_ops(&mut ops, suit_text, font_size, west_x, y, font);
         add_baseline_marker_ops(&mut ops, west_x - 2.0, y, &gray);
     }
 
@@ -230,7 +224,7 @@ fn main() {
     let east_first_baseline = row2_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = east_first_baseline - (i as f32 * line_height);
-        add_text_ops(&mut ops, suit_text, font_size, east_x, y, &font);
+        add_text_ops(&mut ops, suit_text, font_size, east_x, y, font);
         add_baseline_marker_ops(&mut ops, east_x - 2.0, y, &gray);
     }
 
@@ -238,7 +232,7 @@ fn main() {
     let south_first_baseline = south_y - cap_height;
     for (i, suit_text) in suits.iter().enumerate() {
         let y = south_first_baseline - (i as f32 * line_height);
-        add_text_ops(&mut ops, suit_text, font_size, north_x, y, &font);
+        add_text_ops(&mut ops, suit_text, font_size, north_x, y, font);
         add_baseline_marker_ops(&mut ops, north_x - 2.0, y, &gray);
     }
 
@@ -302,7 +296,7 @@ fn add_rect_ops(ops: &mut Vec<Op>, x: f32, y: f32, w: f32, h: f32, color: &Rgb) 
     ops.push(Op::DrawPolygon { polygon });
 }
 
-fn add_text_ops(ops: &mut Vec<Op>, text: &str, font_size: f32, x: f32, y: f32, font: &FontId) {
+fn add_text_ops(ops: &mut Vec<Op>, text: &str, font_size: f32, x: f32, y: f32, font: BuiltinFont) {
     ops.push(Op::StartTextSection);
     ops.push(Op::SetTextCursor {
         pos: Point {
@@ -312,7 +306,7 @@ fn add_text_ops(ops: &mut Vec<Op>, text: &str, font_size: f32, x: f32, y: f32, f
     });
     ops.push(Op::SetFont {
         size: Pt(font_size),
-        font: PdfFontHandle::External(font.clone()),
+        font: PdfFontHandle::Builtin(font),
     });
     ops.push(Op::ShowText {
         items: vec![TextItem::Text(text.to_string())],

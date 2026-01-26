@@ -14,7 +14,8 @@ pub use fonts::{BuiltinFontSet, FontFamily, FontManager};
 pub use layer::LayerBuilder;
 pub use layout::LayoutEngine;
 pub use text_metrics::{
-    get_helvetica_bold_measurer, get_helvetica_measurer, get_measurer, get_times_bold_measurer,
-    get_times_measurer, BuiltinFontMeasurer, FontMetrics, TextMeasurer,
+    get_builtin_measurer, get_helvetica_bold_measurer, get_helvetica_measurer,
+    get_times_bold_measurer, get_times_italic_measurer, get_times_bold_italic_measurer,
+    get_times_measurer, BuiltinFontMeasurer, FontMetrics,
 };
 pub use compress::compress_pdf;
