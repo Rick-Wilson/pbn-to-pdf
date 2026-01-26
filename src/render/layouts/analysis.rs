@@ -1,6 +1,6 @@
 use crate::config::Settings;
 use crate::error::RenderError;
-use crate::model::{BidSuit, Board, DirectionExt};
+use crate::model::{BidSuit, Board};
 use printpdf::{Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
 use crate::render::components::bidding_table::BiddingTableRenderer;
@@ -11,11 +11,19 @@ use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::get_measurer;
 
-/// Light gray color for debug boxes
+/// Light gray color for debug boxes (component level)
 const DEBUG_BOX_COLOR: Rgb = Rgb {
     r: 0.7,
     g: 0.7,
     b: 0.7,
+    icc_profile: None,
+};
+
+/// Orange color for board-level debug boxes
+const DEBUG_BOARD_BOX_COLOR: Rgb = Rgb {
+    r: 1.0,
+    g: 0.5,
+    b: 0.0,
     icc_profile: None,
 };
 // Debug boxes are now controlled via settings.debug_boxes
@@ -125,10 +133,6 @@ impl DocumentRenderer {
         let measurer = get_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
 
-        // Extra spacing before title
-        let title_spacing = cap_height;
-        let mut height = cap_height + title_spacing; // Initial spacing from top
-
         // Count title lines
         let mut title_lines = 0;
         if visibility.show_board && board.board_id.is_some() {
@@ -141,49 +145,81 @@ impl DocumentRenderer {
             title_lines += 1;
         }
 
+        // Initial height depends on what content we have
+        let mut height: f32;
+
+        // In centered mode with commentary, commentary comes first and needs cap_height
+        let centered_with_commentary = self.settings.center && visibility.show_commentary;
+
         // Diagram height
         if visibility.show_diagram {
             let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
             let diagram_height = self.measure_diagram_height(&diagram_options);
 
             if diagram_options.hide_compass {
-                // North-only: cards on same line as title
-                height += diagram_height.max(title_lines as f32 * line_height);
+                // North-only: title and cards on same line, need cap_height for text ascenders
+                height = cap_height * 2.0 + diagram_height.max(title_lines as f32 * line_height);
+            } else if centered_with_commentary {
+                // Centered mode: commentary comes first, needs cap_height for text ascenders
+                height = cap_height + diagram_height;
             } else {
-                height += diagram_height;
+                // Full compass: diagram starts at top, no extra spacing needed
+                height = diagram_height;
             }
+        } else if title_lines > 0 {
+            // Title lines but no diagram: need cap_height for text ascenders + title spacing
+            height = cap_height * 2.0 + title_lines as f32 * line_height;
         } else {
-            // No diagram - just title lines
-            height += title_lines as f32 * line_height;
+            // Commentary-only: just cap_height for text ascenders
+            height = cap_height;
         }
 
         // Auction height
         if visibility.show_auction {
             if let Some(ref auction) = board.auction {
-                height += self.measure_auction_height(auction, &board.players) + 2.0;
+                height += self.measure_auction_height(auction, &board.players);
 
-                // Contract line
-                if auction.final_contract().is_some() {
+                let has_contract = auction.final_contract().is_some();
+                let has_lead = board
+                    .play
+                    .as_ref()
+                    .and_then(|p| p.tricks.first())
+                    .and_then(|t| t.cards[0])
+                    .is_some();
+                let has_more_below = visibility.show_commentary && !board.commentary.is_empty();
+
+                // Spacing after auction (only if there's contract or lead)
+                if has_contract || has_lead {
                     height += line_height;
                 }
 
-                // Opening lead line
-                if let Some(ref play) = board.play {
-                    if let Some(first_trick) = play.tricks.first() {
-                        if first_trick.cards[0].is_some() {
-                            height += line_height;
-                        }
+                // Contract line
+                if has_contract {
+                    // Only add spacing if there's more content below
+                    if has_lead || has_more_below {
+                        height += line_height;
                     }
                 }
 
-                height += 2.0; // Extra spacing after auction
+                // Opening lead line
+                if has_lead {
+                    // Only add spacing if there's more content below
+                    if has_more_below {
+                        height += line_height;
+                    }
+                }
             }
         }
 
         // Commentary height
         if visibility.show_commentary {
-            for block in &board.commentary {
-                height += self.measure_commentary_height(block, column_width) + line_height;
+            let block_count = board.commentary.len();
+            for (i, block) in board.commentary.iter().enumerate() {
+                height += self.measure_commentary_height(block, column_width);
+                // Add spacing between blocks, but not after the last one
+                if i < block_count - 1 {
+                    height += self.settings.line_height;
+                }
             }
         }
 
@@ -230,58 +266,8 @@ impl DocumentRenderer {
         auction: &crate::model::Auction,
         players: &crate::model::PlayerNames,
     ) -> f32 {
-        let row_height = self.settings.bid_row_height;
-        let calls = &auction.calls;
-
-        // Check if auction is passed out
-        let is_passed_out = calls.len() == 4
-            && calls
-                .iter()
-                .all(|a| a.call == crate::model::Call::Pass);
-
-        // Check for trailing passes
-        let trailing_passes = calls
-            .iter()
-            .rev()
-            .take_while(|a| a.call == crate::model::Call::Pass)
-            .count();
-        let show_all_pass = !is_passed_out && trailing_passes >= 3;
-        let calls_to_render = if is_passed_out || show_all_pass {
-            calls.len() - trailing_passes.min(calls.len())
-        } else {
-            calls.len()
-        };
-
-        let start_col = auction.dealer.table_position();
-        // Account for header row + optional player names row
-        let has_player_names = players.has_any();
-        let mut row = if has_player_names { 2 } else { 1 };
-        let mut col = start_col;
-
-        if is_passed_out {
-            row += 1;
-        } else {
-            for _ in calls.iter().take(calls_to_render) {
-                col += 1;
-                if col >= 4 {
-                    col = 0;
-                    row += 1;
-                }
-            }
-            if show_all_pass {
-                row += 1;
-            }
-        }
-
-        // Account for notes
-        if !auction.notes.is_empty() {
-            let note_font_size = self.settings.body_font_size * 0.85;
-            let note_line_height = note_font_size * 1.3 * 0.352778;
-            let notes_height = (auction.notes.len() as f32) * note_line_height;
-            row += (notes_height / row_height).ceil() as usize;
-        }
-
-        ((row + 1) as f32) * row_height
+        // Use the bidding table renderer's static measurement to ensure consistency
+        BiddingTableRenderer::measure_height_static(auction, Some(players), &self.settings)
     }
 
     /// Measure commentary height without rendering
@@ -458,7 +444,7 @@ impl DocumentRenderer {
 
                 // Draw horizontal separator if not at top
                 if left_board_count > 0 {
-                    let sep_y = left_y + 2.0;
+                    let sep_y = left_y + board_spacing / 2.0;
                     layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
                     layer.set_outline_thickness(SEPARATOR_THICKNESS);
                     layer.add_line(
@@ -476,6 +462,15 @@ impl DocumentRenderer {
                     margin_left,
                     left_y,
                     usable_column_width,
+                );
+
+                // Draw blue debug box around the whole board
+                self.draw_board_debug_box(
+                    &mut layer,
+                    margin_left,
+                    left_y,
+                    usable_column_width,
+                    rendered_height,
                 );
 
                 left_y -= rendered_height + board_spacing;
@@ -518,7 +513,7 @@ impl DocumentRenderer {
 
                     // Draw horizontal separator if not at top
                     if right_board_count > 0 {
-                        let sep_y = right_y + 2.0;
+                        let sep_y = right_y + board_spacing / 2.0;
                         layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
                         layer.set_outline_thickness(SEPARATOR_THICKNESS);
                         layer.add_line(
@@ -536,6 +531,15 @@ impl DocumentRenderer {
                         center_x + gutter / 2.0,
                         right_y,
                         usable_column_width,
+                    );
+
+                    // Draw blue debug box around the whole board
+                    self.draw_board_debug_box(
+                        &mut layer,
+                        center_x + gutter / 2.0,
+                        right_y,
+                        usable_column_width,
+                        rendered_height,
                     );
 
                     right_y -= rendered_height + board_spacing;
@@ -607,10 +611,9 @@ impl DocumentRenderer {
 
         // Build and render title lines (Deal #, Dealer, Vulnerability)
         let font_size = self.settings.body_font_size;
-        // Extra spacing before title (between separator line and title)
-        let title_spacing = cap_height;
-        // Title baseline: move down by title_spacing to create gap after separator
-        let first_baseline = start_y - cap_height - title_spacing;
+
+        // Title baseline: cap_height below start_y so text top aligns with start_y
+        let first_baseline = start_y - cap_height;
         let mut title_line = 0;
 
         layer.set_fill_color(Color::Rgb(BLACK));
@@ -686,6 +689,9 @@ impl DocumentRenderer {
                 &diagram_options,
             );
 
+            // Debug box for diagram
+            self.draw_debug_box(layer, diagram_x, diagram_y, column_width, diagram_height);
+
             current_y = diagram_y - diagram_height;
         } else {
             // No diagram - content starts below title lines
@@ -702,13 +708,42 @@ impl DocumentRenderer {
                     &fonts.sans.regular,
                     &self.settings,
                 );
+                // Calculate actual table width for centering
+                let num_cols = if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
+                    2
+                } else {
+                    4
+                };
+                let table_width = num_cols as f32 * self.settings.bid_column_width;
+
+                // Center the auction table within the column
+                let table_x = column_x + (column_width - table_width) / 2.0;
+
                 let table_height = bidding_renderer.render_with_players(
                     layer,
                     auction,
-                    (Mm(column_x), Mm(current_y)),
+                    (Mm(table_x), Mm(current_y)),
                     Some(&board.players),
                 );
-                current_y -= table_height + 2.0;
+
+                // Debug box for bidding table
+                self.draw_debug_box(layer, table_x, current_y, table_width, table_height);
+
+                current_y -= table_height;
+
+                let has_contract = auction.final_contract().is_some();
+                let has_lead = board
+                    .play
+                    .as_ref()
+                    .and_then(|p| p.tricks.first())
+                    .and_then(|t| t.cards[0])
+                    .is_some();
+                let has_more_below = show_commentary && !board.commentary.is_empty();
+
+                // Add spacing after auction before contract/lead (only if there's contract or lead)
+                if has_contract || has_lead {
+                    current_y -= line_height;
+                }
 
                 // Render contract
                 if let Some(contract) = auction.final_contract() {
@@ -723,7 +758,10 @@ impl DocumentRenderer {
                         &fonts.sans.regular,
                         &colors,
                     );
-                    current_y -= line_height;
+                    // Only add spacing if there's more content below
+                    if has_lead || has_more_below {
+                        current_y -= line_height;
+                    }
                 }
 
                 // Render opening lead
@@ -741,12 +779,13 @@ impl DocumentRenderer {
                                 &fonts.sans.regular,
                                 &colors,
                             );
-                            current_y -= line_height;
+                            // Only add spacing if there's more content below
+                            if has_more_below {
+                                current_y -= line_height;
+                            }
                         }
                     }
                 }
-
-                current_y -= 2.0;
             }
         }
 
@@ -761,10 +800,20 @@ impl DocumentRenderer {
                 &self.settings,
             );
 
-            for block in &board.commentary {
+            let block_count = board.commentary.len();
+            for (i, block) in board.commentary.iter().enumerate() {
+                let block_start_y = current_y;
                 let height =
                     commentary_renderer.render(layer, block, (Mm(column_x), Mm(current_y)), column_width);
-                current_y -= height + line_height;
+
+                // Debug box for commentary block
+                self.draw_debug_box(layer, column_x, block_start_y, column_width, height);
+
+                current_y -= height;
+                // Add spacing between blocks, but not after the last one
+                if i < block_count - 1 {
+                    current_y -= line_height;
+                }
             }
         }
 
@@ -798,8 +847,9 @@ impl DocumentRenderer {
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
 
         // Start rendering from the top
-        let title_spacing = cap_height;
-        let mut current_y = start_y - cap_height - title_spacing;
+        // In centered layout, commentary comes first, so we just need cap_height
+        // for text ascenders (title is rendered after diagram, not at top)
+        let mut current_y = start_y - cap_height;
 
         // In Center layout: render commentary FIRST
         if show_commentary {
@@ -812,14 +862,21 @@ impl DocumentRenderer {
                 &self.settings,
             );
 
-            for block in &board.commentary {
+            let block_count = board.commentary.len();
+            for (i, block) in board.commentary.iter().enumerate() {
+                let block_start_y = current_y;
                 let height = commentary_renderer.render(
                     layer,
                     block,
                     (Mm(column_x), Mm(current_y)),
                     column_width,
                 );
-                current_y -= height + line_height;
+                self.draw_debug_box(layer, column_x, block_start_y, column_width, height);
+                current_y -= height;
+                // Add spacing between blocks, but not after the last one
+                if i < block_count - 1 {
+                    current_y -= line_height;
+                }
             }
         }
 
@@ -857,6 +914,9 @@ impl DocumentRenderer {
                 (Mm(diagram_x), Mm(diagram_y)),
                 &diagram_options,
             );
+
+            // Debug box for diagram
+            self.draw_debug_box(layer, diagram_x, diagram_y, diagram_width, diagram_height);
 
             current_y -= diagram_height + 2.0;
         }
@@ -926,6 +986,10 @@ impl DocumentRenderer {
                     (Mm(table_x), Mm(current_y)),
                     Some(&board.players),
                 );
+
+                // Debug box for bidding table
+                self.draw_debug_box(layer, table_x, current_y, table_width, table_height);
+
                 current_y -= table_height + 2.0;
 
                 // Render contract centered
@@ -971,7 +1035,7 @@ impl DocumentRenderer {
         start_y - current_y
     }
 
-    /// Draw a debug outline box
+    /// Draw a debug outline box (gray, for components)
     fn draw_debug_box(&self, layer: &mut LayerBuilder, x: f32, y: f32, w: f32, h: f32) {
         if !self.settings.debug_boxes {
             return;
@@ -979,6 +1043,17 @@ impl DocumentRenderer {
         // y is top of box, draw from bottom-left to top-right
         layer.set_outline_color(Color::Rgb(DEBUG_BOX_COLOR));
         layer.set_outline_thickness(0.25);
+        layer.add_rect(Mm(x), Mm(y - h), Mm(x + w), Mm(y), PaintMode::Stroke);
+    }
+
+    /// Draw a board-level debug outline box (blue, for whole boards)
+    fn draw_board_debug_box(&self, layer: &mut LayerBuilder, x: f32, y: f32, w: f32, h: f32) {
+        if !self.settings.debug_boxes {
+            return;
+        }
+        // y is top of box, draw from bottom-left to top-right
+        layer.set_outline_color(Color::Rgb(DEBUG_BOARD_BOX_COLOR));
+        layer.set_outline_thickness(0.5);
         layer.add_rect(Mm(x), Mm(y - h), Mm(x + w), Mm(y), PaintMode::Stroke);
     }
 

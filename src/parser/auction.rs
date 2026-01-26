@@ -248,4 +248,32 @@ mod tests {
         assert!(!contract.doubled);
         assert!(contract.redoubled);
     }
+
+    #[test]
+    fn test_blank_parsing() {
+        // Single blank (fill-in-the-blank exercise)
+        let auction = parse_auction(Direction::North, "_____").unwrap();
+        assert_eq!(auction.calls.len(), 1);
+        assert_eq!(auction.calls[0].call, Call::Blank);
+    }
+
+    #[test]
+    fn test_blank_uncontested_pair() {
+        // Board 1-1 from Stayman exercises: North deals, auction is just "_____"
+        // This should be detected as N-S being the "bidding" side for 2-column display
+        let auction = parse_auction(Direction::North, "_____").unwrap();
+        let pair = auction.uncontested_pair();
+        assert_eq!(pair, Some((Direction::North, Direction::South)));
+    }
+
+    #[test]
+    fn test_blank_with_bids() {
+        // Auction with bids followed by blank
+        let auction = parse_auction(Direction::North, "1NT Pass 2C Pass 2H Pass ____").unwrap();
+        assert_eq!(auction.calls.len(), 7);
+        assert_eq!(auction.calls[6].call, Call::Blank);
+        // N-S bid, E-W only pass - should be uncontested N-S
+        let pair = auction.uncontested_pair();
+        assert_eq!(pair, Some((Direction::North, Direction::South)));
+    }
 }

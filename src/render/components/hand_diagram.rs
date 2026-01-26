@@ -1,5 +1,5 @@
 use crate::config::Settings;
-use crate::model::{Deal, Hand, HiddenHands, Suit, SUITS_DISPLAY_ORDER};
+use crate::model::{Deal, Direction, Hand, HiddenHands, Suit, SUITS_DISPLAY_ORDER};
 use printpdf::{Color, FontId, Mm, PaintMode, Rgb};
 
 use crate::render::helpers::colors::{self, SuitColors};
@@ -20,8 +20,10 @@ const DEBUG_BOX_COLOR: Rgb = Rgb {
 pub struct DiagramDisplayOptions {
     /// Which hands are hidden (from [Hidden] PBN tag)
     pub hidden: HiddenHands,
-    /// Hide the compass box (implied when only North is visible)
+    /// Hide the compass box (implied when only one hand is visible)
     pub hide_compass: bool,
+    /// Which single hand is visible (when hide_compass is true)
+    pub single_visible_hand: Option<Direction>,
     /// Deal is a fragment (not all 4 suits present)
     pub is_fragment: bool,
     /// Which suits are present in the deal (for fragments)
@@ -36,13 +38,32 @@ impl DiagramDisplayOptions {
     pub fn from_deal(deal: &Deal, hidden: &HiddenHands) -> Self {
         let suits_present = deal.suits_present();
         let is_fragment = suits_present.len() < 4;
-        // Hide compass when only North is visible (E/S/W all hidden)
-        let only_north_visible = !hidden.north && hidden.east && hidden.south && hidden.west;
+
+        // Determine which hands are visible
+        let visible: Vec<Direction> = [
+            (!hidden.north, Direction::North),
+            (!hidden.east, Direction::East),
+            (!hidden.south, Direction::South),
+            (!hidden.west, Direction::West),
+        ]
+        .iter()
+        .filter(|(v, _)| *v)
+        .map(|(_, d)| *d)
+        .collect();
+
+        // Hide compass when only one hand is visible
+        let hide_compass = visible.len() == 1;
+        let single_visible_hand = if hide_compass {
+            visible.first().copied()
+        } else {
+            None
+        };
         let show_suit_symbols = suits_present.len() > 1;
 
         Self {
             hidden: *hidden,
-            hide_compass: only_north_visible,
+            hide_compass,
+            single_visible_hand,
             is_fragment,
             suits_present,
             show_suit_symbols,
@@ -224,9 +245,9 @@ impl<'a> HandDiagramRenderer<'a> {
             return self.render_deal_fragment_with_options(layer, deal, origin, options);
         }
 
-        // Render without compass if compass is hidden
+        // Render without compass if compass is hidden (single hand visible)
         if options.hide_compass {
-            return self.render_north_only(layer, deal, origin);
+            return self.render_single_hand(layer, deal, origin, options);
         }
 
         // Layout constants for full deals
@@ -309,9 +330,9 @@ impl<'a> HandDiagramRenderer<'a> {
         origin: (Mm, Mm),
         options: &DiagramDisplayOptions,
     ) -> f32 {
-        // Render without compass if compass is hidden
+        // Render without compass if compass is hidden (single hand visible)
         if options.hide_compass {
-            return self.render_north_only_fragment(layer, deal, origin, &options.suits_present);
+            return self.render_single_hand_fragment(layer, deal, origin, options);
         }
 
         let (ox, oy) = origin;
@@ -509,15 +530,30 @@ impl<'a> HandDiagramRenderer<'a> {
         );
     }
 
-    /// Render only North's hand without compass (when E/S/W are hidden)
-    /// Used for full deals with only North visible
+    /// Render a single hand without compass (when only one hand is visible)
+    /// Used for full deals with only one hand visible (any direction)
     /// Cards are centered at the compass center position
-    fn render_north_only(&self, layer: &mut LayerBuilder, deal: &Deal, origin: (Mm, Mm)) -> f32 {
+    fn render_single_hand(
+        &self,
+        layer: &mut LayerBuilder,
+        deal: &Deal,
+        origin: (Mm, Mm),
+        options: &DiagramDisplayOptions,
+    ) -> f32 {
         let (ox, oy) = origin;
         let hand_w = self.settings.hand_width;
         let hand_h = self.actual_hand_height();
         let compass_size = self.compass_box_size();
-        let north_w = self.actual_hand_width(&deal.north);
+
+        // Get the visible hand based on which direction is visible
+        let hand = match options.single_visible_hand {
+            Some(Direction::North) => &deal.north,
+            Some(Direction::East) => &deal.east,
+            Some(Direction::South) => &deal.south,
+            Some(Direction::West) => &deal.west,
+            None => &deal.north, // Fallback (shouldn't happen)
+        };
+        let hand_width = self.actual_hand_width(hand);
 
         // Calculate compass center (same formula as in render_deal_with_hidden)
         let north_base_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
@@ -526,32 +562,42 @@ impl<'a> HandDiagramRenderer<'a> {
         let compass_center_x = north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
 
         // Center the cards at the compass center position
-        let north_x = compass_center_x - north_w / 2.0;
+        let hand_x = compass_center_x - hand_width / 2.0;
 
-        self.draw_debug_box(layer, north_x, oy.0, north_w, hand_h);
-        self.render_hand_cards(layer, &deal.north, (Mm(north_x), oy));
+        self.draw_debug_box(layer, hand_x, oy.0, hand_width, hand_h);
+        self.render_hand_cards(layer, hand, (Mm(hand_x), oy));
 
         // Return just the height used - layout handles spacing
         hand_h
     }
 
-    /// Render only North's hand without compass (when E/S/W are hidden) for fragments
-    /// Used for fragment deals with only North visible
+    /// Render a single hand without compass for fragments (when only one hand is visible)
+    /// Used for fragment deals with only one hand visible (any direction)
     /// Cards are centered at the compass center position
-    fn render_north_only_fragment(
+    fn render_single_hand_fragment(
         &self,
         layer: &mut LayerBuilder,
         deal: &Deal,
         origin: (Mm, Mm),
-        suits_present: &[Suit],
+        options: &DiagramDisplayOptions,
     ) -> f32 {
         let (ox, oy) = origin;
         let hand_w = self.settings.hand_width;
         let compass_size = self.compass_box_size();
+        let suits_present = &options.suits_present;
         let num_suits = suits_present.len();
         let show_suit_symbol = num_suits > 1;
         let hand_h = self.hand_height_for_suits(num_suits);
-        let north_w = self.actual_fragment_width(&deal.north, suits_present, show_suit_symbol);
+
+        // Get the visible hand based on which direction is visible
+        let hand = match options.single_visible_hand {
+            Some(Direction::North) => &deal.north,
+            Some(Direction::East) => &deal.east,
+            Some(Direction::South) => &deal.south,
+            Some(Direction::West) => &deal.west,
+            None => &deal.north, // Fallback (shouldn't happen)
+        };
+        let hand_width = self.actual_fragment_width(hand, suits_present, show_suit_symbol);
 
         // Calculate compass center (same formula as in render_deal_fragment)
         let north_base_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
@@ -560,13 +606,13 @@ impl<'a> HandDiagramRenderer<'a> {
         let compass_center_x = north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
 
         // Center the cards at the compass center position
-        let north_x = compass_center_x - north_w / 2.0;
+        let hand_x = compass_center_x - hand_width / 2.0;
 
-        self.draw_debug_box(layer, north_x, oy.0, north_w, hand_h);
+        self.draw_debug_box(layer, hand_x, oy.0, hand_width, hand_h);
         self.render_fragment_hand(
             layer,
-            &deal.north,
-            (Mm(north_x), oy),
+            hand,
+            (Mm(hand_x), oy),
             suits_present,
             show_suit_symbol,
         );

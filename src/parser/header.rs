@@ -451,6 +451,33 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_bc_options_two_col_auctions() {
+        // Test from Stayman exercises file
+        let directive = parse_header_line(
+            "%BCOptions Center GutterH GutterV Justify NoHRStats PageHeader STBorder STShade TwoColAuctions",
+        )
+        .unwrap();
+        match directive {
+            HeaderDirective::BCOptions(opts) => {
+                assert!(opts.justify, "Expected Justify to be true");
+                assert!(opts.center, "Expected Center to be true");
+                assert!(opts.two_col_auctions, "Expected TwoColAuctions to be true");
+            }
+            _ => panic!("Expected BCOptions directive"),
+        }
+    }
+
+    #[test]
+    fn test_parse_headers_two_col_auctions() {
+        let lines = vec!["%BCOptions TwoColAuctions"];
+        let metadata = parse_headers(&lines);
+        assert!(
+            metadata.layout.two_col_auctions,
+            "Expected two_col_auctions to be true in metadata"
+        );
+    }
+
+    #[test]
     fn test_parse_translate_board_label() {
         let directive = parse_header_line("%Translate \"Board %\" \"%)\"").unwrap();
         match directive {

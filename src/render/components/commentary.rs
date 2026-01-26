@@ -431,9 +431,10 @@ impl<'a> CommentaryRenderer<'a> {
             line_count += 1;
         }
 
-        // Return total height: line_count * line_height
-        // Adjust for the extra line_height similar to render method
-        (line_count as f32) * line_height
+        // Return total height: line_count * line_height, minus the extra spacing after last line
+        // We only need descender space after the last line, not full line_height
+        let descender_allowance = line_height * 0.3;
+        (line_count as f32) * line_height - (line_height - descender_allowance)
     }
 
     /// Render a commentary block and return the height used
@@ -661,11 +662,12 @@ impl<'a> CommentaryRenderer<'a> {
         }
 
         // Return total height used and final Y position
-        // Adjust for the extra line_height we subtracted after the last line
-        let final_y = y + line_height;
+        // Adjust for the last line: we don't need full line_height spacing after it,
+        // just enough for the text descenders. Add back partial line_height.
+        let descender_allowance = line_height * 0.3; // Approximate descender space
         FloatRenderResult {
-            height: oy.0 - final_y,
-            final_y,
+            height: oy.0 - y - (line_height - descender_allowance),
+            final_y: y + (line_height - descender_allowance),
         }
     }
 }

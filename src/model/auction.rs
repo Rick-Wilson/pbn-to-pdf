@@ -110,7 +110,7 @@ impl Auction {
                     doubled = false;
                     redoubled = true;
                 }
-                Call::Pass | Call::Continue => {}
+                Call::Pass | Call::Continue | Call::Blank => {}
             }
             current_player = current_player.next();
         }

@@ -1212,7 +1212,7 @@ impl BiddingSheetsRenderer {
                         )));
                         found_opp_bid = true;
                     }
-                    Call::Pass | Call::Continue => {}
+                    Call::Pass | Call::Continue | Call::Blank => {}
                 }
             } else {
                 // Track N/S bids for "doubles X" context
@@ -1544,6 +1544,17 @@ impl BiddingSheetsRenderer {
                 layer.set_fill_color(Color::Rgb(BLACK));
                 layer.use_text("?", font_size, Mm(x), Mm(y), text_font);
                 measurer.measure_width_mm("?", font_size)
+            }
+            Call::Blank => {
+                // Underscore sequences become a horizontal line for fill-in exercises
+                let line_width = 8.0; // mm
+                let line_thickness = 0.3; // mm
+                let baseline_offset = font_size * 0.08 * 0.352778; // Slightly below baseline
+
+                layer.set_outline_color(Color::Rgb(BLACK));
+                layer.set_outline_thickness(line_thickness);
+                layer.add_line(Mm(x), Mm(y - baseline_offset), Mm(x + line_width), Mm(y - baseline_offset));
+                line_width
             }
         }
     }

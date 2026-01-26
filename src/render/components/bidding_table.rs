@@ -70,17 +70,18 @@ impl<'a> BiddingTableRenderer<'a> {
         auction: &Auction,
         players: Option<&PlayerNames>,
     ) -> f32 {
-        self.measure_height_with_options(auction, players, self.settings.two_col_auctions)
+        Self::measure_height_static(auction, players, self.settings)
     }
 
-    /// Calculate the height of the bidding table with all options
-    pub fn measure_height_with_options(
-        &self,
+    /// Calculate the height of the bidding table with all options (static version)
+    /// This can be called without creating a renderer instance, useful for layout measurement
+    pub fn measure_height_static(
         auction: &Auction,
         players: Option<&PlayerNames>,
-        two_col_auctions: bool,
+        settings: &Settings,
     ) -> f32 {
-        let row_height = self.settings.bid_row_height;
+        let row_height = settings.bid_row_height;
+        let two_col_auctions = settings.two_col_auctions;
 
         let calls = &auction.calls;
 
@@ -131,8 +132,12 @@ impl<'a> BiddingTableRenderer<'a> {
                 current_player = current_player.next();
             }
 
+            // "All Pass" goes on next row after content
             if show_all_pass {
-                row += 1;
+                if col > 0 {
+                    row += 1; // Move past partial row
+                }
+                row += 1; // Row for "All Pass"
             }
         } else {
             // Standard 4-column mode: count rows for regular calls
@@ -147,28 +152,26 @@ impl<'a> BiddingTableRenderer<'a> {
                 }
             }
 
-            // Account for "All Pass" row
+            // "All Pass" goes on next row after content
             if show_all_pass {
-                row += 1;
+                if col > 0 {
+                    row += 1; // Move past partial row
+                }
+                row += 1; // Row for "All Pass"
             }
         }
 
         // Account for notes
         if !auction.notes.is_empty() {
-            let notes_height = self.measure_notes_height(auction);
+            let note_font_size = settings.body_font_size * 0.85;
+            let note_line_height = note_font_size * 1.3 * 0.352778; // Convert pt to mm
+            let notes_height = (auction.notes.len() as f32) * note_line_height;
             row += (notes_height / row_height).ceil() as usize;
         }
 
         // Return total height used
-        ((row + 1) as f32) * row_height
-    }
-
-    /// Calculate the height of notes without rendering
-    fn measure_notes_height(&self, auction: &Auction) -> f32 {
-        let note_font_size = self.settings.body_font_size * 0.85;
-        let line_height = note_font_size * 1.3 * 0.352778; // Convert pt to mm
-        let num_notes = auction.notes.len();
-        (num_notes as f32) * line_height
+        // Row counts the number of row slots used
+        row as f32 * row_height
     }
 
     /// Render the bidding table and return the height used
@@ -331,9 +334,13 @@ impl<'a> BiddingTableRenderer<'a> {
                 current_player = current_player.next();
             }
 
-            // Render "All Pass" or "?" for incomplete
+            // Render "All Pass" on next row if needed
             if show_all_pass {
-                let x = ox.0 + (col as f32 * col_width);
+                // Move to next row if current row has content
+                if col > 0 {
+                    row += 1;
+                }
+                let x = ox.0;
                 let y = oy.0 - (row as f32 * row_height);
 
                 layer.set_fill_color(Color::Rgb(BLACK));
@@ -365,9 +372,13 @@ impl<'a> BiddingTableRenderer<'a> {
                 }
             }
 
-            // Render "All Pass" in place of trailing passes
+            // Render "All Pass" on next row if needed
             if show_all_pass {
-                let x = ox.0 + (col as f32 * col_width);
+                // Move to next row if current row has content
+                if col > 0 {
+                    row += 1;
+                }
+                let x = ox.0;
                 let y = oy.0 - (row as f32 * row_height);
 
                 layer.set_fill_color(Color::Rgb(BLACK));
@@ -390,7 +401,8 @@ impl<'a> BiddingTableRenderer<'a> {
         }
 
         // Return total height used
-        ((row + 1) as f32) * row_height
+        // Row counts the number of row positions used (0 through row-1)
+        row as f32 * row_height
     }
 
     /// Render an annotated call (call with optional superscript annotation)
@@ -452,6 +464,18 @@ impl<'a> BiddingTableRenderer<'a> {
                 layer.set_fill_color(Color::Rgb(BLACK));
                 layer.use_text("?", self.settings.body_font_size, x, y, self.font);
                 measurer.measure_width_mm("?", self.settings.body_font_size)
+            }
+            Call::Blank => {
+                // Underscore sequences in PBN become a horizontal line for students to write answers
+                // Draw a line approximately 8mm wide at the text baseline
+                let line_width = 8.0; // mm
+                let line_thickness = 0.3; // mm
+                let baseline_offset = self.settings.body_font_size * 0.08 * 0.352778; // Slightly below baseline
+
+                layer.set_outline_color(Color::Rgb(BLACK));
+                layer.set_outline_thickness(line_thickness);
+                layer.add_line(x, Mm(y.0 - baseline_offset), Mm(x.0 + line_width), Mm(y.0 - baseline_offset));
+                line_width
             }
         }
     }

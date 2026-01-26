@@ -1473,3 +1473,64 @@ fn test_declarers_plan_with_length_winners() {
         output_path
     );
 }
+
+#[test]
+fn test_two_col_auctions_stayman_exercises() {
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    let input_file = fixtures_path().join("ABS4-1 Stayman exercises.pbn");
+    let pbn_content = fs::read_to_string(&input_file).expect("Failed to read PBN file");
+    let pbn_file = parse_pbn(&pbn_content).expect("Failed to parse PBN file");
+
+    // Verify that two_col_auctions was detected from metadata
+    assert!(
+        pbn_file.metadata.layout.two_col_auctions,
+        "Expected two_col_auctions to be true from %BCOptions TwoColAuctions"
+    );
+
+    // Create settings and verify two_col_auctions is set
+    let settings = Settings::default().with_metadata(&pbn_file.metadata);
+    assert!(
+        settings.two_col_auctions,
+        "Expected settings.two_col_auctions to be true"
+    );
+
+    // Verify the first board with an auction has the blank call
+    let board_1_1 = pbn_file
+        .boards
+        .iter()
+        .find(|b| b.board_id.as_deref() == Some("1-1"))
+        .expect("Board 1-1 not found");
+
+    let auction = board_1_1.auction.as_ref().expect("Board 1-1 should have auction");
+    assert_eq!(auction.calls.len(), 1, "Board 1-1 should have 1 call (blank)");
+    assert_eq!(
+        auction.calls[0].call,
+        pbn_to_pdf::model::Call::Blank,
+        "Board 1-1's call should be Blank"
+    );
+
+    // Verify uncontested_pair detects N-S as bidding side
+    let pair = auction.uncontested_pair();
+    assert_eq!(
+        pair,
+        Some((Direction::North, Direction::South)),
+        "Should detect N-S as bidding side for blank call"
+    );
+
+    // Generate PDF
+    let pdf_bytes = generate_pdf(&pbn_file.boards, &settings).expect("Failed to generate PDF");
+
+    // PDF should be non-empty and valid
+    assert!(!pdf_bytes.is_empty());
+    assert!(pdf_bytes.starts_with(b"%PDF"));
+
+    // Write to output for visual verification
+    let output_file = output_dir.join("stayman_exercises_test.pdf");
+    fs::write(&output_file, &pdf_bytes).expect("Failed to write test PDF");
+    println!(
+        "Stayman exercises PDF written to: {:?}",
+        output_file
+    );
+}

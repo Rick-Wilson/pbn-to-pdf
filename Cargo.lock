@@ -288,7 +288,6 @@ dependencies = [
 [[package]]
 name = "bridge-types"
 version = "0.1.0"
-source = "git+https://github.com/Rick-Wilson/bridge-types#de90796d91d701d1e58ad26f8f98f203df0d60e3"
 
 [[package]]
 name = "brotli-decompressor"
@@ -2747,3 +2746,15 @@ checksum = "ea2db9186c0a6ad1aa7012046f3fadc8db9001691b367c510f5867f17f975752"
 dependencies = [
  "zune-core 0.5.1",
 ]
+
+[[patch.unused]]
+name = "bridge-parsers"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "bridge-solver"
+version = "0.4.0"
+
+[[patch.unused]]
+name = "bridge-encodings"
+version = "0.1.0"
