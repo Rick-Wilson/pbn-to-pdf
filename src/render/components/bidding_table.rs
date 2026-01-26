@@ -246,7 +246,14 @@ impl<'a> BiddingTableRenderer<'a> {
         origin: (Mm, Mm),
         players: Option<&PlayerNames>,
     ) -> f32 {
-        self.render_with_options(layer, auction, origin, players, self.settings.two_col_auctions, None)
+        self.render_with_options(
+            layer,
+            auction,
+            origin,
+            players,
+            self.settings.two_col_auctions,
+            None,
+        )
     }
 
     /// Render the bidding table with optional player names and notes max width
@@ -258,7 +265,14 @@ impl<'a> BiddingTableRenderer<'a> {
         players: Option<&PlayerNames>,
         notes_max_width: Option<f32>,
     ) -> f32 {
-        self.render_with_options(layer, auction, origin, players, self.settings.two_col_auctions, notes_max_width)
+        self.render_with_options(
+            layer,
+            auction,
+            origin,
+            players,
+            self.settings.two_col_auctions,
+            notes_max_width,
+        )
     }
 
     /// Render the bidding table with all options
@@ -286,8 +300,7 @@ impl<'a> BiddingTableRenderer<'a> {
         layer.set_fill_color(Color::Rgb(BLACK));
 
         // Choose which directions to show in header
-        let directions: &[Direction] = if let Some((d1, _d2)) = uncontested_pair
-        {
+        let directions: &[Direction] = if let Some((d1, _d2)) = uncontested_pair {
             // Two-column mode: show only the bidding pair
             static WE: [Direction; 2] = [Direction::West, Direction::East];
             static NS: [Direction; 2] = [Direction::North, Direction::South];
@@ -371,7 +384,11 @@ impl<'a> BiddingTableRenderer<'a> {
         // Handle passed out auction
         if is_passed_out {
             // In two-column mode, show "Passed Out" at column 0
-            let col = if uncontested_pair.is_some() { 0 } else { auction.dealer.table_position() };
+            let col = if uncontested_pair.is_some() {
+                0
+            } else {
+                auction.dealer.table_position()
+            };
             let x = ox.0 + (col as f32 * col_width);
             let y = oy.0 - (row as f32 * row_height);
 
@@ -481,8 +498,12 @@ impl<'a> BiddingTableRenderer<'a> {
 
         // Render notes if present
         if !auction.notes.is_empty() {
-            let notes_height =
-                self.render_notes(layer, auction, (ox, Mm(oy.0 - (row as f32 * row_height))), notes_max_width);
+            let notes_height = self.render_notes(
+                layer,
+                auction,
+                (ox, Mm(oy.0 - (row as f32 * row_height))),
+                notes_max_width,
+            );
             row += (notes_height / row_height).ceil() as usize;
         }
 
@@ -532,7 +553,10 @@ impl<'a> BiddingTableRenderer<'a> {
                 layer.use_text_builtin("Rdbl", self.settings.body_font_size, x, y, self.font);
                 measurer.measure_width_mm("Rdbl", self.settings.body_font_size)
             }
-            Call::Bid { level, strain: suit } => {
+            Call::Bid {
+                level,
+                strain: suit,
+            } => {
                 // Render level
                 layer.set_fill_color(Color::Rgb(BLACK));
                 let level_str = level.to_string();
@@ -560,7 +584,12 @@ impl<'a> BiddingTableRenderer<'a> {
 
                 layer.set_outline_color(Color::Rgb(BLACK));
                 layer.set_outline_thickness(line_thickness);
-                layer.add_line(x, Mm(y.0 - baseline_offset), Mm(x.0 + line_width), Mm(y.0 - baseline_offset));
+                layer.add_line(
+                    x,
+                    Mm(y.0 - baseline_offset),
+                    Mm(x.0 + line_width),
+                    Mm(y.0 - baseline_offset),
+                );
                 line_width
             }
         }
@@ -600,7 +629,13 @@ impl<'a> BiddingTableRenderer<'a> {
                     if words.is_empty() {
                         // Empty note - just render prefix
                         layer.set_fill_color(Color::Rgb(BLACK));
-                        layer.use_text_builtin(&prefix, note_font_size, ox, Mm(current_y), self.font);
+                        layer.use_text_builtin(
+                            &prefix,
+                            note_font_size,
+                            ox,
+                            Mm(current_y),
+                            self.font,
+                        );
                         current_y -= line_height;
                         continue;
                     }
@@ -640,7 +675,13 @@ impl<'a> BiddingTableRenderer<'a> {
                         if i == 0 {
                             // First line: render prefix then text with suit symbols
                             layer.set_fill_color(Color::Rgb(BLACK));
-                            layer.use_text_builtin(&prefix, note_font_size, ox, Mm(current_y), self.font);
+                            layer.use_text_builtin(
+                                &prefix,
+                                note_font_size,
+                                ox,
+                                Mm(current_y),
+                                self.font,
+                            );
                             self.render_text_with_suits(
                                 layer,
                                 line,

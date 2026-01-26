@@ -94,9 +94,9 @@ impl Deal {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::card::Rank;
     use super::super::hand::Holding;
+    use super::*;
 
     #[test]
     fn test_direction_from_char() {

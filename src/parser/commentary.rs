@@ -350,7 +350,8 @@ mod tests {
     #[test]
     fn test_suit_symbol_in_italic() {
         // Test suit symbols inside italic text are converted to Unicode
-        let text = parse_formatted_text(r"<i>Opener would have rebid 1\S with four spades.</i>").unwrap();
+        let text =
+            parse_formatted_text(r"<i>Opener would have rebid 1\S with four spades.</i>").unwrap();
         assert_eq!(text.spans.len(), 1);
         assert_eq!(
             text.spans[0],
@@ -363,10 +364,7 @@ mod tests {
         // Test suit symbols inside bold text are converted to Unicode
         let text = parse_formatted_text(r"<b>Open 1\D</b>").unwrap();
         assert_eq!(text.spans.len(), 1);
-        assert_eq!(
-            text.spans[0],
-            TextSpan::Bold("Open 1♦".to_string())
-        );
+        assert_eq!(text.spans[0], TextSpan::Bold("Open 1♦".to_string()));
     }
 
     #[test]
@@ -374,10 +372,7 @@ mod tests {
         // Test suit symbols inside bold-italic text are converted to Unicode
         let text = parse_formatted_text(r"<b><i>Bid 2\H</i></b>").unwrap();
         assert_eq!(text.spans.len(), 1);
-        assert_eq!(
-            text.spans[0],
-            TextSpan::BoldItalic("Bid 2♥".to_string())
-        );
+        assert_eq!(text.spans[0], TextSpan::BoldItalic("Bid 2♥".to_string()));
     }
 
     #[test]

@@ -4,7 +4,9 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use pbn_to_pdf::config::Settings;
-use pbn_to_pdf::model::analysis::{find_length_winners, find_promotable_winners, find_sure_winners};
+use pbn_to_pdf::model::analysis::{
+    find_length_winners, find_promotable_winners, find_sure_winners,
+};
 use pbn_to_pdf::model::{BidSuit, Card, Direction, Hand, Holding, Rank, Suit};
 use pbn_to_pdf::parser::parse_pbn;
 use pbn_to_pdf::render::components::{
@@ -61,10 +63,7 @@ fn test_two_column_layout() {
     // Write to output for visual verification
     let output_file = output_dir.join("two_column_layout_test.pdf");
     fs::write(&output_file, &pdf_bytes).expect("Failed to write test PDF");
-    println!(
-        "Two-column layout test PDF written to: {:?}",
-        output_file
-    );
+    println!("Two-column layout test PDF written to: {:?}", output_file);
 }
 
 #[test]
@@ -937,10 +936,7 @@ fn test_declarers_plan_small_generates_pdf() {
 
 /// Rotate a deal so that the declarer is always South.
 /// Returns (dummy_hand, declarer_hand) where declarer is positioned as South.
-fn rotate_deal_for_declarer(
-    deal: &pbn_to_pdf::model::Deal,
-    declarer: Direction,
-) -> (Hand, Hand) {
+fn rotate_deal_for_declarer(deal: &pbn_to_pdf::model::Deal, declarer: Direction) -> (Hand, Hand) {
     match declarer {
         Direction::South => (deal.north.clone(), deal.south.clone()),
         Direction::North => (deal.south.clone(), deal.north.clone()),
@@ -1020,8 +1016,18 @@ fn test_declarers_plan_with_sure_winners() {
     let separator_color = printpdf::Rgb::new(0.3, 0.3, 0.3, None);
     layer.set_outline_color(printpdf::Color::Rgb(separator_color));
     layer.set_outline_thickness(2.0);
-    layer.add_line(Mm(center_x), Mm(margin), Mm(center_x), Mm(page_height - margin));
-    layer.add_line(Mm(margin), Mm(center_y), Mm(page_width - margin), Mm(center_y));
+    layer.add_line(
+        Mm(center_x),
+        Mm(margin),
+        Mm(center_x),
+        Mm(page_height - margin),
+    );
+    layer.add_line(
+        Mm(margin),
+        Mm(center_y),
+        Mm(page_width - margin),
+        Mm(center_y),
+    );
 
     let colors = SuitColors::default();
 
@@ -1051,10 +1057,8 @@ fn test_declarers_plan_with_sure_winners() {
         }
 
         // Convert sure winners to circled cards map with green color
-        let circled_cards: HashMap<Card, printpdf::Rgb> = sure_winners
-            .into_iter()
-            .map(|card| (card, GREEN))
-            .collect();
+        let circled_cards: HashMap<Card, printpdf::Rgb> =
+            sure_winners.into_iter().map(|card| (card, GREEN)).collect();
 
         // Determine if NT contract
         let is_nt = board
@@ -1177,8 +1181,18 @@ fn test_declarers_plan_with_promotable_winners() {
     let separator_color = printpdf::Rgb::new(0.3, 0.3, 0.3, None);
     layer.set_outline_color(printpdf::Color::Rgb(separator_color));
     layer.set_outline_thickness(2.0);
-    layer.add_line(Mm(center_x), Mm(margin), Mm(center_x), Mm(page_height - margin));
-    layer.add_line(Mm(margin), Mm(center_y), Mm(page_width - margin), Mm(center_y));
+    layer.add_line(
+        Mm(center_x),
+        Mm(margin),
+        Mm(center_x),
+        Mm(page_height - margin),
+    );
+    layer.add_line(
+        Mm(margin),
+        Mm(center_y),
+        Mm(page_width - margin),
+        Mm(center_y),
+    );
 
     let colors = SuitColors::default();
 
@@ -1357,8 +1371,18 @@ fn test_declarers_plan_with_length_winners() {
     let separator_color = printpdf::Rgb::new(0.3, 0.3, 0.3, None);
     layer.set_outline_color(printpdf::Color::Rgb(separator_color));
     layer.set_outline_thickness(2.0);
-    layer.add_line(Mm(center_x), Mm(margin), Mm(center_x), Mm(page_height - margin));
-    layer.add_line(Mm(margin), Mm(center_y), Mm(page_width - margin), Mm(center_y));
+    layer.add_line(
+        Mm(center_x),
+        Mm(margin),
+        Mm(center_x),
+        Mm(page_height - margin),
+    );
+    layer.add_line(
+        Mm(margin),
+        Mm(center_y),
+        Mm(page_width - margin),
+        Mm(center_y),
+    );
 
     let colors = SuitColors::default();
 
@@ -1503,8 +1527,15 @@ fn test_two_col_auctions_stayman_exercises() {
         .find(|b| b.board_id.as_deref() == Some("1-1"))
         .expect("Board 1-1 not found");
 
-    let auction = board_1_1.auction.as_ref().expect("Board 1-1 should have auction");
-    assert_eq!(auction.calls.len(), 1, "Board 1-1 should have 1 call (blank)");
+    let auction = board_1_1
+        .auction
+        .as_ref()
+        .expect("Board 1-1 should have auction");
+    assert_eq!(
+        auction.calls.len(),
+        1,
+        "Board 1-1 should have 1 call (blank)"
+    );
     assert_eq!(
         auction.calls[0].call,
         pbn_to_pdf::model::Call::Blank,
@@ -1529,8 +1560,5 @@ fn test_two_col_auctions_stayman_exercises() {
     // Write to output for visual verification
     let output_file = output_dir.join("stayman_exercises_test.pdf");
     fs::write(&output_file, &pdf_bytes).expect("Failed to write test PDF");
-    println!(
-        "Stayman exercises PDF written to: {:?}",
-        output_file
-    );
+    println!("Stayman exercises PDF written to: {:?}", output_file);
 }

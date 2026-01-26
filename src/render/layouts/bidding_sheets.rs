@@ -7,12 +7,15 @@
 //! 3. South practice page (shows only South's hand)
 //! 4. Answers page (repeated for duplex printing)
 
-use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
+use printpdf::{
+    BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb,
+};
 
 use crate::config::Settings;
 use crate::error::RenderError;
 use crate::model::{
-    AnnotatedCall, Auction, BidSuit, Board, Call, Direction, DirectionExt, Hand, Suit, Vulnerability,
+    AnnotatedCall, Auction, BidSuit, Board, Call, Direction, DirectionExt, Hand, Suit,
+    Vulnerability,
 };
 
 use crate::render::helpers::colors::{SuitColors, BLACK, WHITE};
@@ -1032,9 +1035,21 @@ impl BiddingSheetsRenderer {
                 }
 
                 if contract.suit == BidSuit::NoTrump {
-                    layer.use_text_builtin(symbol, font_size, Mm(contract_x), Mm(current_y), text_font);
+                    layer.use_text_builtin(
+                        symbol,
+                        font_size,
+                        Mm(contract_x),
+                        Mm(current_y),
+                        text_font,
+                    );
                 } else {
-                    layer.use_text(symbol, font_size, Mm(contract_x), Mm(current_y), symbol_font);
+                    layer.use_text(
+                        symbol,
+                        font_size,
+                        Mm(contract_x),
+                        Mm(current_y),
+                        symbol_font,
+                    );
                 }
                 contract_x += measurer.measure_width_mm(symbol, font_size);
 
@@ -1042,10 +1057,22 @@ impl BiddingSheetsRenderer {
 
                 // Doubled/Redoubled
                 if contract.redoubled {
-                    layer.use_text_builtin("XX", font_size, Mm(contract_x), Mm(current_y), text_font);
+                    layer.use_text_builtin(
+                        "XX",
+                        font_size,
+                        Mm(contract_x),
+                        Mm(current_y),
+                        text_font,
+                    );
                     contract_x += measurer.measure_width_mm("XX", font_size);
                 } else if contract.doubled {
-                    layer.use_text_builtin("X", font_size, Mm(contract_x), Mm(current_y), text_font);
+                    layer.use_text_builtin(
+                        "X",
+                        font_size,
+                        Mm(contract_x),
+                        Mm(current_y),
+                        text_font,
+                    );
                     contract_x += measurer.measure_width_mm("X", font_size);
                 }
 
@@ -1183,7 +1210,10 @@ impl BiddingSheetsRenderer {
                 let position = if current_seat == lho { "LHO" } else { "RHO" };
 
                 match &annotated.call {
-                    Call::Bid { level, strain: suit } => {
+                    Call::Bid {
+                        level,
+                        strain: suit,
+                    } => {
                         let action = if is_opening_bid { "opens" } else { "bids" };
                         lines.push(MixedText::bid_action_with_position(
                             current_seat,
@@ -1218,7 +1248,11 @@ impl BiddingSheetsRenderer {
                 }
             } else {
                 // Track N/S bids for "doubles X" context
-                if let Call::Bid { level, strain: suit } = &annotated.call {
+                if let Call::Bid {
+                    level,
+                    strain: suit,
+                } = &annotated.call
+                {
                     prev_bid = Some((*level, *suit));
                     is_opening_bid = false;
                 }
@@ -1508,7 +1542,10 @@ impl BiddingSheetsRenderer {
                 layer.use_text_builtin("XX", font_size, Mm(x), Mm(y), text_font);
                 measurer.measure_width_mm("XX", font_size)
             }
-            Call::Bid { level, strain: suit } => {
+            Call::Bid {
+                level,
+                strain: suit,
+            } => {
                 // Level
                 let level_str = level.to_string();
                 layer.set_fill_color(Color::Rgb(BLACK));
@@ -1532,7 +1569,13 @@ impl BiddingSheetsRenderer {
                 }
 
                 if *suit == BidSuit::NoTrump {
-                    layer.use_text_builtin(symbol, font_size, Mm(x + level_width), Mm(y), text_font);
+                    layer.use_text_builtin(
+                        symbol,
+                        font_size,
+                        Mm(x + level_width),
+                        Mm(y),
+                        text_font,
+                    );
                 } else {
                     layer.use_text(symbol, font_size, Mm(x + level_width), Mm(y), symbol_font);
                 }
@@ -1554,7 +1597,12 @@ impl BiddingSheetsRenderer {
 
                 layer.set_outline_color(Color::Rgb(BLACK));
                 layer.set_outline_thickness(line_thickness);
-                layer.add_line(Mm(x), Mm(y - baseline_offset), Mm(x + line_width), Mm(y - baseline_offset));
+                layer.add_line(
+                    Mm(x),
+                    Mm(y - baseline_offset),
+                    Mm(x + line_width),
+                    Mm(y - baseline_offset),
+                );
                 line_width
             }
         }

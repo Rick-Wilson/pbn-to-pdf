@@ -93,19 +93,24 @@ impl BuiltinFontMeasurer {
 
         let code = c as u8;
         match self.font {
-            BuiltinFont::TimesRoman => TIMES_ROMAN_WIDTHS.get(code as usize).copied().unwrap_or(250),
+            BuiltinFont::TimesRoman => TIMES_ROMAN_WIDTHS
+                .get(code as usize)
+                .copied()
+                .unwrap_or(250),
             BuiltinFont::TimesBold => TIMES_BOLD_WIDTHS.get(code as usize).copied().unwrap_or(250),
-            BuiltinFont::TimesItalic => {
-                TIMES_ITALIC_WIDTHS.get(code as usize).copied().unwrap_or(250)
-            }
+            BuiltinFont::TimesItalic => TIMES_ITALIC_WIDTHS
+                .get(code as usize)
+                .copied()
+                .unwrap_or(250),
             BuiltinFont::TimesBoldItalic => TIMES_BOLD_ITALIC_WIDTHS
                 .get(code as usize)
                 .copied()
                 .unwrap_or(250),
             BuiltinFont::Helvetica => HELVETICA_WIDTHS.get(code as usize).copied().unwrap_or(278),
-            BuiltinFont::HelveticaBold => {
-                HELVETICA_BOLD_WIDTHS.get(code as usize).copied().unwrap_or(278)
-            }
+            BuiltinFont::HelveticaBold => HELVETICA_BOLD_WIDTHS
+                .get(code as usize)
+                .copied()
+                .unwrap_or(278),
             BuiltinFont::HelveticaOblique => {
                 HELVETICA_WIDTHS.get(code as usize).copied().unwrap_or(278)
             }

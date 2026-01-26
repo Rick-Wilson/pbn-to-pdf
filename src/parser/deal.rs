@@ -71,8 +71,7 @@ fn parse_holding(input: &str) -> Result<Holding, String> {
             continue;
         }
 
-        let rank =
-            Rank::from_char(c).ok_or_else(|| format!("Invalid rank character: {}", c))?;
+        let rank = Rank::from_char(c).ok_or_else(|| format!("Invalid rank character: {}", c))?;
         holding.add(rank);
     }
 

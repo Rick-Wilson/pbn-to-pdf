@@ -476,19 +476,19 @@ impl LayerBuilder {
 
         // Four points on the ellipse (right, top, left, bottom) - before rotation
         let unrotated_points: [(f32, f32); 13] = [
-            (rx, 0.0),        // right (start)
-            (rx, kry),        // cp1_rt
-            (krx, ry),        // cp2_rt
-            (0.0, ry),        // top
-            (-krx, ry),       // cp1_tl
-            (-rx, kry),       // cp2_tl
-            (-rx, 0.0),       // left
-            (-rx, -kry),      // cp1_lb
-            (-krx, -ry),      // cp2_lb
-            (0.0, -ry),       // bottom
-            (krx, -ry),       // cp1_br
-            (rx, -kry),       // cp2_br
-            (rx, 0.0),        // right (end)
+            (rx, 0.0),   // right (start)
+            (rx, kry),   // cp1_rt
+            (krx, ry),   // cp2_rt
+            (0.0, ry),   // top
+            (-krx, ry),  // cp1_tl
+            (-rx, kry),  // cp2_tl
+            (-rx, 0.0),  // left
+            (-rx, -kry), // cp1_lb
+            (-krx, -ry), // cp2_lb
+            (0.0, -ry),  // bottom
+            (krx, -ry),  // cp1_br
+            (rx, -kry),  // cp2_br
+            (rx, 0.0),   // right (end)
         ];
 
         // Rotate all points around center
@@ -622,7 +622,7 @@ impl LayerBuilder {
 /// or falls back to ASCII approximations for characters not in the encoding.
 fn sanitize_for_winansi(text: &str) -> Cow<'_, str> {
     // Fast path: check if all characters are ASCII
-    if text.chars().all(|c| c.is_ascii()) {
+    if text.is_ascii() {
         return Cow::Borrowed(text);
     }
 

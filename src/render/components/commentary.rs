@@ -608,11 +608,17 @@ impl<'a> CommentaryRenderer<'a> {
 
             // Helper to check if a fragment is underlined
             let is_underlined = |frag: &RenderFragment| -> bool {
-                matches!(frag, RenderFragment::Text { style: TextStyle::Underline, .. })
+                matches!(
+                    frag,
+                    RenderFragment::Text {
+                        style: TextStyle::Underline,
+                        ..
+                    }
+                )
             };
 
             // Helper to draw underline if active
-            let mut draw_underline = |layer: &mut LayerBuilder, start: Option<f32>, end: f32| {
+            let draw_underline = |layer: &mut LayerBuilder, start: Option<f32>, end: f32| {
                 if let Some(start_x) = start {
                     layer.set_outline_color(Color::Rgb(BLACK));
                     layer.set_outline_thickness(0.3);
@@ -622,7 +628,8 @@ impl<'a> CommentaryRenderer<'a> {
 
             for (i, (group, space_count)) in line_groups.iter().enumerate() {
                 // Check if this group starts with underlined content
-                let group_starts_underlined = group.fragments.first().map(is_underlined).unwrap_or(false);
+                let group_starts_underlined =
+                    group.fragments.first().map(is_underlined).unwrap_or(false);
 
                 // Add space before word (except first word)
                 if i > 0 {

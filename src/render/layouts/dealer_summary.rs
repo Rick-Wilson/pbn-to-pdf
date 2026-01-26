@@ -29,7 +29,7 @@ const BORDER_COLOR: Rgb = Rgb {
 const BORDER_THICKNESS: f32 = 0.5;
 
 /// Fixed box dimensions
-const BOX_WIDTH: f32 = 61.0;  // mm
+const BOX_WIDTH: f32 = 61.0; // mm
 const BOX_HEIGHT: f32 = 55.5; // mm
 
 /// Gap between boxes
@@ -142,14 +142,7 @@ impl DealerSummaryRenderer {
     }
 
     /// Draw border around a cell
-    fn draw_cell_border(
-        &self,
-        layer: &mut LayerBuilder,
-        x: f32,
-        y: f32,
-        width: f32,
-        height: f32,
-    ) {
+    fn draw_cell_border(&self, layer: &mut LayerBuilder, x: f32, y: f32, width: f32, height: f32) {
         layer.set_outline_color(Color::Rgb(BORDER_COLOR));
         layer.set_outline_thickness(BORDER_THICKNESS);
 
@@ -195,7 +188,13 @@ impl DealerSummaryRenderer {
         if let Some(dealer) = board.dealer {
             // "Dealer: " in regular
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text_builtin("Dealer: ", font_size, Mm(x), Mm(current_y), fonts.sans.regular);
+            layer.use_text_builtin(
+                "Dealer: ",
+                font_size,
+                Mm(x),
+                Mm(current_y),
+                fonts.sans.regular,
+            );
 
             // Measure "Dealer: " width to position the bold name
             let dealer_label_width = measurer.measure_width_mm("Dealer: ", font_size);
@@ -217,7 +216,13 @@ impl DealerSummaryRenderer {
         // Contract with suit symbol
         if let Some(ref contract) = board.contract {
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text_builtin("Contract: ", font_size, Mm(x), Mm(current_y), fonts.sans.regular);
+            layer.use_text_builtin(
+                "Contract: ",
+                font_size,
+                Mm(x),
+                Mm(current_y),
+                fonts.sans.regular,
+            );
 
             let contract_label_width = measurer.measure_width_mm("Contract: ", font_size);
             let mut contract_x = x + contract_label_width;
@@ -253,9 +258,21 @@ impl DealerSummaryRenderer {
             // Doubled/Redoubled indicator
             layer.set_fill_color(Color::Rgb(BLACK));
             if contract.redoubled {
-                layer.use_text_builtin("XX", font_size, Mm(contract_x), Mm(current_y), fonts.sans.regular);
+                layer.use_text_builtin(
+                    "XX",
+                    font_size,
+                    Mm(contract_x),
+                    Mm(current_y),
+                    fonts.sans.regular,
+                );
             } else if contract.doubled {
-                layer.use_text_builtin("X", font_size, Mm(contract_x), Mm(current_y), fonts.sans.regular);
+                layer.use_text_builtin(
+                    "X",
+                    font_size,
+                    Mm(contract_x),
+                    Mm(current_y),
+                    fonts.sans.regular,
+                );
             }
 
             current_y -= line_height;
@@ -279,7 +296,13 @@ impl DealerSummaryRenderer {
             if let Some(first_trick) = play.tricks.first() {
                 if let Some(lead_card) = first_trick.cards[0] {
                     layer.set_fill_color(Color::Rgb(BLACK));
-                    layer.use_text_builtin("Lead: ", font_size, Mm(x), Mm(current_y), fonts.sans.regular);
+                    layer.use_text_builtin(
+                        "Lead: ",
+                        font_size,
+                        Mm(x),
+                        Mm(current_y),
+                        fonts.sans.regular,
+                    );
 
                     let lead_label_width = measurer.measure_width_mm("Lead: ", font_size);
                     let mut lead_x = x + lead_label_width;

@@ -1,7 +1,9 @@
 use crate::config::Settings;
 use crate::error::RenderError;
 use crate::model::{BidSuit, Board, Direction, SUITS_DISPLAY_ORDER};
-use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
+use printpdf::{
+    BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb,
+};
 
 use crate::render::components::bidding_table::BiddingTableRenderer;
 use crate::render::components::commentary::{CommentaryRenderer, FloatLayout};
@@ -269,11 +271,20 @@ impl DocumentRenderer {
         notes_max_width: Option<f32>,
     ) -> f32 {
         // Use the bidding table renderer's static measurement to ensure consistency
-        BiddingTableRenderer::measure_height_static(auction, Some(players), &self.settings, notes_max_width)
+        BiddingTableRenderer::measure_height_static(
+            auction,
+            Some(players),
+            &self.settings,
+            notes_max_width,
+        )
     }
 
     /// Measure commentary height without rendering
-    fn measure_commentary_height(&self, block: &crate::model::CommentaryBlock, max_width: f32) -> f32 {
+    fn measure_commentary_height(
+        &self,
+        block: &crate::model::CommentaryBlock,
+        max_width: f32,
+    ) -> f32 {
         use crate::model::TextSpan;
 
         let font_size = self.settings.commentary_font_size;
@@ -297,7 +308,8 @@ impl DocumentRenderer {
                 | TextSpan::Underline(text) => {
                     for word in text.split_whitespace() {
                         let word_width = measurer.measure_width_mm(word, font_size);
-                        if total_width + word_width + base_space_width > max_width && total_width > 0.0
+                        if total_width + word_width + base_space_width > max_width
+                            && total_width > 0.0
                         {
                             line_count += 1;
                             total_width = word_width;
@@ -574,7 +586,8 @@ impl DocumentRenderer {
         // Get font sets
         let diagram_fonts = fonts.builtin_set_for_spec(self.settings.fonts.diagram.as_ref());
         let card_table_fonts = fonts.builtin_set_for_spec(self.settings.fonts.card_table.as_ref());
-        let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
+        let hand_record_fonts =
+            fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
         let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
         let measurer = get_times_measurer();
@@ -590,10 +603,13 @@ impl DocumentRenderer {
         let show_dealer = !deal_is_empty && flags.map(|f| !f.hide_dealer()).unwrap_or(true);
         let show_vulnerable = !deal_is_empty && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true);
         let show_diagram = !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true);
-        let show_auction = flags.map(|f| f.show_auction()).unwrap_or(true) && self.settings.show_bidding;
+        let show_auction =
+            flags.map(|f| f.show_auction()).unwrap_or(true) && self.settings.show_bidding;
         let show_commentary = self.settings.show_commentary
             && !board.commentary.is_empty()
-            && flags.map(|f| f.show_event_commentary() || f.show_final_commentary()).unwrap_or(true);
+            && flags
+                .map(|f| f.show_event_commentary() || f.show_final_commentary())
+                .unwrap_or(true);
 
         // Skip completely empty boards (nothing visible to show)
         if !show_board && !show_dealer && !show_vulnerable && !show_diagram && !show_commentary {
@@ -610,7 +626,14 @@ impl DocumentRenderer {
                 column_x,
                 start_y,
                 column_width,
-                (show_board, show_dealer, show_vulnerable, show_diagram, show_auction, show_commentary),
+                (
+                    show_board,
+                    show_dealer,
+                    show_vulnerable,
+                    show_diagram,
+                    show_auction,
+                    show_commentary,
+                ),
             );
         }
 
@@ -714,11 +737,12 @@ impl DocumentRenderer {
                     &self.settings,
                 );
                 // Calculate actual table width for centering
-                let num_cols = if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
-                    2
-                } else {
-                    4
-                };
+                let num_cols =
+                    if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
+                        2
+                    } else {
+                        4
+                    };
                 let table_width = num_cols as f32 * self.settings.bid_column_width;
 
                 // Center the auction table within the column
@@ -811,8 +835,12 @@ impl DocumentRenderer {
             let block_count = board.commentary.len();
             for (i, block) in board.commentary.iter().enumerate() {
                 let block_start_y = current_y;
-                let height =
-                    commentary_renderer.render(layer, block, (Mm(column_x), Mm(current_y)), column_width);
+                let height = commentary_renderer.render(
+                    layer,
+                    block,
+                    (Mm(column_x), Mm(current_y)),
+                    column_width,
+                );
 
                 // Debug box for commentary block
                 self.draw_debug_box(layer, column_x, block_start_y, column_width, height);
@@ -848,7 +876,8 @@ impl DocumentRenderer {
         // Get font sets
         let diagram_fonts = fonts.builtin_set_for_spec(self.settings.fonts.diagram.as_ref());
         let card_table_fonts = fonts.builtin_set_for_spec(self.settings.fonts.card_table.as_ref());
-        let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
+        let hand_record_fonts =
+            fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
         let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
         let measurer = get_times_measurer();
@@ -871,19 +900,20 @@ impl DocumentRenderer {
         );
 
         // Determine which commentary blocks go before vs after the diagram
-        let (event_commentary, final_commentary): (Vec<_>, Vec<_>) = if show_commentary && board.commentary.len() > 1 {
-            // Multiple blocks: all but last are event, last is final
-            let split_point = board.commentary.len() - 1;
-            (
-                board.commentary.iter().take(split_point).collect(),
-                board.commentary.iter().skip(split_point).collect(),
-            )
-        } else if show_commentary {
-            // Single block: treat as event commentary (before diagram)
-            (board.commentary.iter().collect(), vec![])
-        } else {
-            (vec![], vec![])
-        };
+        let (event_commentary, final_commentary): (Vec<_>, Vec<_>) =
+            if show_commentary && board.commentary.len() > 1 {
+                // Multiple blocks: all but last are event, last is final
+                let split_point = board.commentary.len() - 1;
+                (
+                    board.commentary.iter().take(split_point).collect(),
+                    board.commentary.iter().skip(split_point).collect(),
+                )
+            } else if show_commentary {
+                // Single block: treat as event commentary (before diagram)
+                (board.commentary.iter().collect(), vec![])
+            } else {
+                (vec![], vec![])
+            };
 
         // Render event commentary (before diagram)
         for (i, block) in event_commentary.iter().enumerate() {
@@ -1040,7 +1070,8 @@ impl DocumentRenderer {
                     let card_descender = hand_measurer.descender_mm(self.settings.card_font_size);
                     let first_baseline = diagram_y - card_cap_height;
 
-                    let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
+                    let colors =
+                        SuitColors::new(self.settings.black_color, self.settings.red_color);
 
                     for (i, suit) in SUITS_DISPLAY_ORDER.iter().enumerate() {
                         let y = first_baseline - (i as f32 * line_height);
@@ -1131,7 +1162,13 @@ impl DocumentRenderer {
                         let text = format!("{} Deals", dealer);
                         let text_width = measurer.measure_width_mm(&text, font_size);
                         let x = column_center_x - text_width / 2.0;
-                        layer.use_text_builtin(text, font_size, Mm(x), Mm(current_y), hand_record_fonts.regular);
+                        layer.use_text_builtin(
+                            text,
+                            font_size,
+                            Mm(x),
+                            Mm(current_y),
+                            hand_record_fonts.regular,
+                        );
                         current_y -= line_height;
                     }
                 }
@@ -1140,7 +1177,13 @@ impl DocumentRenderer {
                     let text = board.vulnerable.to_string();
                     let text_width = measurer.measure_width_mm(&text, font_size);
                     let x = column_center_x - text_width / 2.0;
-                    layer.use_text_builtin(text, font_size, Mm(x), Mm(current_y), hand_record_fonts.regular);
+                    layer.use_text_builtin(
+                        text,
+                        font_size,
+                        Mm(x),
+                        Mm(current_y),
+                        hand_record_fonts.regular,
+                    );
                     current_y -= line_height;
                 }
             }
@@ -1170,7 +1213,13 @@ impl DocumentRenderer {
                     let text = format!("{} Deals", dealer);
                     let text_width = measurer.measure_width_mm(&text, font_size);
                     let x = column_center_x - text_width / 2.0;
-                    layer.use_text_builtin(text, font_size, Mm(x), Mm(current_y), hand_record_fonts.regular);
+                    layer.use_text_builtin(
+                        text,
+                        font_size,
+                        Mm(x),
+                        Mm(current_y),
+                        hand_record_fonts.regular,
+                    );
                     current_y -= line_height;
                 }
             }
@@ -1179,7 +1228,13 @@ impl DocumentRenderer {
                 let text = board.vulnerable.to_string();
                 let text_width = measurer.measure_width_mm(&text, font_size);
                 let x = column_center_x - text_width / 2.0;
-                layer.use_text_builtin(text, font_size, Mm(x), Mm(current_y), hand_record_fonts.regular);
+                layer.use_text_builtin(
+                    text,
+                    font_size,
+                    Mm(x),
+                    Mm(current_y),
+                    hand_record_fonts.regular,
+                );
                 current_y -= line_height;
             }
         }
@@ -1197,11 +1252,12 @@ impl DocumentRenderer {
 
                 // Calculate bidding table width for centering
                 // Two-column mode uses 2 columns, standard uses 4
-                let num_cols = if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
-                    2
-                } else {
-                    4
-                };
+                let num_cols =
+                    if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
+                        2
+                    } else {
+                        4
+                    };
                 let table_width = num_cols as f32 * self.settings.bid_column_width;
                 let table_x = column_center_x - table_width / 2.0;
 
@@ -1222,7 +1278,8 @@ impl DocumentRenderer {
 
                 // Render contract (only if explicitly in PBN, not inferred from auction)
                 if let Some(ref contract) = board.contract {
-                    let colors = SuitColors::new(self.settings.black_color, self.settings.red_color);
+                    let colors =
+                        SuitColors::new(self.settings.black_color, self.settings.red_color);
                     // For centered contract, we'd need to measure and center the contract text
                     // For now, render from the centered table position
                     self.render_contract(
@@ -1311,7 +1368,13 @@ impl DocumentRenderer {
     }
 
     /// Render a single board - Bridge Composer style layout
-    fn render_board(&self, layer: &mut LayerBuilder, board: &Board, fonts: &FontManager, margin_left: f32) {
+    fn render_board(
+        &self,
+        layer: &mut LayerBuilder,
+        board: &Board,
+        fonts: &FontManager,
+        margin_left: f32,
+    ) {
         let margin_top = self.settings.margin_top;
         let page_top = self.settings.page_height - margin_top;
         let line_height = self.settings.line_height;
@@ -1319,7 +1382,8 @@ impl DocumentRenderer {
         // Get font sets based on PBN font specifications
         let diagram_fonts = fonts.builtin_set_for_spec(self.settings.fonts.diagram.as_ref());
         let card_table_fonts = fonts.builtin_set_for_spec(self.settings.fonts.card_table.as_ref());
-        let hand_record_fonts = fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
+        let hand_record_fonts =
+            fonts.builtin_set_for_spec(self.settings.fonts.hand_record.as_ref());
         let commentary_fonts = fonts.builtin_set_for_spec(self.settings.fonts.commentary.as_ref());
 
         // Get font metrics for accurate box heights
@@ -1426,7 +1490,7 @@ impl DocumentRenderer {
                 diagram_fonts.regular,
                 diagram_fonts.bold,
                 card_table_fonts.regular, // Compass uses CardTable font
-                fonts.symbol_font(),       // DejaVu Sans for suit symbols
+                fonts.symbol_font(),      // DejaVu Sans for suit symbols
                 &self.settings,
             );
             let diagram_height = hand_renderer.render_deal_with_options(

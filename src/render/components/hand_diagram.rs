@@ -521,13 +521,7 @@ impl<'a> HandDiagramRenderer<'a> {
                 .join(" ")
         };
 
-        layer.use_text_builtin(
-            &cards_str,
-            self.settings.card_font_size,
-            ox,
-            oy,
-            self.font,
-        );
+        layer.use_text_builtin(&cards_str, self.settings.card_font_size, ox, oy, self.font);
     }
 
     /// Render a single hand without compass (when only one hand is visible)
@@ -597,7 +591,8 @@ impl<'a> HandDiagramRenderer<'a> {
         let north_base_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
         let suit_symbol_width = if show_suit_symbol { 5.0 } else { 0.0 };
         let half_char_adjust = if show_suit_symbol { 1.5 } else { 0.0 };
-        let compass_center_x = north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
+        let compass_center_x =
+            north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
 
         // Center the cards at the compass center position
         let hand_x = compass_center_x - hand_width / 2.0;

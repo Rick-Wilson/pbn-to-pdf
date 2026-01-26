@@ -7,7 +7,8 @@
 pub use bridge_types::{Card, Rank, Suit};
 
 /// Suits in display order (Spades first, as shown in bridge diagrams)
-pub const SUITS_DISPLAY_ORDER: [Suit; 4] = [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
+pub const SUITS_DISPLAY_ORDER: [Suit; 4] =
+    [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
 
 /// Ranks in display order (Ace first, high to low)
 pub const RANKS_DISPLAY_ORDER: [Rank; 13] = [
@@ -121,6 +122,9 @@ mod tests {
     fn test_rank_display_ordering() {
         use std::cmp::Ordering;
         assert_eq!(rank_display_cmp(&Rank::Ace, &Rank::King), Ordering::Less); // Ace sorts before King in display
-        assert_eq!(rank_display_cmp(&Rank::Two, &Rank::Three), Ordering::Greater); // Two sorts after Three
+        assert_eq!(
+            rank_display_cmp(&Rank::Two, &Rank::Three),
+            Ordering::Greater
+        ); // Two sorts after Three
     }
 }

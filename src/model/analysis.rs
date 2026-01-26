@@ -372,7 +372,9 @@ fn find_length_winners_in_suit(
         // In display order comparison, Ace comes before King (Ace < King in the sort comparison)
         // So the smaller comparison value = higher bridge rank
         match (dummy_best, declarer_best) {
-            (Some(d), Some(c)) if rank_display_cmp(d, c).is_lt() => (dummy_available.clone(), declarer_available.clone()),
+            (Some(d), Some(c)) if rank_display_cmp(d, c).is_lt() => {
+                (dummy_available.clone(), declarer_available.clone())
+            }
             _ => (declarer_available.clone(), dummy_available.clone()),
         }
     };
@@ -691,13 +693,8 @@ mod tests {
     fn test_long_sequence_same_hand() {
         // All 5 cards in one hand - can take 5 tricks
         let mut dummy = Hand::new();
-        dummy.spades = Holding::from_ranks([
-            Rank::Ace,
-            Rank::King,
-            Rank::Queen,
-            Rank::Jack,
-            Rank::Ten,
-        ]);
+        dummy.spades =
+            Holding::from_ranks([Rank::Ace, Rank::King, Rank::Queen, Rank::Jack, Rank::Ten]);
 
         let declarer = Hand::new();
 
@@ -805,8 +802,12 @@ mod tests {
         assert!(result.spent.contains(&Card::new(Suit::Spades, Rank::King)));
         // QJ become winners
         assert_eq!(result.winners.len(), 2);
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Queen)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Jack)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Queen)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Jack)));
     }
 
     #[test]
@@ -814,13 +815,8 @@ mod tests {
         // QJT98: 5 touching honors, missing A and K = 3 promotable winners
         // Q drives out A, J drives out K, then T98 are winners
         let mut dummy = Hand::new();
-        dummy.spades = Holding::from_ranks([
-            Rank::Queen,
-            Rank::Jack,
-            Rank::Ten,
-            Rank::Nine,
-            Rank::Eight,
-        ]);
+        dummy.spades =
+            Holding::from_ranks([Rank::Queen, Rank::Jack, Rank::Ten, Rank::Nine, Rank::Eight]);
 
         let declarer = Hand::new();
 
@@ -832,8 +828,12 @@ mod tests {
         // T98 become winners
         assert_eq!(result.winners.len(), 3);
         assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Ten)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Nine)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Eight)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Nine)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Eight)));
     }
 
     #[test]
@@ -902,8 +902,12 @@ mod tests {
         assert!(result.spent.contains(&Card::new(Suit::Spades, Rank::King)));
         // QJ become winners (limited to 2 by max tricks)
         assert_eq!(result.winners.len(), 2);
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Queen)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Jack)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Queen)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Jack)));
         // Ten doesn't win because we can only take 2 tricks total
         assert!(!result.winners.contains(&Card::new(Suit::Spades, Rank::Ten)));
     }
@@ -931,11 +935,19 @@ mod tests {
         assert!(result.spent.contains(&Card::new(Suit::Spades, Rank::Ten)));
         // KQJ become winners (9 is after the spent T, limited to 3 by max tricks)
         assert_eq!(result.winners.len(), 3);
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::King)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Queen)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Jack)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::King)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Queen)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Jack)));
         // Nine is in sequence but we already have 3 winners
-        assert!(!result.winners.contains(&Card::new(Suit::Spades, Rank::Nine)));
+        assert!(!result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Nine)));
     }
 
     #[test]
@@ -952,7 +964,9 @@ mod tests {
         assert!(result.spent.contains(&Card::new(Suit::Spades, Rank::King)));
         // Q becomes winner (only card in sequence after K)
         assert_eq!(result.winners.len(), 1);
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Queen)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Queen)));
         // Ten is not part of the continuous sequence
         assert!(!result.winners.contains(&Card::new(Suit::Spades, Rank::Ten)));
     }
@@ -1006,8 +1020,12 @@ mod tests {
         assert!(!result.spent.contains(&Card::new(Suit::Hearts, Rank::King)));
         // KQT become winners (max tricks = 4, but only 3 in sequence after spending J)
         assert_eq!(result.winners.len(), 3);
-        assert!(result.winners.contains(&Card::new(Suit::Hearts, Rank::King)));
-        assert!(result.winners.contains(&Card::new(Suit::Hearts, Rank::Queen)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Hearts, Rank::King)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Hearts, Rank::Queen)));
         assert!(result.winners.contains(&Card::new(Suit::Hearts, Rank::Ten)));
     }
 
@@ -1028,8 +1046,12 @@ mod tests {
         assert!(result.spent.contains(&Card::new(Suit::Hearts, Rank::King)));
         // QJT become winners
         assert_eq!(result.winners.len(), 3);
-        assert!(result.winners.contains(&Card::new(Suit::Hearts, Rank::Queen)));
-        assert!(result.winners.contains(&Card::new(Suit::Hearts, Rank::Jack)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Hearts, Rank::Queen)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Hearts, Rank::Jack)));
         assert!(result.winners.contains(&Card::new(Suit::Hearts, Rank::Ten)));
     }
 
@@ -1043,13 +1065,8 @@ mod tests {
         dummy.spades = Holding::from_ranks([Rank::King, Rank::Three, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.spades = Holding::from_ranks([
-            Rank::Queen,
-            Rank::Jack,
-            Rank::Ten,
-            Rank::Nine,
-            Rank::Eight,
-        ]);
+        declarer.spades =
+            Holding::from_ranks([Rank::Queen, Rank::Jack, Rank::Ten, Rank::Nine, Rank::Eight]);
 
         let result = find_promotable_winners(&dummy, &declarer);
         // K should be spent (from shorter hand)
@@ -1057,11 +1074,19 @@ mod tests {
         assert!(result.spent.contains(&Card::new(Suit::Spades, Rank::King)));
         // QJJT98 become winners, but limited to 5 by max tricks
         assert_eq!(result.winners.len(), 5);
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Queen)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Jack)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Queen)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Jack)));
         assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Ten)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Nine)));
-        assert!(result.winners.contains(&Card::new(Suit::Spades, Rank::Eight)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Nine)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Spades, Rank::Eight)));
     }
 
     // Tests for find_length_winners
@@ -1084,14 +1109,15 @@ mod tests {
         dummy.diamonds = Holding::from_ranks([Rank::Ten, Rank::Five, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.diamonds =
-            Holding::from_ranks([Rank::Ace, Rank::Seven, Rank::Six, Rank::Four]);
+        declarer.diamonds = Holding::from_ranks([Rank::Ace, Rank::Seven, Rank::Six, Rank::Four]);
 
         let result = find_length_winners(&dummy, &declarer);
 
         // 1 length winner - the 7 (highest in remaining longer hand after excluding A and companion)
         assert_eq!(result.winners.len(), 1);
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Seven)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Seven)));
 
         // Ducks: T5 from dummy + 64 from declarer (A excluded as sure winner, 2 as companion)
         assert_eq!(result.ducks.len(), 4);
@@ -1109,23 +1135,30 @@ mod tests {
         dummy.diamonds = Holding::from_ranks([Rank::Ten, Rank::Five, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.diamonds =
-            Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
+        declarer.diamonds = Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
 
         let result = find_length_winners(&dummy, &declarer);
 
         // 1 length winner - the 9 (highest in longer hand)
         assert_eq!(result.winners.len(), 1);
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Nine)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Nine)));
 
         // Ducks: all other cards (T52 from dummy, 764 from declarer)
         assert_eq!(result.ducks.len(), 6);
         assert!(result.ducks.contains(&Card::new(Suit::Diamonds, Rank::Ten)));
-        assert!(result.ducks.contains(&Card::new(Suit::Diamonds, Rank::Five)));
+        assert!(result
+            .ducks
+            .contains(&Card::new(Suit::Diamonds, Rank::Five)));
         assert!(result.ducks.contains(&Card::new(Suit::Diamonds, Rank::Two)));
-        assert!(result.ducks.contains(&Card::new(Suit::Diamonds, Rank::Seven)));
+        assert!(result
+            .ducks
+            .contains(&Card::new(Suit::Diamonds, Rank::Seven)));
         assert!(result.ducks.contains(&Card::new(Suit::Diamonds, Rank::Six)));
-        assert!(result.ducks.contains(&Card::new(Suit::Diamonds, Rank::Four)));
+        assert!(result
+            .ducks
+            .contains(&Card::new(Suit::Diamonds, Rank::Four)));
     }
 
     #[test]
@@ -1141,8 +1174,7 @@ mod tests {
         dummy.clubs = Holding::from_ranks([Rank::Six, Rank::Four, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.clubs =
-            Holding::from_ranks([Rank::Ace, Rank::Nine, Rank::Eight, Rank::Three]);
+        declarer.clubs = Holding::from_ranks([Rank::Ace, Rank::Nine, Rank::Eight, Rank::Three]);
 
         let result = find_length_winners(&dummy, &declarer);
 
@@ -1171,24 +1203,25 @@ mod tests {
         dummy.diamonds = Holding::from_ranks([Rank::Five, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.diamonds = Holding::from_ranks([
-            Rank::Ace,
-            Rank::King,
-            Rank::Seven,
-            Rank::Six,
-            Rank::Four,
-        ]);
+        declarer.diamonds =
+            Holding::from_ranks([Rank::Ace, Rank::King, Rank::Seven, Rank::Six, Rank::Four]);
 
         let result = find_length_winners(&dummy, &declarer);
 
         // 2 length winners - the 7 and 6 (highest remaining after AK excluded)
         assert_eq!(result.winners.len(), 2);
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Seven)));
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Six)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Seven)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Six)));
 
         // Ducks: 4 from declarer (52 from dummy are companions to AK)
         assert_eq!(result.ducks.len(), 1);
-        assert!(result.ducks.contains(&Card::new(Suit::Diamonds, Rank::Four)));
+        assert!(result
+            .ducks
+            .contains(&Card::new(Suit::Diamonds, Rank::Four)));
     }
 
     #[test]
@@ -1204,20 +1237,19 @@ mod tests {
         dummy.diamonds = Holding::from_ranks([Rank::Five, Rank::Three, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.diamonds = Holding::from_ranks([
-            Rank::Ace,
-            Rank::King,
-            Rank::Seven,
-            Rank::Six,
-            Rank::Four,
-        ]);
+        declarer.diamonds =
+            Holding::from_ranks([Rank::Ace, Rank::King, Rank::Seven, Rank::Six, Rank::Four]);
 
         let result = find_length_winners(&dummy, &declarer);
 
         // 2 length winners - the 7 and 6 (highest remaining)
         assert_eq!(result.winners.len(), 2);
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Seven)));
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Six)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Seven)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Six)));
     }
 
     #[test]
@@ -1233,21 +1265,22 @@ mod tests {
         dummy.diamonds = Holding::from_ranks([Rank::Five, Rank::Four, Rank::Three, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.diamonds = Holding::from_ranks([
-            Rank::Ace,
-            Rank::King,
-            Rank::Eight,
-            Rank::Seven,
-            Rank::Six,
-        ]);
+        declarer.diamonds =
+            Holding::from_ranks([Rank::Ace, Rank::King, Rank::Eight, Rank::Seven, Rank::Six]);
 
         let result = find_length_winners(&dummy, &declarer);
 
         // 3 length winners - the 8, 7, 6 (highest remaining)
         assert_eq!(result.winners.len(), 3);
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Eight)));
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Seven)));
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Six)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Eight)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Seven)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Six)));
     }
 
     #[test]
@@ -1275,8 +1308,7 @@ mod tests {
         dummy.diamonds = Holding::from_ranks([Rank::Five, Rank::Two]);
 
         let mut declarer = Hand::new();
-        declarer.diamonds =
-            Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
+        declarer.diamonds = Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
 
         let result = find_length_winners(&dummy, &declarer);
 
@@ -1292,8 +1324,7 @@ mod tests {
         // Length winners = 4 - 3 = 1
         // Dummy is longer, so length winner is in dummy (the highest = T)
         let mut dummy = Hand::new();
-        dummy.diamonds =
-            Holding::from_ranks([Rank::Ten, Rank::Nine, Rank::Five, Rank::Four]);
+        dummy.diamonds = Holding::from_ranks([Rank::Ten, Rank::Nine, Rank::Five, Rank::Four]);
 
         let mut declarer = Hand::new();
         declarer.diamonds = Holding::from_ranks([Rank::Seven, Rank::Six, Rank::Three]);
@@ -1302,7 +1333,9 @@ mod tests {
 
         // 1 length winner in dummy (longer hand) - the T (highest)
         assert_eq!(result.winners.len(), 1);
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Ten)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Ten)));
     }
 
     #[test]
@@ -1313,15 +1346,9 @@ mod tests {
         dummy.clubs = Holding::from_ranks([Rank::Nine, Rank::Eight]);
 
         let mut declarer = Hand::new();
-        declarer.diamonds =
-            Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
-        declarer.clubs = Holding::from_ranks([
-            Rank::Ten,
-            Rank::Seven,
-            Rank::Six,
-            Rank::Four,
-            Rank::Three,
-        ]);
+        declarer.diamonds = Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
+        declarer.clubs =
+            Holding::from_ranks([Rank::Ten, Rank::Seven, Rank::Six, Rank::Four, Rank::Three]);
 
         let result = find_length_winners(&dummy, &declarer);
 
@@ -1331,10 +1358,14 @@ mod tests {
         // With 2 length winners expected (5-3=2), both 4 and 3 become length winners
         assert_eq!(result.winners.len(), 3);
         assert!(result.has_length_winners());
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Nine)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Nine)));
         // Clubs 4 and 3 are the remaining length winners after promotable cards excluded
         assert!(result.winners.contains(&Card::new(Suit::Clubs, Rank::Four)));
-        assert!(result.winners.contains(&Card::new(Suit::Clubs, Rank::Three)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Clubs, Rank::Three)));
     }
 
     #[test]
@@ -1345,15 +1376,9 @@ mod tests {
         dummy.clubs = Holding::from_ranks([Rank::Nine, Rank::Five]); // Non-touching, no promotion
 
         let mut declarer = Hand::new();
-        declarer.diamonds =
-            Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
-        declarer.clubs = Holding::from_ranks([
-            Rank::Eight,
-            Rank::Seven,
-            Rank::Four,
-            Rank::Three,
-            Rank::Two,
-        ]); // 87 touches but missing too many higher cards
+        declarer.diamonds = Holding::from_ranks([Rank::Nine, Rank::Seven, Rank::Six, Rank::Four]);
+        declarer.clubs =
+            Holding::from_ranks([Rank::Eight, Rank::Seven, Rank::Four, Rank::Three, Rank::Two]); // 87 touches but missing too many higher cards
 
         let result = find_length_winners(&dummy, &declarer);
 
@@ -1361,8 +1386,14 @@ mod tests {
         // Clubs: 7 cards (5-2 fit), no promotable = 2 length winners (highest = 8, 7)
         assert_eq!(result.winners.len(), 3);
         assert!(result.has_length_winners());
-        assert!(result.winners.contains(&Card::new(Suit::Diamonds, Rank::Nine)));
-        assert!(result.winners.contains(&Card::new(Suit::Clubs, Rank::Eight)));
-        assert!(result.winners.contains(&Card::new(Suit::Clubs, Rank::Seven)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Diamonds, Rank::Nine)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Clubs, Rank::Eight)));
+        assert!(result
+            .winners
+            .contains(&Card::new(Suit::Clubs, Rank::Seven)));
     }
 }

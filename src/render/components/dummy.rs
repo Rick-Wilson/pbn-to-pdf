@@ -215,7 +215,7 @@ impl<'a> DummyRenderer<'a> {
             }
 
             // Get ranks sorted high to low (BTreeSet already gives this order)
-            let ranks: Vec<Rank> = holding.ranks.iter().copied().collect();
+            let ranks: Vec<Rank> = holding.ranks.to_vec();
 
             // Render cards from top (highest rank) to bottom (lowest rank)
             // so that lower cards render on top and naturally cover the cards above.

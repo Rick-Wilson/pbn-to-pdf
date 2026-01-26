@@ -5,7 +5,9 @@ use std::fs;
 use pbn_to_pdf::cli::{parse_board_range, Args, Layout};
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::parser::parse_pbn;
-use pbn_to_pdf::render::{generate_pdf, BiddingSheetsRenderer, DealerSummaryRenderer, DeclarersPlanRenderer};
+use pbn_to_pdf::render::{
+    generate_pdf, BiddingSheetsRenderer, DealerSummaryRenderer, DeclarersPlanRenderer,
+};
 
 fn main() -> Result<()> {
     let args = Args::parse();
