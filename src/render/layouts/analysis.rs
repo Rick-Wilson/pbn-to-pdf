@@ -293,7 +293,8 @@ impl DocumentRenderer {
                 TextSpan::Plain(text)
                 | TextSpan::Bold(text)
                 | TextSpan::Italic(text)
-                | TextSpan::BoldItalic(text) => {
+                | TextSpan::BoldItalic(text)
+                | TextSpan::Underline(text) => {
                     for word in text.split_whitespace() {
                         let word_width = measurer.measure_width_mm(word, font_size);
                         if total_width + word_width + base_space_width > max_width && total_width > 0.0

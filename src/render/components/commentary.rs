@@ -71,6 +71,7 @@ enum TextStyle {
     Bold,
     Italic,
     BoldItalic,
+    Underline,
 }
 
 /// A word group is a sequence of fragments that should be kept together (no whitespace between them)
@@ -162,16 +163,18 @@ fn tokenize_spans(
             TextSpan::Plain(s)
             | TextSpan::Italic(s)
             | TextSpan::Bold(s)
-            | TextSpan::BoldItalic(s) => {
+            | TextSpan::BoldItalic(s)
+            | TextSpan::Underline(s) => {
                 let style = match span {
                     TextSpan::Plain(_) => TextStyle::Plain,
                     TextSpan::Italic(_) => TextStyle::Italic,
                     TextSpan::Bold(_) => TextStyle::Bold,
                     TextSpan::BoldItalic(_) => TextStyle::BoldItalic,
+                    TextSpan::Underline(_) => TextStyle::Underline,
                     _ => unreachable!(),
                 };
                 let measurer = match style {
-                    TextStyle::Plain | TextStyle::Italic => regular_measurer,
+                    TextStyle::Plain | TextStyle::Italic | TextStyle::Underline => regular_measurer,
                     TextStyle::Bold | TextStyle::BoldItalic => bold_measurer,
                 };
 
@@ -599,12 +602,46 @@ impl<'a> CommentaryRenderer<'a> {
             // Render the line
             let mut x = current_line_start;
 
+            // Track underline spans to draw them continuously (including spaces)
+            let mut underline_start_x: Option<f32> = None;
+            let underline_y = y - 0.5; // Slightly below baseline
+
+            // Helper to check if a fragment is underlined
+            let is_underlined = |frag: &RenderFragment| -> bool {
+                matches!(frag, RenderFragment::Text { style: TextStyle::Underline, .. })
+            };
+
+            // Helper to draw underline if active
+            let mut draw_underline = |layer: &mut LayerBuilder, start: Option<f32>, end: f32| {
+                if let Some(start_x) = start {
+                    layer.set_outline_color(Color::Rgb(BLACK));
+                    layer.set_outline_thickness(0.3);
+                    layer.add_line(Mm(start_x), Mm(underline_y), Mm(end), Mm(underline_y));
+                }
+            };
+
             for (i, (group, space_count)) in line_groups.iter().enumerate() {
+                // Check if this group starts with underlined content
+                let group_starts_underlined = group.fragments.first().map(is_underlined).unwrap_or(false);
+
                 // Add space before word (except first word)
-                // Use the recorded space count, but at least 1 if not the first word
                 if i > 0 {
                     let num_spaces = (*space_count).max(1);
-                    x += space_width * num_spaces as f32;
+                    let space_advance = space_width * num_spaces as f32;
+
+                    // If we're continuing an underline into this group, include the space
+                    // If we're ending an underline (next group not underlined), draw it before space
+                    if underline_start_x.is_some() && !group_starts_underlined {
+                        draw_underline(layer, underline_start_x, x);
+                        underline_start_x = None;
+                    }
+
+                    x += space_advance;
+
+                    // If starting underline at this group after space, start tracking from here
+                    if underline_start_x.is_none() && group_starts_underlined {
+                        underline_start_x = Some(x);
+                    }
                 }
 
                 // Render all fragments in the group
@@ -612,22 +649,40 @@ impl<'a> CommentaryRenderer<'a> {
                     match fragment {
                         RenderFragment::Text { text: txt, style } => {
                             let font = match style {
-                                TextStyle::Plain => self.font,
+                                TextStyle::Plain | TextStyle::Underline => self.font,
                                 TextStyle::Bold => self.bold_font,
                                 TextStyle::Italic => self.italic_font,
                                 TextStyle::BoldItalic => self.bold_italic_font,
                             };
                             let measurer = match style {
-                                TextStyle::Plain | TextStyle::Italic => &regular_measurer,
+                                TextStyle::Plain | TextStyle::Italic | TextStyle::Underline => {
+                                    &regular_measurer
+                                }
                                 TextStyle::Bold | TextStyle::BoldItalic => &bold_measurer,
                             };
                             let width = measurer.measure_width_mm(txt, font_size);
 
+                            // Check underline state transitions
+                            let is_underline = *style == TextStyle::Underline;
+                            if is_underline && underline_start_x.is_none() {
+                                underline_start_x = Some(x);
+                            } else if !is_underline && underline_start_x.is_some() {
+                                draw_underline(layer, underline_start_x, x);
+                                underline_start_x = None;
+                            }
+
                             layer.set_fill_color(Color::Rgb(BLACK));
                             layer.use_text_builtin(txt, font_size, Mm(x), Mm(y), font);
+
                             x += width;
                         }
                         RenderFragment::SuitSymbol(suit) => {
+                            // Suit symbols break underline spans
+                            if underline_start_x.is_some() {
+                                draw_underline(layer, underline_start_x, x);
+                                underline_start_x = None;
+                            }
+
                             let symbol = suit.symbol().to_string();
                             let width = symbol_measurer.measure_width_mm(&symbol, font_size);
 
@@ -637,6 +692,12 @@ impl<'a> CommentaryRenderer<'a> {
                             x += width;
                         }
                         RenderFragment::CardRef { suit, rank } => {
+                            // Card refs break underline spans
+                            if underline_start_x.is_some() {
+                                draw_underline(layer, underline_start_x, x);
+                                underline_start_x = None;
+                            }
+
                             let symbol = suit.symbol().to_string();
                             let symbol_width = symbol_measurer.measure_width_mm(&symbol, font_size);
                             let rank_str = rank.to_char().to_string();
@@ -656,6 +717,11 @@ impl<'a> CommentaryRenderer<'a> {
                         }
                     }
                 }
+            }
+
+            // Draw any remaining underline at end of line
+            if underline_start_x.is_some() {
+                draw_underline(layer, underline_start_x, x);
             }
 
             // Move to next line

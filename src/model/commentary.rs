@@ -6,6 +6,7 @@ pub enum TextSpan {
     Bold(String),
     Italic(String),
     BoldItalic(String),
+    Underline(String),
     SuitSymbol(Suit),
     CardRef { suit: Suit, rank: Rank },
     LineBreak,
@@ -26,6 +27,10 @@ impl TextSpan {
 
     pub fn bold_italic(s: impl Into<String>) -> Self {
         TextSpan::BoldItalic(s.into())
+    }
+
+    pub fn underline(s: impl Into<String>) -> Self {
+        TextSpan::Underline(s.into())
     }
 }
 
@@ -54,7 +59,8 @@ impl FormattedText {
                 TextSpan::Plain(s)
                 | TextSpan::Bold(s)
                 | TextSpan::Italic(s)
-                | TextSpan::BoldItalic(s) => {
+                | TextSpan::BoldItalic(s)
+                | TextSpan::Underline(s) => {
                     result.push_str(s);
                 }
                 TextSpan::SuitSymbol(suit) => {

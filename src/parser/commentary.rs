@@ -92,6 +92,17 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
                 text.push(TextSpan::italic(replace_suit_escapes(italic_content)));
             }
             remaining = &remaining[end + 4..];
+        } else if remaining.starts_with("<u>") {
+            // Flush plain buffer
+            if !plain_buffer.is_empty() {
+                text.push(TextSpan::plain(std::mem::take(&mut plain_buffer)));
+            }
+
+            // Find closing tag
+            let end = remaining.find("</u>").ok_or("Unclosed <u> tag")?;
+            let underline_content = &remaining[3..end];
+            text.push(TextSpan::underline(replace_suit_escapes(underline_content)));
+            remaining = &remaining[end + 4..];
         } else if remaining.starts_with('\\') && remaining.len() >= 2 {
             // Check for suit symbol escape
             let next_char = remaining.chars().nth(1).unwrap();
@@ -366,6 +377,26 @@ mod tests {
         assert_eq!(
             text.spans[0],
             TextSpan::BoldItalic("Bid 2♥".to_string())
+        );
+    }
+
+    #[test]
+    fn test_underline_text() {
+        let text = parse_formatted_text("<u>Underlined text</u>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::Underline("Underlined text".to_string())
+        );
+    }
+
+    #[test]
+    fn test_underline_with_suit_symbol() {
+        let text = parse_formatted_text(r"<u>Lead the \SQ</u>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::Underline("Lead the ♠Q".to_string())
         );
     }
 }
