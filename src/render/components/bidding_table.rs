@@ -1,5 +1,6 @@
 use crate::config::Settings;
 use crate::model::{AnnotatedCall, Auction, BidSuit, Call, Direction, DirectionExt, PlayerNames};
+use crate::parser::replace_suit_escapes;
 use printpdf::{BuiltinFont, Color, FontId, Mm};
 
 use crate::render::helpers::colors::{SuitColors, BLACK};
@@ -61,7 +62,7 @@ impl<'a> BiddingTableRenderer<'a> {
 
     /// Calculate the height of the bidding table without rendering
     pub fn measure_height(&self, auction: &Auction) -> f32 {
-        self.measure_height_with_players(auction, None)
+        self.measure_height_with_players(auction, None, None)
     }
 
     /// Calculate the height of the bidding table with optional player names
@@ -69,8 +70,9 @@ impl<'a> BiddingTableRenderer<'a> {
         &self,
         auction: &Auction,
         players: Option<&PlayerNames>,
+        notes_max_width: Option<f32>,
     ) -> f32 {
-        Self::measure_height_static(auction, players, self.settings)
+        Self::measure_height_static(auction, players, self.settings, notes_max_width)
     }
 
     /// Calculate the height of the bidding table with all options (static version)
@@ -79,6 +81,7 @@ impl<'a> BiddingTableRenderer<'a> {
         auction: &Auction,
         players: Option<&PlayerNames>,
         settings: &Settings,
+        notes_max_width: Option<f32>,
     ) -> f32 {
         let row_height = settings.bid_row_height;
         let two_col_auctions = settings.two_col_auctions;
@@ -113,6 +116,9 @@ impl<'a> BiddingTableRenderer<'a> {
         let has_player_names = players.is_some_and(|p| p.has_any());
         let mut row = if has_player_names { 3 } else { 2 };
 
+        // Track whether we end on a complete row (need to adjust height)
+        let mut ended_on_complete_row = false;
+
         // Handle passed out auction
         if is_passed_out {
             row += 1;
@@ -138,6 +144,9 @@ impl<'a> BiddingTableRenderer<'a> {
                     row += 1; // Move past partial row
                 }
                 row += 1; // Row for "All Pass"
+            } else if col == 0 && calls_to_render > 0 {
+                // Complete last row - the row++ moved us to an unused row
+                ended_on_complete_row = true;
             }
         } else {
             // Standard 4-column mode: count rows for regular calls
@@ -158,14 +167,64 @@ impl<'a> BiddingTableRenderer<'a> {
                     row += 1; // Move past partial row
                 }
                 row += 1; // Row for "All Pass"
+            } else if col == 0 && calls_to_render > 0 {
+                // Complete last row - the row++ moved us to an unused row
+                ended_on_complete_row = true;
             }
         }
 
-        // Account for notes
+        // Adjust for complete last row (we over-counted by 1)
+        if ended_on_complete_row {
+            row -= 1;
+        }
+
+        // Account for notes (with word wrapping if max_width specified)
         if !auction.notes.is_empty() {
-            let note_font_size = settings.body_font_size * 0.85;
+            let note_font_size = settings.body_font_size; // Same font size as auction
             let note_line_height = note_font_size * 1.3 * 0.352778; // Convert pt to mm
-            let notes_height = (auction.notes.len() as f32) * note_line_height;
+
+            let notes_height = if let Some(max_w) = notes_max_width {
+                // Calculate wrapped height
+                let measurer = text_metrics::get_times_measurer();
+                let space_width = measurer.measure_width_mm(" ", note_font_size);
+                let mut total_lines = 0;
+
+                for (num, text) in &auction.notes {
+                    // Convert suit escape codes for accurate width measurement
+                    let converted_text = replace_suit_escapes(text);
+                    let prefix = format!("{}. ", num);
+                    let prefix_width = measurer.measure_width_mm(&prefix, note_font_size);
+                    let available_width = max_w - prefix_width;
+
+                    let words: Vec<&str> = converted_text.split_whitespace().collect();
+                    if words.is_empty() {
+                        total_lines += 1;
+                        continue;
+                    }
+
+                    let mut line_count = 1;
+                    let mut current_line_width = 0.0;
+
+                    for word in words {
+                        let word_width = measurer.measure_width_mm(word, note_font_size);
+
+                        if current_line_width == 0.0 {
+                            current_line_width = word_width;
+                        } else if current_line_width + space_width + word_width <= available_width {
+                            current_line_width += space_width + word_width;
+                        } else {
+                            line_count += 1;
+                            current_line_width = word_width;
+                        }
+                    }
+                    total_lines += line_count;
+                }
+                total_lines as f32 * note_line_height
+            } else {
+                // Original: one line per note
+                (auction.notes.len() as f32) * note_line_height
+            };
+
             row += (notes_height / row_height).ceil() as usize;
         }
 
@@ -176,7 +235,7 @@ impl<'a> BiddingTableRenderer<'a> {
 
     /// Render the bidding table and return the height used
     pub fn render(&self, layer: &mut LayerBuilder, auction: &Auction, origin: (Mm, Mm)) -> f32 {
-        self.render_with_options(layer, auction, origin, None, false)
+        self.render_with_options(layer, auction, origin, None, false, None)
     }
 
     /// Render the bidding table with optional player names and return the height used
@@ -187,7 +246,19 @@ impl<'a> BiddingTableRenderer<'a> {
         origin: (Mm, Mm),
         players: Option<&PlayerNames>,
     ) -> f32 {
-        self.render_with_options(layer, auction, origin, players, self.settings.two_col_auctions)
+        self.render_with_options(layer, auction, origin, players, self.settings.two_col_auctions, None)
+    }
+
+    /// Render the bidding table with optional player names and notes max width
+    pub fn render_with_players_and_notes_width(
+        &self,
+        layer: &mut LayerBuilder,
+        auction: &Auction,
+        origin: (Mm, Mm),
+        players: Option<&PlayerNames>,
+        notes_max_width: Option<f32>,
+    ) -> f32 {
+        self.render_with_options(layer, auction, origin, players, self.settings.two_col_auctions, notes_max_width)
     }
 
     /// Render the bidding table with all options
@@ -198,6 +269,7 @@ impl<'a> BiddingTableRenderer<'a> {
         origin: (Mm, Mm),
         players: Option<&PlayerNames>,
         two_col_auctions: bool,
+        notes_max_width: Option<f32>,
     ) -> f32 {
         let (ox, oy) = origin;
         let col_width = self.settings.bid_column_width;
@@ -293,6 +365,9 @@ impl<'a> BiddingTableRenderer<'a> {
         // Row 0 is spacing, Row 1 is header, Row 2 is player names (if present)
         let mut row = if has_player_names { 3 } else { 2 };
 
+        // Track whether we end on a complete row (need to adjust height)
+        let mut ended_on_complete_row = false;
+
         // Handle passed out auction
         if is_passed_out {
             // In two-column mode, show "Passed Out" at column 0
@@ -352,6 +427,9 @@ impl<'a> BiddingTableRenderer<'a> {
                     self.font,
                 );
                 row += 1;
+            } else if col == 0 && calls_to_render > 0 {
+                // Complete last row - the row++ moved us to an unused row
+                ended_on_complete_row = true;
             }
         } else {
             // Standard 4-column mode
@@ -390,13 +468,21 @@ impl<'a> BiddingTableRenderer<'a> {
                     self.font,
                 );
                 row += 1;
+            } else if col == 0 && calls_to_render > 0 {
+                // Complete last row - the row++ moved us to an unused row
+                ended_on_complete_row = true;
             }
+        }
+
+        // Adjust for complete last row (we over-counted by 1)
+        if ended_on_complete_row {
+            row -= 1;
         }
 
         // Render notes if present
         if !auction.notes.is_empty() {
             let notes_height =
-                self.render_notes(layer, auction, (ox, Mm(oy.0 - (row as f32 * row_height))));
+                self.render_notes(layer, auction, (ox, Mm(oy.0 - (row as f32 * row_height))), notes_max_width);
             row += (notes_height / row_height).ceil() as usize;
         }
 
@@ -480,11 +566,18 @@ impl<'a> BiddingTableRenderer<'a> {
         }
     }
 
-    /// Render notes below the bidding table
-    fn render_notes(&self, layer: &mut LayerBuilder, auction: &Auction, origin: (Mm, Mm)) -> f32 {
+    /// Render notes below the bidding table with word wrapping
+    fn render_notes(
+        &self,
+        layer: &mut LayerBuilder,
+        auction: &Auction,
+        origin: (Mm, Mm),
+        max_width: Option<f32>,
+    ) -> f32 {
         let (ox, oy) = origin;
-        let note_font_size = self.settings.body_font_size * 0.85; // Slightly smaller for notes
+        let note_font_size = self.settings.body_font_size; // Same font size as auction
         let line_height = note_font_size * 1.3 * 0.352778; // Convert pt to mm
+        let measurer = self.get_measurer();
 
         // Get sorted note numbers
         let mut note_nums: Vec<&u8> = auction.notes.keys().collect();
@@ -494,10 +587,93 @@ impl<'a> BiddingTableRenderer<'a> {
 
         for num in note_nums {
             if let Some(text) = auction.notes.get(num) {
-                let note_text = format!("{}. {}", num, text);
-                layer.set_fill_color(Color::Rgb(BLACK));
-                layer.use_text_builtin(&note_text, note_font_size, ox, Mm(current_y), self.font);
-                current_y -= line_height;
+                // Convert suit escape codes (\S, \H, \D, \C) to Unicode symbols
+                let converted_text = replace_suit_escapes(text);
+                let prefix = format!("{}. ", num);
+                let prefix_width = measurer.measure_width_mm(&prefix, note_font_size);
+
+                // If max_width is specified, wrap the text
+                if let Some(max_w) = max_width {
+                    let available_width = max_w - prefix_width;
+                    let words: Vec<&str> = converted_text.split_whitespace().collect();
+
+                    if words.is_empty() {
+                        // Empty note - just render prefix
+                        layer.set_fill_color(Color::Rgb(BLACK));
+                        layer.use_text_builtin(&prefix, note_font_size, ox, Mm(current_y), self.font);
+                        current_y -= line_height;
+                        continue;
+                    }
+
+                    // Build lines with word wrapping
+                    let mut lines: Vec<String> = Vec::new();
+                    let mut current_line = String::new();
+                    let mut current_line_width = 0.0;
+                    let space_width = measurer.measure_width_mm(" ", note_font_size);
+
+                    for word in words {
+                        let word_width = measurer.measure_width_mm(word, note_font_size);
+
+                        if current_line.is_empty() {
+                            // First word on line
+                            current_line = word.to_string();
+                            current_line_width = word_width;
+                        } else if current_line_width + space_width + word_width <= available_width {
+                            // Word fits on current line
+                            current_line.push(' ');
+                            current_line.push_str(word);
+                            current_line_width += space_width + word_width;
+                        } else {
+                            // Word doesn't fit - start new line
+                            lines.push(current_line);
+                            current_line = word.to_string();
+                            current_line_width = word_width;
+                        }
+                    }
+                    // Don't forget the last line
+                    if !current_line.is_empty() {
+                        lines.push(current_line);
+                    }
+
+                    // Render lines
+                    for (i, line) in lines.iter().enumerate() {
+                        if i == 0 {
+                            // First line: render prefix then text with suit symbols
+                            layer.set_fill_color(Color::Rgb(BLACK));
+                            layer.use_text_builtin(&prefix, note_font_size, ox, Mm(current_y), self.font);
+                            self.render_text_with_suits(
+                                layer,
+                                line,
+                                note_font_size,
+                                ox.0 + prefix_width,
+                                current_y,
+                            );
+                        } else {
+                            // Continuation lines are indented to align with first line's text
+                            self.render_text_with_suits(
+                                layer,
+                                line,
+                                note_font_size,
+                                ox.0 + prefix_width,
+                                current_y,
+                            );
+                        }
+                        current_y -= line_height;
+                    }
+                } else {
+                    // No max width - render as single line (original behavior)
+                    // Render prefix then text with suit symbols
+                    layer.set_fill_color(Color::Rgb(BLACK));
+                    layer.use_text_builtin(&prefix, note_font_size, ox, Mm(current_y), self.font);
+                    self.render_text_with_suits(
+                        layer,
+                        &converted_text,
+                        note_font_size,
+                        ox.0 + prefix_width,
+                        current_y,
+                    );
+                    current_y -= line_height;
+                }
             }
         }
 
@@ -538,5 +714,60 @@ impl<'a> BiddingTableRenderer<'a> {
         } else {
             measurer.measure_width_mm(text, self.settings.body_font_size)
         }
+    }
+
+    /// Render text that may contain suit symbols (♠♥♦♣)
+    /// Renders regular text with builtin font and suit symbols with symbol font in correct colors
+    fn render_text_with_suits(
+        &self,
+        layer: &mut LayerBuilder,
+        text: &str,
+        font_size: f32,
+        x: f32,
+        y: f32,
+    ) -> f32 {
+        let measurer = self.get_measurer();
+        let sans_measurer = text_metrics::get_helvetica_measurer();
+        let mut current_x = x;
+        let mut buffer = String::new();
+
+        for ch in text.chars() {
+            match ch {
+                '♠' | '♥' | '♦' | '♣' => {
+                    // Flush any accumulated regular text
+                    if !buffer.is_empty() {
+                        layer.set_fill_color(Color::Rgb(BLACK));
+                        layer.use_text_builtin(&buffer, font_size, Mm(current_x), Mm(y), self.font);
+                        current_x += measurer.measure_width_mm(&buffer, font_size);
+                        buffer.clear();
+                    }
+
+                    // Render suit symbol with appropriate color
+                    let is_red = ch == '♥' || ch == '♦';
+                    if is_red {
+                        layer.set_fill_color(Color::Rgb(self.colors.hearts.clone()));
+                    } else {
+                        layer.set_fill_color(Color::Rgb(BLACK));
+                    }
+
+                    let symbol = ch.to_string();
+                    layer.use_text(&symbol, font_size, Mm(current_x), Mm(y), self.symbol_font);
+                    current_x += sans_measurer.measure_width_mm(&symbol, font_size);
+                }
+                _ => {
+                    buffer.push(ch);
+                }
+            }
+        }
+
+        // Flush any remaining regular text
+        if !buffer.is_empty() {
+            layer.set_fill_color(Color::Rgb(BLACK));
+            layer.use_text_builtin(&buffer, font_size, Mm(current_x), Mm(y), self.font);
+            current_x += measurer.measure_width_mm(&buffer, font_size);
+        }
+
+        // Return total width used
+        current_x - x
     }
 }

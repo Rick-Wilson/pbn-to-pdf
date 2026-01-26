@@ -532,7 +532,7 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Render a single hand without compass (when only one hand is visible)
     /// Used for full deals with only one hand visible (any direction)
-    /// Cards are centered at the compass center position
+    /// Position matches where North hand would be in full compass layout
     fn render_single_hand(
         &self,
         layer: &mut LayerBuilder,
@@ -555,14 +555,8 @@ impl<'a> HandDiagramRenderer<'a> {
         };
         let hand_width = self.actual_hand_width(hand);
 
-        // Calculate compass center (same formula as in render_deal_with_hidden)
-        let north_base_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
-        let suit_symbol_width = 5.0;
-        let half_char_adjust = 1.5;
-        let compass_center_x = north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
-
-        // Center the cards at the compass center position
-        let hand_x = compass_center_x - hand_width / 2.0;
+        // Position at North hand location (same as full compass layout)
+        let hand_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
 
         self.draw_debug_box(layer, hand_x, oy.0, hand_width, hand_h);
         self.render_hand_cards(layer, hand, (Mm(hand_x), oy));

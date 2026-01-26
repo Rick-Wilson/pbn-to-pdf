@@ -9,9 +9,8 @@ pub fn parse_commentary(input: &str) -> Result<CommentaryBlock, String> {
 }
 
 /// Replace suit escape sequences (\S, \H, \D, \C) with Unicode symbols.
-/// Used to process text inside bold/italic tags where we can't create
-/// separate SuitSymbol spans.
-fn replace_suit_escapes(input: &str) -> String {
+/// Used to process text where we need to convert backslash codes to symbols.
+pub fn replace_suit_escapes(input: &str) -> String {
     let mut result = String::with_capacity(input.len());
     let mut chars = input.chars().peekable();
 
