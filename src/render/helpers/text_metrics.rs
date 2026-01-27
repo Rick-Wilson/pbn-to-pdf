@@ -86,6 +86,13 @@ impl BuiltinFontMeasurer {
 
     /// Get character width in 1000 units per em
     fn char_width(&self, c: char) -> u16 {
+        // Special handling for suit symbols (rendered with embedded DejaVu Sans)
+        // DejaVu Sans has 2048 units per em, suit symbols are 1836 units wide
+        // Scaled to 1000 units: 1836 * 1000 / 2048 = 896
+        if matches!(c, '\u{2660}' | '\u{2663}' | '\u{2665}' | '\u{2666}') {
+            return 896;
+        }
+
         // ASCII printable range only - builtin fonts are Win-1252
         if !c.is_ascii() {
             return 500; // Default width for non-ASCII
