@@ -34,9 +34,8 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             name: pbn-to-pdf-linux-x86_64
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-            name: pbn-to-pdf-linux-aarch64
+          # NOTE: aarch64-unknown-linux-gnu disabled due to upstream bug in azul-css
+          # (c_char type mismatch: expects i8 but ARM Linux uses u8)
 
           # Windows
           - target: x86_64-pc-windows-msvc
@@ -53,16 +52,8 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install cross-compilation tools (Linux ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
-        env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
       - name: Package (Unix)
         if: runner.os != 'Windows'
@@ -144,7 +135,6 @@ jobs:
             | macOS | Intel (x86_64) | `pbn-to-pdf-macos-x86_64.tar.gz` |
             | macOS | Apple Silicon (ARM64) | `pbn-to-pdf-macos-aarch64.tar.gz` |
             | Linux | x86_64 | `pbn-to-pdf-linux-x86_64.tar.gz` |
-            | Linux | ARM64 | `pbn-to-pdf-linux-aarch64.tar.gz` |
             | Windows | x86_64 | `pbn-to-pdf-windows-x86_64.zip` |
 
             ### Installation
