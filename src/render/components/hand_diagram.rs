@@ -160,14 +160,15 @@ impl<'a> HandDiagramRenderer<'a> {
 
     /// Measure the height of a deal diagram without rendering
     pub fn measure_deal_height(&self, _deal: &Deal, options: &DiagramDisplayOptions) -> f32 {
+        // North-only is just the hand height (always 4 suits, even with voids)
+        // Check this BEFORE is_fragment so single hands with voids measure correctly
+        if options.hide_compass {
+            return self.actual_hand_height();
+        }
+
         // Use fragment-aware height if only some suits are present
         if options.is_fragment {
             return self.measure_fragment_height(options);
-        }
-
-        // North-only is just the hand height
-        if options.hide_compass {
-            return self.actual_hand_height();
         }
 
         // Full deal: 3 rows of hands with compass in middle row
@@ -240,14 +241,15 @@ impl<'a> HandDiagramRenderer<'a> {
     ) -> f32 {
         let (ox, oy) = origin;
 
+        // Render without compass if compass is hidden (single hand visible)
+        // Check this BEFORE is_fragment so single hands with voids show all 4 suits
+        if options.hide_compass {
+            return self.render_single_hand(layer, deal, origin, options);
+        }
+
         // Use fragment-aware rendering if only some suits are present
         if options.is_fragment {
             return self.render_deal_fragment_with_options(layer, deal, origin, options);
-        }
-
-        // Render without compass if compass is hidden (single hand visible)
-        if options.hide_compass {
-            return self.render_single_hand(layer, deal, origin, options);
         }
 
         // Layout constants for full deals

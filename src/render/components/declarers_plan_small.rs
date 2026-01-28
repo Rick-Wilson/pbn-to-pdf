@@ -8,7 +8,7 @@
 //!   - NT contracts: Winners table
 //!   - Suit contracts: Losers table
 
-use printpdf::{BuiltinFont, Color, FontId, Mm, Rgb};
+use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, Rgb};
 use std::collections::HashMap;
 
 use crate::model::{BidSuit, Board, Card, Hand, Suit};
@@ -43,6 +43,17 @@ const FAN_RAISE: f32 = 21.4;
 
 /// Extra space to raise table (about 1.5x title row height minus header savings + row height)
 const TABLE_RAISE: f32 = 11.5;
+
+/// Font size for opening lead box (larger for visibility)
+const LEAD_BOX_FONT_SIZE: f32 = 12.5;
+
+/// Mild yellow background color for opening lead box
+const MILD_YELLOW: Rgb = Rgb {
+    r: 1.0,
+    g: 1.0,
+    b: 0.7,
+    icc_profile: None,
+};
 
 /// Renderer for a small declarer's plan layout (one quadrant of a page)
 pub struct DeclarersPlanSmallRenderer<'a> {
@@ -413,6 +424,12 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let fan_y = dummy_y - nominal_dummy_height - ELEMENT_GAP + FAN_RAISE;
         fan_renderer.render(layer, south, (Mm(content_x), Mm(fan_y)));
 
+        // Opening lead box (e.g., "Lead: ♠4") - positioned at left margin, above fan top
+        // This overlays the leftmost column of the dummy view
+        if let Some(lead_card) = opening_lead {
+            self.render_opening_lead_box(layer, lead_card, content_x, fan_y + 9.0);
+        }
+
         // Table below the VISIBLE portion of the fan (centered on dummy width), raised by TABLE_RAISE
         let (table_width, _) = if is_nt {
             self.winners_table_renderer().dimensions()
@@ -497,5 +514,74 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
 
         // Reset to black
         layer.set_fill_color(Color::Rgb(BLACK));
+    }
+
+    /// Render opening lead box with mild yellow background (e.g., "Lead: ♠4")
+    fn render_opening_lead_box(&self, layer: &mut LayerBuilder, card: Card, x: f32, y: f32) {
+        let measurer = text_metrics::get_times_measurer();
+        let font_size = LEAD_BOX_FONT_SIZE;
+        let cap_height = measurer.cap_height_mm(font_size);
+
+        // Build the text components: "Lead: " + suit symbol + rank
+        let label = "Lead: ";
+        let suit_symbol = card.suit.symbol().to_string();
+        let rank_str = card.rank.to_char().to_string();
+
+        // Measure widths
+        let label_width = measurer.measure_width_mm(label, font_size);
+        let suit_width = measurer.measure_width_mm(&suit_symbol, font_size);
+        let rank_width = measurer.measure_width_mm(&rank_str, font_size);
+        let total_width = label_width + suit_width + rank_width;
+
+        // Box dimensions with padding
+        let padding_h = 1.5; // Horizontal padding
+        let padding_v = 1.0; // Vertical padding
+        let box_width = total_width + 2.0 * padding_h;
+        let box_height = cap_height + 2.0 * padding_v;
+
+        // Box position (y is the top of the box)
+        let box_x = x;
+        let box_y = y;
+        let box_bottom = box_y - box_height;
+
+        // Draw mild yellow background rectangle (filled, no stroke)
+        // add_rect takes (x1, y1, x2, y2) - lower-left and upper-right corners
+        layer.set_fill_color(Color::Rgb(MILD_YELLOW));
+        layer.add_rect(
+            Mm(box_x),
+            Mm(box_bottom),
+            Mm(box_x + box_width),
+            Mm(box_y),
+            PaintMode::Fill,
+        );
+
+        // Text baseline position
+        let text_x = box_x + padding_h;
+        let text_y = box_y - padding_v - cap_height;
+
+        // Render "Lead: " in black
+        layer.set_fill_color(Color::Rgb(BLACK));
+        layer.use_text_builtin(label, font_size, Mm(text_x), Mm(text_y), self.font);
+
+        // Render suit symbol in appropriate color
+        let suit_color = self.colors.for_suit(&card.suit);
+        layer.set_fill_color(Color::Rgb(suit_color));
+        layer.use_text(
+            &suit_symbol,
+            font_size,
+            Mm(text_x + label_width),
+            Mm(text_y),
+            self.symbol_font,
+        );
+
+        // Render rank in black
+        layer.set_fill_color(Color::Rgb(BLACK));
+        layer.use_text_builtin(
+            &rank_str,
+            font_size,
+            Mm(text_x + label_width + suit_width),
+            Mm(text_y),
+            self.bold_font,
+        );
     }
 }
