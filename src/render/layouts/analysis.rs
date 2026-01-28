@@ -198,11 +198,11 @@ impl DocumentRenderer {
             // Title lines but no diagram: need cap_height for text ascenders + title spacing
             height = cap_height * 2.0 + effective_title_lines as f32 * line_height;
         } else if inline_board_label {
-            // Auction-only with inline board label: just cap_height for auction header
-            height = cap_height;
+            // Auction-only with inline board label: cap_height for ascenders + top padding
+            height = cap_height * 2.0;
         } else {
-            // Commentary-only: just cap_height for text ascenders
-            height = cap_height;
+            // Commentary-only: cap_height for ascenders + top padding
+            height = cap_height * 2.0;
         }
 
         // Auction height
@@ -782,11 +782,14 @@ impl DocumentRenderer {
 
             current_y = diagram_y - diagram_height;
         } else if inline_board_label {
-            // Auction-only with inline board label: start at first_baseline
-            current_y = first_baseline;
-        } else {
-            // No diagram - content starts below title lines
+            // Auction-only with inline board label: add top padding before content
+            current_y = first_baseline - cap_height;
+        } else if title_line > 0 {
+            // Title lines: content starts below title lines
             current_y = first_baseline - (title_line as f32 * line_height);
+        } else {
+            // Commentary-only: add top padding before content
+            current_y = first_baseline - cap_height;
         }
 
         // Render bidding table if present and enabled
