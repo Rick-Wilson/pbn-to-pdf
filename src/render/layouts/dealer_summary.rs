@@ -238,7 +238,7 @@ impl DealerSummaryRenderer {
             );
             contract_x += measurer.measure_width_mm(&level_str, font_size);
 
-            // Suit symbol (colored) - use symbol font
+            // Suit symbol (colored) - use symbol font for suits, builtin for NT
             let suit_color = if contract.suit.is_red() {
                 colors.hearts.clone()
             } else {
@@ -246,13 +246,23 @@ impl DealerSummaryRenderer {
             };
             layer.set_fill_color(Color::Rgb(suit_color));
             let suit_str = contract.suit.symbol();
-            layer.use_text(
-                suit_str,
-                font_size,
-                Mm(contract_x),
-                Mm(current_y),
-                fonts.symbol_font(),
-            );
+            if contract.suit == crate::model::BidSuit::NoTrump {
+                layer.use_text_builtin(
+                    suit_str,
+                    font_size,
+                    Mm(contract_x),
+                    Mm(current_y),
+                    fonts.sans.regular,
+                );
+            } else {
+                layer.use_text(
+                    suit_str,
+                    font_size,
+                    Mm(contract_x),
+                    Mm(current_y),
+                    fonts.symbol_font(),
+                );
+            }
             contract_x += measurer.measure_width_mm(suit_str, font_size);
 
             // Doubled/Redoubled indicator

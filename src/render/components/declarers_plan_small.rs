@@ -445,8 +445,8 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         x: Mm,
         y: Mm,
     ) {
-        // Use sans bold measurer for approximate width (close enough for single digit)
-        let measurer = text_metrics::get_helvetica_bold_measurer();
+        // Use serif measurer for text width
+        let measurer = text_metrics::get_times_measurer();
 
         // Determine if trump suit is red
         let is_red = trump.map(|t| t.is_red()).unwrap_or(false);
@@ -458,10 +458,10 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             let level = &contract[0..1];
             let symbol = &contract[1..];
 
-            // Render level in black
+            // Render level in black using builtin font
             layer.set_fill_color(Color::Rgb(BLACK));
             let level_width = measurer.measure_width_mm(level, HEADER_FONT_SIZE);
-            layer.use_text(level, HEADER_FONT_SIZE, x, y, self.symbol_font);
+            layer.use_text_builtin(level, HEADER_FONT_SIZE, x, y, self.bold_font);
 
             // Render symbol in appropriate color
             if is_red {
@@ -469,17 +469,30 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             } else {
                 layer.set_fill_color(Color::Rgb(BLACK));
             }
-            layer.use_text(
-                symbol,
-                HEADER_FONT_SIZE,
-                Mm(x.0 + level_width),
-                y,
-                self.symbol_font,
-            );
+
+            // Use builtin font for NT, symbol font for suit symbols
+            let is_nt = trump.map(|t| t == BidSuit::NoTrump).unwrap_or(symbol == "NT");
+            if is_nt {
+                layer.use_text_builtin(
+                    symbol,
+                    HEADER_FONT_SIZE,
+                    Mm(x.0 + level_width),
+                    y,
+                    self.bold_font,
+                );
+            } else {
+                layer.use_text(
+                    symbol,
+                    HEADER_FONT_SIZE,
+                    Mm(x.0 + level_width),
+                    y,
+                    self.symbol_font,
+                );
+            }
         } else {
-            // Fallback: render whole contract
+            // Fallback: render whole contract using builtin font
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text(contract, HEADER_FONT_SIZE, x, y, self.symbol_font);
+            layer.use_text_builtin(contract, HEADER_FONT_SIZE, x, y, self.bold_font);
         }
 
         // Reset to black

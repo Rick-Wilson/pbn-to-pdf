@@ -84,10 +84,17 @@ impl BoardVisibility {
     fn from_board(board: &Board, settings: &Settings) -> Self {
         let flags = board.bc_flags;
         let deal_is_empty = board.deal.is_empty();
+        let has_auction = board
+            .auction
+            .as_ref()
+            .map(|a| !a.calls.is_empty())
+            .unwrap_or(false);
+        // Show board info if deal has cards OR there's an auction (for exercise boards)
+        let has_content = !deal_is_empty || has_auction;
         Self {
-            show_board: !deal_is_empty && flags.map(|f| !f.hide_board()).unwrap_or(true),
-            show_dealer: !deal_is_empty && flags.map(|f| !f.hide_dealer()).unwrap_or(true),
-            show_vulnerable: !deal_is_empty && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true),
+            show_board: has_content && flags.map(|f| !f.hide_board()).unwrap_or(true),
+            show_dealer: has_content && flags.map(|f| !f.hide_dealer()).unwrap_or(true),
+            show_vulnerable: has_content && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true),
             show_diagram: !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true),
             show_auction: flags.map(|f| f.show_auction()).unwrap_or(true) && settings.show_bidding,
             show_commentary: settings.show_commentary
@@ -103,6 +110,7 @@ impl BoardVisibility {
             || self.show_dealer
             || self.show_vulnerable
             || self.show_diagram
+            || self.show_auction
             || self.show_commentary
     }
 }
@@ -136,7 +144,7 @@ impl DocumentRenderer {
         let measurer = get_times_measurer();
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
 
-        // Count title lines
+        // Count title lines (board number, dealer, vulnerability stacked vertically)
         let mut title_lines = 0;
         if visibility.show_board && board.board_id.is_some() {
             title_lines += 1;
@@ -147,6 +155,23 @@ impl DocumentRenderer {
         if visibility.show_vulnerable {
             title_lines += 1;
         }
+
+        // For auction-only boards (no diagram), render board number inline with auction header
+        // This saves vertical space by not having the board number on its own line
+        let inline_board_label = !visibility.show_diagram
+            && visibility.show_auction
+            && board.auction.is_some()
+            && visibility.show_board
+            && board.board_id.is_some()
+            && !visibility.show_dealer
+            && !visibility.show_vulnerable;
+
+        // Adjust title_lines if board label will be inline with auction
+        let effective_title_lines = if inline_board_label {
+            0 // Board label rendered inline with auction, not as separate line
+        } else {
+            title_lines
+        };
 
         // Initial height depends on what content we have
         let mut height: f32;
@@ -169,9 +194,12 @@ impl DocumentRenderer {
                 // Full compass: diagram starts at top, no extra spacing needed
                 height = diagram_height;
             }
-        } else if title_lines > 0 {
+        } else if effective_title_lines > 0 {
             // Title lines but no diagram: need cap_height for text ascenders + title spacing
-            height = cap_height * 2.0 + title_lines as f32 * line_height;
+            height = cap_height * 2.0 + effective_title_lines as f32 * line_height;
+        } else if inline_board_label {
+            // Auction-only with inline board label: just cap_height for auction header
+            height = cap_height;
         } else {
             // Commentary-only: just cap_height for text ascenders
             height = cap_height;
@@ -180,7 +208,16 @@ impl DocumentRenderer {
         // Auction height
         if visibility.show_auction {
             if let Some(ref auction) = board.auction {
-                height += self.measure_auction_height(auction, &board.players, Some(column_width));
+                let mut auction_height =
+                    self.measure_auction_height(auction, &board.players, Some(column_width));
+
+                // For 2-column inline board labels, we skip the spacing row before the header
+                let is_two_col =
+                    self.settings.two_col_auctions && auction.uncontested_pair().is_some();
+                if inline_board_label && is_two_col {
+                    auction_height -= self.settings.bid_row_height;
+                }
+                height += auction_height;
 
                 let has_contract = board.contract.is_some();
                 let has_lead = board
@@ -596,12 +633,18 @@ impl DocumentRenderer {
         let mut current_y: f32;
 
         // Check BCFlags for visibility control
-        // If deal is empty (no cards), hide board number, dealer, vulnerability, and diagram
+        // Show board info if deal has cards OR there's an auction (for exercise boards)
         let flags = board.bc_flags;
         let deal_is_empty = board.deal.is_empty();
-        let show_board = !deal_is_empty && flags.map(|f| !f.hide_board()).unwrap_or(true);
-        let show_dealer = !deal_is_empty && flags.map(|f| !f.hide_dealer()).unwrap_or(true);
-        let show_vulnerable = !deal_is_empty && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true);
+        let has_auction = board
+            .auction
+            .as_ref()
+            .map(|a| !a.calls.is_empty())
+            .unwrap_or(false);
+        let has_content = !deal_is_empty || has_auction;
+        let show_board = has_content && flags.map(|f| !f.hide_board()).unwrap_or(true);
+        let show_dealer = has_content && flags.map(|f| !f.hide_dealer()).unwrap_or(true);
+        let show_vulnerable = has_content && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true);
         let show_diagram = !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true);
         let show_auction =
             flags.map(|f| f.show_auction()).unwrap_or(true) && self.settings.show_bidding;
@@ -612,9 +655,25 @@ impl DocumentRenderer {
                 .unwrap_or(true);
 
         // Skip completely empty boards (nothing visible to show)
-        if !show_board && !show_dealer && !show_vulnerable && !show_diagram && !show_commentary {
+        if !show_board
+            && !show_dealer
+            && !show_vulnerable
+            && !show_diagram
+            && !show_auction
+            && !show_commentary
+        {
             return 0.0;
         }
+
+        // For auction-only boards (no diagram), render board number inline with auction header
+        // This saves vertical space by not having the board number on its own line
+        let inline_board_label = !show_diagram
+            && show_auction
+            && board.auction.is_some()
+            && show_board
+            && board.board_id.is_some()
+            && !show_dealer
+            && !show_vulnerable;
 
         // Check if we should use center layout (commentary first, then centered board info)
         // Only use center layout when there IS commentary to show - otherwise use normal layout
@@ -646,7 +705,8 @@ impl DocumentRenderer {
 
         layer.set_fill_color(Color::Rgb(BLACK));
 
-        if show_board {
+        // Render board number in title section (unless it will be inline with auction)
+        if show_board && !inline_board_label {
             if let Some(ref board_id) = board.board_id {
                 let y = first_baseline - (title_line as f32 * line_height);
                 // Use board label format from settings (e.g., "Board %" -> "Board 1", "%)" -> "1)")
@@ -721,6 +781,9 @@ impl DocumentRenderer {
             self.draw_debug_box(layer, diagram_x, diagram_y, column_width, diagram_height);
 
             current_y = diagram_y - diagram_height;
+        } else if inline_board_label {
+            // Auction-only with inline board label: start at first_baseline
+            current_y = first_baseline;
         } else {
             // No diagram - content starts below title lines
             current_y = first_baseline - (title_line as f32 * line_height);
@@ -748,12 +811,37 @@ impl DocumentRenderer {
                 // Center the auction table within the column
                 let table_x = column_x + (column_width - table_width) / 2.0;
 
+                // Render board label inline with auction header (to the left of the table)
+                // For 2-column auctions, eliminate the spacing row and put label on header line
+                // For 4-column auctions, place label above the header (keep spacing row)
+                let auction_y = if inline_board_label && num_cols == 2 {
+                    // 2-column inline: move auction up by one row so header aligns with first_baseline
+                    // The auction adds row_height spacing internally, so we compensate here
+                    current_y + self.settings.bid_row_height
+                } else {
+                    current_y
+                };
+
+                if inline_board_label {
+                    if let Some(ref board_id) = board.board_id {
+                        let label = self.settings.board_label_format.replace('%', board_id);
+                        // Board label at first_baseline (same line as auction header after offset)
+                        layer.use_text_builtin(
+                            label,
+                            font_size,
+                            Mm(column_x),
+                            Mm(current_y),
+                            hand_record_fonts.bold_italic,
+                        );
+                    }
+                }
+
                 // Calculate max width for notes: from table_x to right edge of column
                 let notes_max_width = (column_x + column_width) - table_x;
                 let table_height = bidding_renderer.render_with_players_and_notes_width(
                     layer,
                     auction,
-                    (Mm(table_x), Mm(current_y)),
+                    (Mm(table_x), Mm(auction_y)),
                     Some(&board.players),
                     Some(notes_max_width),
                 );
@@ -761,7 +849,12 @@ impl DocumentRenderer {
                 // Debug box for bidding table
                 self.draw_debug_box(layer, table_x, current_y, table_width, table_height);
 
-                current_y -= table_height;
+                // For 2-column inline labels, we moved auction up by row_height, so subtract less
+                if inline_board_label && num_cols == 2 {
+                    current_y -= table_height - self.settings.bid_row_height;
+                } else {
+                    current_y -= table_height;
+                }
 
                 let has_contract = board.contract.is_some();
                 let has_lead = board
@@ -1396,12 +1489,18 @@ impl DocumentRenderer {
         let title_start_y = page_top;
 
         // Build title lines and measure widths
-        // If deal is empty (no cards), hide board number, dealer, and vulnerability
+        // Show board info if deal has cards OR there's an auction (for exercise boards)
         let font_size = self.settings.body_font_size;
         let mut title_lines: Vec<String> = Vec::new();
         let deal_is_empty = board.deal.is_empty();
+        let has_auction = board
+            .auction
+            .as_ref()
+            .map(|a| !a.calls.is_empty())
+            .unwrap_or(false);
+        let has_content = !deal_is_empty || has_auction;
 
-        if !deal_is_empty {
+        if has_content {
             if let Some(ref board_id) = board.board_id {
                 // Use board label format from settings (e.g., "Board %" -> "Board 1", "%)" -> "1)")
                 let label = self.settings.board_label_format.replace('%', board_id);
@@ -1433,7 +1532,7 @@ impl DocumentRenderer {
 
         layer.set_fill_color(Color::Rgb(BLACK));
 
-        if !deal_is_empty {
+        if has_content {
             // Line 1: Board label (bold italic) - use hand_record font
             if let Some(ref board_id) = board.board_id {
                 let y = first_baseline - (current_line as f32 * line_height);

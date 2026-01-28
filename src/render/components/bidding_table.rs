@@ -178,13 +178,18 @@ impl<'a> BiddingTableRenderer<'a> {
             row -= 1;
         }
 
+        // Calculate table height (before notes)
+        let table_height = row as f32 * row_height;
+
         // Account for notes (with word wrapping if max_width specified)
+        // Note: render_notes adds one line_height of spacing before the first note
         if !auction.notes.is_empty() {
             let note_font_size = settings.body_font_size; // Same font size as auction
             let note_line_height = note_font_size * 1.3 * 0.352778; // Convert pt to mm
 
-            let notes_height = if let Some(max_w) = notes_max_width {
-                // Calculate wrapped height
+            // Count note content lines (not including initial spacing)
+            let note_content_lines = if let Some(max_w) = notes_max_width {
+                // Calculate wrapped line count
                 let measurer = text_metrics::get_times_measurer();
                 let space_width = measurer.measure_width_mm(" ", note_font_size);
                 let mut total_lines = 0;
@@ -219,18 +224,21 @@ impl<'a> BiddingTableRenderer<'a> {
                     }
                     total_lines += line_count;
                 }
-                total_lines as f32 * note_line_height
+                total_lines
             } else {
                 // Original: one line per note
-                (auction.notes.len() as f32) * note_line_height
+                auction.notes.len()
             };
 
-            row += (notes_height / row_height).ceil() as usize;
-        }
+            // Notes height = initial spacing line + note content lines
+            // (matching render_notes which starts at oy.0 - line_height)
+            let notes_height = (1 + note_content_lines) as f32 * note_line_height;
 
-        // Return total height used
-        // Row counts the number of row slots used
-        row as f32 * row_height
+            // Return actual combined height (no rounding)
+            table_height + notes_height
+        } else {
+            table_height
+        }
     }
 
     /// Render the bidding table and return the height used
@@ -496,20 +504,22 @@ impl<'a> BiddingTableRenderer<'a> {
             row -= 1;
         }
 
-        // Render notes if present
+        // Calculate table height (before notes)
+        let table_height = row as f32 * row_height;
+
+        // Render notes if present and return combined height
         if !auction.notes.is_empty() {
             let notes_height = self.render_notes(
                 layer,
                 auction,
-                (ox, Mm(oy.0 - (row as f32 * row_height))),
+                (ox, Mm(oy.0 - table_height)),
                 notes_max_width,
             );
-            row += (notes_height / row_height).ceil() as usize;
+            // Return actual combined height (no rounding)
+            table_height + notes_height
+        } else {
+            table_height
         }
-
-        // Return total height used
-        // Row counts the number of row positions used (0 through row-1)
-        row as f32 * row_height
     }
 
     /// Render an annotated call (call with optional superscript annotation)
