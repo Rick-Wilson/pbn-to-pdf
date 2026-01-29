@@ -1319,8 +1319,14 @@ impl BiddingSheetsRenderer {
                     let suit_color = colors.for_bid_suit(suit);
                     layer.set_fill_color(Color::Rgb(suit_color));
                     let symbol = suit.symbol();
-                    layer.use_text(symbol, font_size, Mm(current_x), Mm(y), symbol_font);
-                    current_x += symbol_measurer.measure_width_mm(symbol, font_size);
+                    // NoTrump returns "NT" which is regular text, not a symbol glyph
+                    if *suit == BidSuit::NoTrump {
+                        layer.use_text_builtin(symbol, font_size, Mm(current_x), Mm(y), text_font);
+                        current_x += text_measurer.measure_width_mm(symbol, font_size);
+                    } else {
+                        layer.use_text(symbol, font_size, Mm(current_x), Mm(y), symbol_font);
+                        current_x += symbol_measurer.measure_width_mm(symbol, font_size);
+                    }
                 }
             }
         }
