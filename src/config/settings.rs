@@ -170,6 +170,26 @@ impl Settings {
         }
     }
 
+    /// Create settings for a specific layout with appropriate defaults
+    pub fn for_layout(layout: Layout) -> Self {
+        let (margin_lr, margin_tb) = match layout {
+            Layout::BiddingSheets => (BIDDING_SHEETS_MARGIN, BIDDING_SHEETS_MARGIN),
+            Layout::DeclarersPlan => (DECLARERS_PLAN_MARGIN_LR, DECLARERS_PLAN_MARGIN_TB),
+            Layout::DealerSummary => (DECLARERS_PLAN_MARGIN_LR, DECLARERS_PLAN_MARGIN_TB),
+            Layout::Analysis => (DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN),
+        };
+
+        Self {
+            margin: margin_lr,
+            margin_top: margin_tb,
+            margin_bottom: margin_tb,
+            margin_left: margin_lr,
+            margin_right: margin_lr,
+            layout,
+            ..Default::default()
+        }
+    }
+
     /// Merge with PBN metadata (embedded settings override defaults)
     pub fn with_metadata(mut self, metadata: &PbnMetadata) -> Self {
         if let Some(bpp) = metadata.layout.boards_per_page {
