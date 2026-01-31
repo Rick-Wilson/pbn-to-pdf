@@ -431,7 +431,8 @@ impl DocumentRenderer {
         let gutter = 5.0; // Space between columns
 
         // Calculate minimum content width needed for N columns
-        let min_content_width = num_columns as f32 * MIN_COLUMN_WIDTH + (num_columns - 1) as f32 * gutter;
+        let min_content_width =
+            num_columns as f32 * MIN_COLUMN_WIDTH + (num_columns - 1) as f32 * gutter;
 
         // Check if specified margins leave enough room for columns
         let specified_content = page_width - self.settings.margin_left - self.settings.margin_right;
@@ -444,7 +445,8 @@ impl DocumentRenderer {
 
         let content_width = page_width - margin_left - margin_right;
         let column_width = content_width / num_columns as f32;
-        let usable_column_width = column_width - gutter * (num_columns - 1) as f32 / num_columns as f32;
+        let usable_column_width =
+            column_width - gutter * (num_columns - 1) as f32 / num_columns as f32;
 
         // Calculate column start X positions and separator X positions
         let column_starts: Vec<f32> = (0..num_columns)
@@ -1119,7 +1121,8 @@ impl DocumentRenderer {
                                 let line = format!("{} {}", suit.symbol(), cards_str);
                                 hand_measurer.measure_width_mm(&line, self.settings.card_font_size)
                             } else {
-                                hand_measurer.measure_width_mm(&cards_str, self.settings.card_font_size)
+                                hand_measurer
+                                    .measure_width_mm(&cards_str, self.settings.card_font_size)
                             }
                         })
                         .fold(0.0_f32, |max, w| max.max(w));

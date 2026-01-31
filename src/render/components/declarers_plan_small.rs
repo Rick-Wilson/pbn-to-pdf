@@ -488,7 +488,9 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             }
 
             // Use builtin font for NT, symbol font for suit symbols
-            let is_nt = trump.map(|t| t == BidSuit::NoTrump).unwrap_or(symbol == "NT");
+            let is_nt = trump
+                .map(|t| t == BidSuit::NoTrump)
+                .unwrap_or(symbol == "NT");
             if is_nt {
                 layer.use_text_builtin(
                     symbol,
