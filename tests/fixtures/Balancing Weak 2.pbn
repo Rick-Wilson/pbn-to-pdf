@@ -1,0 +1,157 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=ISO-8859-1
+%Creator: BridgeComposer Version 5.25
+%PaperSize 1,0,0
+%Margins 500,250,500,5500
+%Font:Event "Times New Roman",12,400,0
+%Font:Diagram "Times New Roman",12,400,0
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Times New Roman",12,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%PageOrientation 0
+%BoardsPerPage fit,2
+%GutterSize 500,250
+%GutterLines 3
+%PageHeader 0
+%EventSpacing 0
+%ParaIndent 0
+%Center 1
+%Float 0
+%JustifyText 0
+%ShowBoardLabels 2
+%ShowCardTable 2
+%PlayFormat 0
+%ScoreTable Border Shade
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Symbol","Symbol",2,0xAA,0xA9,0xA8,0xA7
+%CardTableColors #008000,#ffffff,#aaaaaa
+%UseCardTableFontSize 0
+%ScoreTableColors #e6e6e6,#000000
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+[Event ""]
+[Site ""]
+[Date ""]
+[Board ""]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer ""]
+[Vulnerable ""]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Most bad results come from bidding unsafely.  Sometimes you just have to let
+the opponents have their day.  When deciding whether to act, you must be
+prepared for all of partner's responses.  However, when balancing a preemptive
+bid you should assume that partner has at least a somewhat useful seven-count
+(Seven-Point Rule).
+}
+[Application "BridgeComposer; Views=0017"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:A92.T82.AJ62.532 Q43.A97.QT98.KJ6 JT6.KJ3.K754.Q94 K875.Q654.3.AT87"]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[Auction "S"]
+2D Pass Pass ____
+[Hidden "NSW"]
+[Application "BridgeComposer; Views=001F"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:AQT.J862.KJT.T76 943.AT94.432.A92 K2.Q53.Q876.QJ53 J8765.K7.A95.K84"]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[Auction "S"]
+2H Pass Pass ____
+[Hidden "NSW"]
+[Application "BridgeComposer; Views=001F"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:AKQJ74.T86.43.A3 T.KQJ953.KQ8.T62 9852.A42.J762.97 63.7.AT95.KQJ854"]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[Auction "S"]
+2S Pass Pass ____
+[Hidden "NSW"]
+[Application "BridgeComposer; Views=001F"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:874.K654.A86.985 J32.A973.942.K62 A965.T82.T53.QT4 KQT.QJ.KQJ7.AJ73"]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[Auction "S"]
+2S Pass Pass ___
+[Hidden "NSW"]
+[Application "BridgeComposer; Views=001F"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:KJ95.Q852.94.T76 AT83.74.653.Q832 Q76.AJT96.T2.K94 42.K3.AKQJ87.AJ5"]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[Auction "S"]
+2H Pass Pass ____
+[Hidden "NSW"]
+[Application "BridgeComposer; Views=001F"]

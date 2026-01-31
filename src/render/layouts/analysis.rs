@@ -421,10 +421,22 @@ impl DocumentRenderer {
 
         let page_width = self.settings.page_width;
         let page_height = self.settings.page_height;
-        let margin_left = self.settings.margin_left;
-        let margin_right = self.settings.margin_right;
         let margin_top = self.settings.margin_top;
         let margin_bottom = self.settings.margin_bottom;
+
+        // Minimum column width for readable content (approx 70mm)
+        // Two columns + 5mm gutter = 145mm minimum content width
+        const MIN_CONTENT_WIDTH: f32 = 145.0;
+        const DEFAULT_MARGIN: f32 = 15.0;
+
+        // Check if specified margins leave enough room for two columns
+        let specified_content = page_width - self.settings.margin_left - self.settings.margin_right;
+        let (margin_left, margin_right) = if specified_content < MIN_CONTENT_WIDTH {
+            // Margins too large for two-column layout, use defaults
+            (DEFAULT_MARGIN, DEFAULT_MARGIN)
+        } else {
+            (self.settings.margin_left, self.settings.margin_right)
+        };
 
         let content_width = page_width - margin_left - margin_right;
         let column_width = content_width / 2.0;
