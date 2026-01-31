@@ -1,6 +1,6 @@
 use crate::config::Settings;
 use crate::error::RenderError;
-use crate::model::{BidSuit, Board, Direction, SUITS_DISPLAY_ORDER};
+use crate::model::{BidSuit, Board, Direction, Suit, SUITS_DISPLAY_ORDER};
 use printpdf::{
     BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb,
 };
@@ -1094,24 +1094,33 @@ impl DocumentRenderer {
                         None => &board.deal.north,
                     };
 
+                    // Use suits_present for fragments, full display order otherwise
+                    let suits_to_show: Vec<Suit> = if diagram_options.is_fragment {
+                        diagram_options.suits_present.clone()
+                    } else {
+                        SUITS_DISPLAY_ORDER.to_vec()
+                    };
+                    let show_suit_symbols = diagram_options.show_suit_symbols;
+                    let num_suits = suits_to_show.len();
+
                     // Measure hand width for centering
                     let hand_measurer = text_metrics::get_times_measurer();
-                    let hand_width = SUITS_DISPLAY_ORDER
+                    let hand_width = suits_to_show
                         .iter()
                         .map(|suit| {
                             let holding = hand.holding(*suit);
-                            let cards_str = if holding.is_void() {
-                                "-".to_string()
+                            let cards_str = holding
+                                .ranks
+                                .iter()
+                                .map(|r| r.to_char().to_string())
+                                .collect::<Vec<_>>()
+                                .join(" ");
+                            if show_suit_symbols {
+                                let line = format!("{} {}", suit.symbol(), cards_str);
+                                hand_measurer.measure_width_mm(&line, self.settings.card_font_size)
                             } else {
-                                holding
-                                    .ranks
-                                    .iter()
-                                    .map(|r| r.to_char().to_string())
-                                    .collect::<Vec<_>>()
-                                    .join(" ")
-                            };
-                            let line = format!("{} {}", suit.symbol(), cards_str);
-                            hand_measurer.measure_width_mm(&line, self.settings.card_font_size)
+                                hand_measurer.measure_width_mm(&cards_str, self.settings.card_font_size)
+                            }
                         })
                         .fold(0.0_f32, |max, w| max.max(w));
 
@@ -1127,45 +1136,49 @@ impl DocumentRenderer {
                     let colors =
                         SuitColors::new(self.settings.black_color, self.settings.red_color);
 
-                    for (i, suit) in SUITS_DISPLAY_ORDER.iter().enumerate() {
+                    for (i, suit) in suits_to_show.iter().enumerate() {
                         let y = first_baseline - (i as f32 * line_height);
                         let holding = hand.holding(*suit);
 
-                        // Render suit symbol
-                        let suit_color = colors.for_suit(suit);
-                        layer.set_fill_color(Color::Rgb(suit_color));
-                        let symbol = suit.symbol().to_string();
-                        layer.use_text(
-                            &symbol,
-                            self.settings.card_font_size,
-                            Mm(diagram_x),
-                            Mm(y),
-                            fonts.symbol_font(),
-                        );
+                        let mut current_x = diagram_x;
+
+                        // Render suit symbol only if showing multiple suits
+                        if show_suit_symbols {
+                            let suit_color = colors.for_suit(suit);
+                            layer.set_fill_color(Color::Rgb(suit_color));
+                            let symbol = suit.symbol().to_string();
+                            layer.use_text(
+                                &symbol,
+                                self.settings.card_font_size,
+                                Mm(current_x),
+                                Mm(y),
+                                fonts.symbol_font(),
+                            );
+                            current_x += 5.0; // Offset for cards after suit symbol
+                        }
 
                         // Render cards
                         layer.set_fill_color(Color::Rgb(BLACK));
-                        let cards_str = if holding.is_void() {
-                            "-".to_string()
-                        } else {
-                            holding
-                                .ranks
-                                .iter()
-                                .map(|r| r.to_char().to_string())
-                                .collect::<Vec<_>>()
-                                .join(" ")
-                        };
-                        let cards_x = diagram_x + 5.0; // Offset for cards after suit symbol
+                        let cards_str = holding
+                            .ranks
+                            .iter()
+                            .map(|r| r.to_char().to_string())
+                            .collect::<Vec<_>>()
+                            .join(" ");
                         layer.use_text_builtin(
                             &cards_str,
                             self.settings.card_font_size,
-                            Mm(cards_x),
+                            Mm(current_x),
                             Mm(y),
                             diagram_fonts.regular,
                         );
                     }
 
-                    let diagram_height = card_cap_height + 3.0 * line_height + card_descender;
+                    let diagram_height = if num_suits > 0 {
+                        card_cap_height + (num_suits - 1) as f32 * line_height + card_descender
+                    } else {
+                        card_cap_height + card_descender
+                    };
 
                     // Debug box for diagram
                     self.draw_debug_box(layer, diagram_x, diagram_y, hand_width, diagram_height);
