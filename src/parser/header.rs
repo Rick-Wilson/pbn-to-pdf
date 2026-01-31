@@ -314,7 +314,9 @@ pub fn parse_headers(lines: &[&str]) -> PbnMetadata {
                 HeaderDirective::Created(c) => metadata.created = Some(c),
                 HeaderDirective::BoardsPerPage(config) => {
                     metadata.layout.boards_per_page = Some(config.count);
-                    metadata.layout.two_column = config.count == 2 && config.fit;
+                    if config.count >= 2 && config.fit {
+                        metadata.layout.column_count = config.count;
+                    }
                 }
                 HeaderDirective::Margins(m) => metadata.layout.margins = Some(m),
                 HeaderDirective::PaperSize(s) => metadata.layout.paper_size = Some(s),

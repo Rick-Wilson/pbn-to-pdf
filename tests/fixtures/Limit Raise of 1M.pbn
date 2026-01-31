@@ -1,0 +1,194 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.61.1
+%Created: Thu Mar 16 13:24:48 2017 -0700
+%BCOptions Center GutterH GutterV Justify PageHeader STBorder STShade TwoColAuctions
+%BidAndCardSpacing Thin
+%BoardsPerPage fit,3
+%CardTableColors #008000,#ffffff,#aaaaaa
+%EventSpacing 12
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Arial",12,400,0
+%Font:Diagram "Arial",12,400,0
+%Font:Event "Arial",18,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%GutterSize 250,250
+%HRTitleDate 0
+%HRTitleEvent ""
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite ""
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 500,750,500,500
+%PaperSize 1,2159,2794,14
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SelectedBoard 6
+%ShowBoardLabels 1
+%ShowCardTable 0
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "%)"
+[Event "Major-Suit Limit Raise"]
+[Site ""]
+[Date ""]
+[Board ""]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{A <b>limit raise</b> of a 1\H or 1\S opening bid should include four trump and “good”
+10–12 dummy points.  What would you respond to a 1\H opening with the following
+hands?}
+[BCFlags "600017"]
+
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 652.T964.2.AK732 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Bid 3\H (limit raise).  Limit raises are based on dummy points, also called
+support or distribution points.  To your 7 HCP, add 3 points for the singleton.
+With every value known to be working, make the limit raise.}
+[BCFlags "6000df"]
+[Hidden "EWN"]
+[Auction "N"]
+1H Pass ____
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... QJ.7432.Q954.KJ8 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Bid 2\H.  Is this hand worth a limit raise?  A naive evaluation puts it at 11
+dummy points, but that counts 4 points for the \SQJ and 2 points for the
+unsupported \DQ.  Go low.}
+[BCFlags "6000df"]
+[Hidden "EWN"]
+[Auction "N"]
+1H Pass ____
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 754.J8654.AQ72.6 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Bid 4\H.  With 5-card support and a singleton, jump right to game.}
+[BCFlags "6000df"]
+[Hidden "NEW"]
+[Auction "N"]
+1H Pass ____
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... K73.QT76.A86.J53 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Bid 2\H.  Is this hand worth a limit raise?  A naive evaluation puts it at 10
+dummy points, but the 4-3-3-3 shape and questionable \CJ suggest going low.}
+[BCFlags "6000df"]
+[Hidden "EWN"]
+[Auction "N"]
+1H Pass ____
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... A853.Q743.54.AJ5 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Bid 3\H (limit raise).  Though I wouldn't quibble with forcing to game (but
+don't bid 4\H immediately).}
+[BCFlags "6000df"]
+[Hidden "EWN"]
+[Auction "N"]
+1H Pass ____
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... K85.AQ962.J9.754 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Bid 3\H (limit raise).  The lack of a singleton makes this hand no more than a
+limit raise.}
+[BCFlags "6000df"]
+[Hidden "EWN"]
+[Auction "N"]
+1H Pass ____

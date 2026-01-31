@@ -8,8 +8,8 @@ pub struct LayoutSettings {
     pub show_card_table: bool,
     pub show_board_labels: bool,
     pub justify: bool,
-    /// Two-column layout mode (detected from %BoardsPerPage fit,2)
-    pub two_column: bool,
+    /// Multi-column layout count (detected from %BoardsPerPage fit,N)
+    pub column_count: u8,
     /// Board label format from %Translate directive
     /// Format string where "%" is replaced with the board number
     /// Default is "Board %" -> "Board 1", can be "%)" -> "1)"

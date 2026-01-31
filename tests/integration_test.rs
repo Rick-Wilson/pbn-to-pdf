@@ -35,17 +35,17 @@ fn test_two_column_layout() {
 
     let pbn_file = parse_pbn(&content).expect("Failed to parse PBN");
 
-    // Verify that two_column was detected from metadata
-    assert!(
-        pbn_file.metadata.layout.two_column,
-        "Expected two_column to be true from %BoardsPerPage fit,2"
+    // Verify that column_count was detected from metadata
+    assert_eq!(
+        pbn_file.metadata.layout.column_count, 2,
+        "Expected column_count to be 2 from %BoardsPerPage fit,2"
     );
 
-    // Create settings and verify two_column is set
+    // Create settings and verify column_count is set
     let settings = Settings::default().with_metadata(&pbn_file.metadata);
-    assert!(
-        settings.two_column,
-        "Expected settings.two_column to be true"
+    assert_eq!(
+        settings.column_count, 2,
+        "Expected settings.column_count to be 2"
     );
 
     // Generate PDF

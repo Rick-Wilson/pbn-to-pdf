@@ -386,9 +386,9 @@ impl DocumentRenderer {
 
         let mut pages = Vec::new();
 
-        if self.settings.two_column {
-            // Two-column layout: fit multiple boards per page
-            pages = self.render_two_column(boards, &fonts);
+        if self.settings.column_count >= 2 {
+            // Multi-column layout: fit multiple boards per page
+            pages = self.render_multi_column(boards, &fonts);
         } else {
             // Single board per page (original behavior)
             for board in boards {
@@ -415,36 +415,44 @@ impl DocumentRenderer {
         Ok(compressed)
     }
 
-    /// Render boards in two-column layout with multiple boards per page
-    fn render_two_column(&self, boards: &[Board], fonts: &FontManager) -> Vec<PdfPage> {
+    /// Render boards in multi-column layout with multiple boards per page
+    fn render_multi_column(&self, boards: &[Board], fonts: &FontManager) -> Vec<PdfPage> {
         let mut pages = Vec::new();
 
         let page_width = self.settings.page_width;
         let page_height = self.settings.page_height;
         let margin_top = self.settings.margin_top;
         let margin_bottom = self.settings.margin_bottom;
+        let num_columns = self.settings.column_count as usize;
 
-        // Minimum column width for readable content (approx 70mm)
-        // Two columns + 5mm gutter = 145mm minimum content width
-        const MIN_CONTENT_WIDTH: f32 = 145.0;
+        // Minimum column width for readable content (approx 60mm per column)
+        const MIN_COLUMN_WIDTH: f32 = 60.0;
         const DEFAULT_MARGIN: f32 = 15.0;
+        let gutter = 5.0; // Space between columns
 
-        // Check if specified margins leave enough room for two columns
+        // Calculate minimum content width needed for N columns
+        let min_content_width = num_columns as f32 * MIN_COLUMN_WIDTH + (num_columns - 1) as f32 * gutter;
+
+        // Check if specified margins leave enough room for columns
         let specified_content = page_width - self.settings.margin_left - self.settings.margin_right;
-        let (margin_left, margin_right) = if specified_content < MIN_CONTENT_WIDTH {
-            // Margins too large for two-column layout, use defaults
+        let (margin_left, margin_right) = if specified_content < min_content_width {
+            // Margins too large for multi-column layout, use defaults
             (DEFAULT_MARGIN, DEFAULT_MARGIN)
         } else {
             (self.settings.margin_left, self.settings.margin_right)
         };
 
         let content_width = page_width - margin_left - margin_right;
-        let column_width = content_width / 2.0;
-        let gutter = 5.0; // Space between columns
-        let usable_column_width = column_width - gutter / 2.0;
+        let column_width = content_width / num_columns as f32;
+        let usable_column_width = column_width - gutter * (num_columns - 1) as f32 / num_columns as f32;
 
-        // Calculate center x for vertical separator
-        let center_x = margin_left + column_width;
+        // Calculate column start X positions and separator X positions
+        let column_starts: Vec<f32> = (0..num_columns)
+            .map(|i| margin_left + i as f32 * column_width + if i > 0 { gutter / 2.0 } else { 0.0 })
+            .collect();
+        let separator_positions: Vec<f32> = (1..num_columns)
+            .map(|i| margin_left + i as f32 * column_width)
+            .collect();
 
         // Spacing between boards (separator line area)
         let board_spacing = 5.0;
@@ -455,104 +463,47 @@ impl DocumentRenderer {
         while board_iter.peek().is_some() {
             let mut layer = LayerBuilder::new();
 
-            // Draw vertical separator line
+            // Draw vertical separator lines
             layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
             layer.set_outline_thickness(SEPARATOR_THICKNESS);
-            layer.add_line(
-                Mm(center_x),
-                Mm(margin_bottom),
-                Mm(center_x),
-                Mm(page_height - margin_top),
-            );
+            for sep_x in &separator_positions {
+                layer.add_line(
+                    Mm(*sep_x),
+                    Mm(margin_bottom),
+                    Mm(*sep_x),
+                    Mm(page_height - margin_top),
+                );
+            }
 
-            // Track positions for both columns
-            let mut left_y = page_height - margin_top;
-            let mut right_y = page_height - margin_top;
-            let mut left_board_count = 0;
-            let mut right_board_count = 0;
+            // Track Y position and board count for each column
+            let mut column_y: Vec<f32> = vec![page_height - margin_top; num_columns];
+            let mut column_board_count: Vec<usize> = vec![0; num_columns];
 
             // Track if we need to force a page break after this page
             let mut force_page_break = false;
 
-            // Fill left column first
-            while let Some(&next) = board_iter.peek() {
-                // Page break marker - force new page
-                if is_page_break(next) {
-                    board_iter.next(); // Consume the break marker
-                    force_page_break = true;
+            // Fill columns left to right
+            for col_idx in 0..num_columns {
+                if force_page_break {
                     break;
                 }
 
-                // Column break marker - move to right column
-                if is_column_break(next) {
-                    board_iter.next(); // Consume the break marker
-                    break;
-                }
+                let col_x = column_starts[col_idx];
+                let col_end_x = if col_idx < num_columns - 1 {
+                    separator_positions[col_idx] - gutter / 2.0
+                } else {
+                    page_width - margin_right
+                };
 
-                // Measure the board height to check if it fits
-                let board_height = self.measure_board_height(next, usable_column_width);
-
-                // Skip empty boards (height 0)
-                if board_height == 0.0 {
-                    board_iter.next(); // Consume and skip
-                    continue;
-                }
-
-                // Check if board fits in remaining space
-                let available = left_y - margin_bottom;
-                if board_height + board_spacing > available && left_board_count > 0 {
-                    // Doesn't fit and we have at least one board - move to right column
-                    break;
-                }
-
-                // Board fits - consume and render it
-                let board = board_iter.next().unwrap();
-
-                // Draw horizontal separator if not at top
-                if left_board_count > 0 {
-                    let sep_y = left_y + board_spacing / 2.0;
-                    layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
-                    layer.set_outline_thickness(SEPARATOR_THICKNESS);
-                    layer.add_line(
-                        Mm(margin_left),
-                        Mm(sep_y),
-                        Mm(center_x - gutter / 2.0),
-                        Mm(sep_y),
-                    );
-                }
-
-                let rendered_height = self.render_board_in_column(
-                    &mut layer,
-                    board,
-                    fonts,
-                    margin_left,
-                    left_y,
-                    usable_column_width,
-                );
-
-                // Draw blue debug box around the whole board
-                self.draw_board_debug_box(
-                    &mut layer,
-                    margin_left,
-                    left_y,
-                    usable_column_width,
-                    rendered_height,
-                );
-
-                left_y -= rendered_height + board_spacing;
-                left_board_count += 1;
-            }
-
-            // Fill right column (unless page break was requested)
-            if !force_page_break {
                 while let Some(&next) = board_iter.peek() {
-                    // Page break marker - end this page
+                    // Page break marker - force new page
                     if is_page_break(next) {
                         board_iter.next(); // Consume the break marker
+                        force_page_break = true;
                         break;
                     }
 
-                    // Column break marker - end this page (in right column, it triggers new page)
+                    // Column break marker - move to next column
                     if is_column_break(next) {
                         board_iter.next(); // Consume the break marker
                         break;
@@ -568,9 +519,9 @@ impl DocumentRenderer {
                     }
 
                     // Check if board fits in remaining space
-                    let available = right_y - margin_bottom;
-                    if board_height + board_spacing > available && right_board_count > 0 {
-                        // Doesn't fit and we have at least one board - move to next page
+                    let available = column_y[col_idx] - margin_bottom;
+                    if board_height + board_spacing > available && column_board_count[col_idx] > 0 {
+                        // Doesn't fit and we have at least one board - move to next column
                         break;
                     }
 
@@ -578,38 +529,33 @@ impl DocumentRenderer {
                     let board = board_iter.next().unwrap();
 
                     // Draw horizontal separator if not at top
-                    if right_board_count > 0 {
-                        let sep_y = right_y + board_spacing / 2.0;
+                    if column_board_count[col_idx] > 0 {
+                        let sep_y = column_y[col_idx] + board_spacing / 2.0;
                         layer.set_outline_color(Color::Rgb(SEPARATOR_COLOR));
                         layer.set_outline_thickness(SEPARATOR_THICKNESS);
-                        layer.add_line(
-                            Mm(center_x + gutter / 2.0),
-                            Mm(sep_y),
-                            Mm(page_width - margin_right),
-                            Mm(sep_y),
-                        );
+                        layer.add_line(Mm(col_x), Mm(sep_y), Mm(col_end_x), Mm(sep_y));
                     }
 
                     let rendered_height = self.render_board_in_column(
                         &mut layer,
                         board,
                         fonts,
-                        center_x + gutter / 2.0,
-                        right_y,
+                        col_x,
+                        column_y[col_idx],
                         usable_column_width,
                     );
 
-                    // Draw blue debug box around the whole board
+                    // Draw debug box around the whole board
                     self.draw_board_debug_box(
                         &mut layer,
-                        center_x + gutter / 2.0,
-                        right_y,
+                        col_x,
+                        column_y[col_idx],
                         usable_column_width,
                         rendered_height,
                     );
 
-                    right_y -= rendered_height + board_spacing;
-                    right_board_count += 1;
+                    column_y[col_idx] -= rendered_height + board_spacing;
+                    column_board_count[col_idx] += 1;
                 }
             }
 
@@ -620,7 +566,7 @@ impl DocumentRenderer {
         pages
     }
 
-    /// Render a board within a column (for two-column layout)
+    /// Render a board within a column (for multi-column layout)
     fn render_board_in_column(
         &self,
         layer: &mut LayerBuilder,

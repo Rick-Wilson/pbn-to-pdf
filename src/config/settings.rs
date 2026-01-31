@@ -36,8 +36,8 @@ pub struct Settings {
     pub show_hcp: bool,
     pub justify: bool,
     pub debug_boxes: bool,
-    /// Two-column layout mode
-    pub two_column: bool,
+    /// Multi-column layout mode (1 = single column, 2+ = multi-column)
+    pub column_count: u8,
     /// Two-column auctions mode (show uncontested auctions in 2 columns)
     pub two_col_auctions: bool,
     /// Center layout mode (commentary first, board info centered below)
@@ -100,7 +100,7 @@ impl Default for Settings {
             show_hcp: false,
             justify: false,
             debug_boxes: false,
-            two_column: false,
+            column_count: 1,
             two_col_auctions: false,
             center: false,
             title_override: None,
@@ -219,8 +219,8 @@ impl Settings {
         if metadata.layout.justify {
             self.justify = true;
         }
-        if metadata.layout.two_column {
-            self.two_column = true;
+        if metadata.layout.column_count > 1 {
+            self.column_count = metadata.layout.column_count;
         }
         if metadata.layout.two_col_auctions {
             self.two_col_auctions = true;
