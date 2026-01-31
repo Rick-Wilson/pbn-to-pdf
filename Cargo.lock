@@ -181,8 +181,9 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "azul-core"
-version = "0.0.5"
-source = "git+https://github.com/fschutt/azul?rev=70d5515da2fe4ce0de864f0038b560f00669a653#70d5515da2fe4ce0de864f0038b560f00669a653"
+version = "0.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7e97054285718ff1e10e2defda742f16dac599a995526f3e63a57a6c4461e44"
 dependencies = [
  "azul-css",
  "gl-context-loader",
@@ -193,8 +194,9 @@ dependencies = [
 
 [[package]]
 name = "azul-css"
-version = "0.0.5"
-source = "git+https://github.com/fschutt/azul?rev=70d5515da2fe4ce0de864f0038b560f00669a653#70d5515da2fe4ce0de864f0038b560f00669a653"
+version = "0.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95419a081f7afe91b3da4d10b51457a321c368e58aeae634c1ffc7c08f26bcda"
 dependencies = [
  "azul-simplecss",
  "highway",
@@ -205,8 +207,9 @@ dependencies = [
 
 [[package]]
 name = "azul-layout"
-version = "0.0.5"
-source = "git+https://github.com/fschutt/azul?rev=70d5515da2fe4ce0de864f0038b560f00669a653#70d5515da2fe4ce0de864f0038b560f00669a653"
+version = "0.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d127ea81040213a60d68d253b8ed53335286a616816891d38693f3c22a97929"
 dependencies = [
  "allsorts",
  "azul-core",
@@ -606,6 +609,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecb"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a8bfa975b1aec2145850fcaa1c6fe269a16578c44705a532ae3edc92b8881c7"
+dependencies = [
+ "cipher",
+]
+
+[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -839,6 +851,20 @@ dependencies = [
  "cfg-if",
  "libc",
  "wasi",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
+dependencies = [
+ "cfg-if",
+ "js-sys",
+ "libc",
+ "r-efi",
+ "wasip2",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -1222,11 +1248,40 @@ dependencies = [
  "log",
  "md-5",
  "nom 7.1.3",
- "nom_locate",
+ "nom_locate 4.2.0",
  "rangemap",
  "rayon",
  "thiserror",
  "time",
+ "weezl",
+]
+
+[[package]]
+name = "lopdf"
+version = "0.39.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f560f57dfb9142a02d673e137622fd515d4231e51feb8b4af28d92647d83f35b"
+dependencies = [
+ "aes",
+ "bitflags 2.10.0",
+ "cbc",
+ "ecb",
+ "encoding_rs",
+ "flate2",
+ "getrandom 0.3.4",
+ "indexmap",
+ "itoa 1.0.17",
+ "log",
+ "md-5",
+ "nom 8.0.0",
+ "nom_locate 5.0.0",
+ "rand 0.9.2",
+ "rangemap",
+ "sha2",
+ "stringprep",
+ "thiserror",
+ "time",
+ "ttf-parser",
  "weezl",
 ]
 
@@ -1418,6 +1473,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "nom_locate"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b577e2d69827c4740cba2b52efaad1c4cc7c73042860b199710b3575c68438d"
+dependencies = [
+ "bytecount",
+ "memchr",
+ "nom 8.0.0",
+]
+
+[[package]]
 name = "num-conv"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1513,14 +1579,14 @@ dependencies = [
 
 [[package]]
 name = "pbn-to-pdf"
-version = "0.6.0"
+version = "0.8.0"
 dependencies = [
  "anyhow",
  "bridge-types",
  "clap",
  "env_logger",
  "log",
- "lopdf",
+ "lopdf 0.35.0",
  "nom 8.0.0",
  "printpdf",
  "thiserror",
@@ -1687,8 +1753,8 @@ checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
 name = "printpdf"
-version = "0.8.2"
-source = "git+https://github.com/fschutt/printpdf#af87772c63d621f3fbbc470162c737b5718a5c76"
+version = "0.9.0"
+source = "git+https://github.com/fschutt/printpdf?rev=1f30cafc#1f30cafc12455f64db30d531070ac6ada43766da"
 dependencies = [
  "allsorts",
  "azul-core",
@@ -1696,8 +1762,9 @@ dependencies = [
  "azul-layout",
  "base64",
  "flate2",
+ "getrandom 0.3.4",
  "kuchiki",
- "lopdf",
+ "lopdf 0.39.0",
  "rust-fontconfig",
  "serde",
  "serde_derive",
@@ -1774,14 +1841,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "r-efi"
+version = "5.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
+
+[[package]]
 name = "rand"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a6b1679d49b24bbfe0c803429aa1874472f50d9b363131f0e89fc356b544d03"
 dependencies = [
- "getrandom",
+ "getrandom 0.1.16",
  "libc",
- "rand_chacha",
+ "rand_chacha 0.2.2",
  "rand_core 0.5.1",
  "rand_hc",
  "rand_pcg",
@@ -1797,6 +1870,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rand"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6db2770f06117d490610c7488547d543617b21bfa07796d7a12f6f1bd53850d1"
+dependencies = [
+ "rand_chacha 0.9.0",
+ "rand_core 0.9.5",
+]
+
+[[package]]
 name = "rand_chacha"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1807,12 +1890,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "rand_chacha"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3022b5f1df60f26e1ffddd6c66e8aa15de382ae63b3a0c1bfc0e4d3e3f325cb"
+dependencies = [
+ "ppv-lite86",
+ "rand_core 0.9.5",
+]
+
+[[package]]
 name = "rand_core"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
 dependencies = [
- "getrandom",
+ "getrandom 0.1.16",
 ]
 
 [[package]]
@@ -1820,6 +1913,15 @@ name = "rand_core"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
+
+[[package]]
+name = "rand_core"
+version = "0.9.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76afc826de14238e6e8c374ddcc1fa19e374fd8dd986b0d2af0d02377261d83c"
+dependencies = [
+ "getrandom 0.3.4",
+]
 
 [[package]]
 name = "rand_hc"
@@ -1979,14 +2081,13 @@ dependencies = [
 
 [[package]]
 name = "rust-fontconfig"
-version = "1.2.1"
+version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a7761749fc733edcfb556442c62e6f0a033a4129d4351830a05b6de4aacf836"
+checksum = "996b6c6a909f7448e04410d370d7db66f4f30f7467214b7ac20e7c3e59ba6948"
 dependencies = [
  "allsorts",
  "base64",
  "mmapio",
- "rayon",
  "xmlparser",
 ]
 
@@ -2127,6 +2228,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha2"
+version = "0.10.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283"
+dependencies = [
+ "cfg-if",
+ "cpufeatures",
+ "digest",
+]
+
+[[package]]
 name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2228,6 +2340,17 @@ dependencies = [
  "phf_shared 0.11.3",
  "proc-macro2",
  "quote",
+]
+
+[[package]]
+name = "stringprep"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b4df3d392d81bd458a8a621b8bffbd2302a12ffe288a9d931670948749463b1"
+dependencies = [
+ "unicode-bidi",
+ "unicode-normalization",
+ "unicode-properties",
 ]
 
 [[package]]
@@ -2591,6 +2714,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
 
 [[package]]
+name = "wasip2"
+version = "1.0.2+wasi-0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9517f9239f02c069db75e65f174b3da828fe5f5b945c4dd26bd25d89c03ebcf5"
+dependencies = [
+ "wit-bindgen",
+]
+
+[[package]]
 name = "wasm-bindgen"
 version = "0.2.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2755,6 +2887,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "wit-bindgen"
+version = "0.51.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7249219f66ced02969388cf2bb044a09756a083d0fab1e566056b04d9fbcaa5"
+
+[[package]]
 name = "write-fonts"
 version = "0.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2836,13 +2974,13 @@ dependencies = [
 ]
 
 [[patch.unused]]
-name = "bridge-encodings"
-version = "0.1.0"
+name = "bridge-solver"
+version = "0.4.0"
 
 [[patch.unused]]
 name = "bridge-parsers"
 version = "0.1.0"
 
 [[patch.unused]]
-name = "bridge-solver"
-version = "0.4.0"
+name = "bridge-encodings"
+version = "0.1.0"
