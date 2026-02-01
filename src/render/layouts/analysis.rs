@@ -91,14 +91,24 @@ impl BoardVisibility {
             .unwrap_or(false);
         // Show board info if deal has cards OR there's an auction (for exercise boards)
         let has_content = !deal_is_empty || has_auction;
+        // Board label is tied to diagram - if BCFlags says no diagram, no board label either
+        let show_diagram_flag = flags.map(|f| f.show_diagram()).unwrap_or(true);
         Self {
-            show_board: has_content && flags.map(|f| !f.hide_board()).unwrap_or(true),
-            show_dealer: has_content && flags.map(|f| !f.hide_dealer()).unwrap_or(true),
-            show_vulnerable: has_content && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true),
-            show_diagram: !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true),
-            show_auction: flags.map(|f| f.show_auction()).unwrap_or(true) && settings.show_bidding,
+            show_board: has_content
+                && flags.map(|f| !f.hide_board()).unwrap_or(true)
+                && show_diagram_flag,
+            show_dealer: has_content
+                && flags.map(|f| !f.hide_dealer()).unwrap_or(true)
+                && show_diagram_flag,
+            show_vulnerable: has_content
+                && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true)
+                && show_diagram_flag,
+            show_diagram: !deal_is_empty && show_diagram_flag,
+            show_auction: has_auction
+                && flags.map(|f| f.show_auction()).unwrap_or(true)
+                && settings.show_bidding,
             show_commentary: settings.show_commentary
-                && !board.commentary.is_empty()
+                && board.commentary.iter().any(|c| !c.is_blank())
                 && flags
                     .map(|f| f.show_event_commentary() || f.show_final_commentary())
                     .unwrap_or(true),
@@ -182,15 +192,24 @@ impl DocumentRenderer {
         // Diagram height
         if visibility.show_diagram {
             let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
-            let diagram_height = self.measure_diagram_height(&diagram_options);
 
-            if diagram_options.hide_compass {
+            // Check for single-card deal - renders just a rank number, not a full diagram
+            let is_single_card = board.deal.get_single_visible_card(&board.hidden).is_some();
+
+            if is_single_card {
+                // Single-card: board label and rank on same line, vertically centered
+                // Just need height for one line of text plus padding
+                height = cap_height * 2.0 + line_height;
+            } else if diagram_options.hide_compass {
+                let diagram_height = self.measure_diagram_height(&diagram_options);
                 // North-only: title and cards on same line, need cap_height for text ascenders
                 height = cap_height * 2.0 + diagram_height.max(title_lines as f32 * line_height);
             } else if centered_with_commentary {
+                let diagram_height = self.measure_diagram_height(&diagram_options);
                 // Centered mode: commentary comes first, needs cap_height for text ascenders
                 height = cap_height + diagram_height;
             } else {
+                let diagram_height = self.measure_diagram_height(&diagram_options);
                 // Full compass: diagram starts at top, no extra spacing needed
                 height = diagram_height;
             }
@@ -251,10 +270,12 @@ impl DocumentRenderer {
             }
         }
 
-        // Commentary height
+        // Commentary height (skip blank blocks)
         if visibility.show_commentary {
-            let block_count = board.commentary.len();
-            for (i, block) in board.commentary.iter().enumerate() {
+            let non_blank_blocks: Vec<_> =
+                board.commentary.iter().filter(|c| !c.is_blank()).collect();
+            let block_count = non_blank_blocks.len();
+            for (i, block) in non_blank_blocks.iter().enumerate() {
                 height += self.measure_commentary_height(block, column_width);
                 // Add spacing between blocks, but not after the last one
                 if i < block_count - 1 {
@@ -594,6 +615,7 @@ impl DocumentRenderer {
 
         // Check BCFlags for visibility control
         // Show board info if deal has cards OR there's an auction (for exercise boards)
+        // Board label is tied to diagram - if BCFlags says no diagram, no board label either
         let flags = board.bc_flags;
         let deal_is_empty = board.deal.is_empty();
         let has_auction = board
@@ -602,14 +624,19 @@ impl DocumentRenderer {
             .map(|a| !a.calls.is_empty())
             .unwrap_or(false);
         let has_content = !deal_is_empty || has_auction;
-        let show_board = has_content && flags.map(|f| !f.hide_board()).unwrap_or(true);
-        let show_dealer = has_content && flags.map(|f| !f.hide_dealer()).unwrap_or(true);
-        let show_vulnerable = has_content && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true);
-        let show_diagram = !deal_is_empty && flags.map(|f| f.show_diagram()).unwrap_or(true);
-        let show_auction =
-            flags.map(|f| f.show_auction()).unwrap_or(true) && self.settings.show_bidding;
+        let show_diagram_flag = flags.map(|f| f.show_diagram()).unwrap_or(true);
+        let show_board =
+            has_content && flags.map(|f| !f.hide_board()).unwrap_or(true) && show_diagram_flag;
+        let show_dealer =
+            has_content && flags.map(|f| !f.hide_dealer()).unwrap_or(true) && show_diagram_flag;
+        let show_vulnerable =
+            has_content && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true) && show_diagram_flag;
+        let show_diagram = !deal_is_empty && show_diagram_flag;
+        let show_auction = has_auction
+            && flags.map(|f| f.show_auction()).unwrap_or(true)
+            && self.settings.show_bidding;
         let show_commentary = self.settings.show_commentary
-            && !board.commentary.is_empty()
+            && board.commentary.iter().any(|c| !c.is_blank())
             && flags
                 .map(|f| f.show_event_commentary() || f.show_final_commentary())
                 .unwrap_or(true);
@@ -665,8 +692,11 @@ impl DocumentRenderer {
 
         layer.set_fill_color(Color::Rgb(BLACK));
 
-        // Render board number in title section (unless it will be inline with auction)
-        if show_board && !inline_board_label {
+        // Check for single-card deal - these get special centered rendering
+        let is_single_card = board.deal.get_single_visible_card(&board.hidden).is_some();
+
+        // Render board number in title section (unless it will be inline with auction or single-card)
+        if show_board && !inline_board_label && !is_single_card {
             if let Some(ref board_id) = board.board_id {
                 let y = first_baseline - (title_line as f32 * line_height);
                 // Use board label format from settings (e.g., "Board %" -> "Board 1", "%)" -> "1)")
@@ -682,7 +712,7 @@ impl DocumentRenderer {
             }
         }
 
-        if show_dealer {
+        if show_dealer && !is_single_card {
             if let Some(dealer) = board.dealer {
                 let y = first_baseline - (title_line as f32 * line_height);
                 layer.use_text_builtin(
@@ -696,7 +726,7 @@ impl DocumentRenderer {
             }
         }
 
-        if show_vulnerable {
+        if show_vulnerable && !is_single_card {
             let y = first_baseline - (title_line as f32 * line_height);
             layer.use_text_builtin(
                 board.vulnerable.to_string(),
@@ -714,33 +744,87 @@ impl DocumentRenderer {
             // Compute display options - all visibility decisions are made here
             let diagram_options = DiagramDisplayOptions::from_deal(&board.deal, &board.hidden);
 
-            // Full compass: diagram starts at start_y (title already moved down by title_spacing)
-            // Hidden compass: cards should be on same line as title text
-            // The diagram renderer subtracts cap_height internally, so we add it back
-            let diagram_y = if diagram_options.hide_compass {
-                first_baseline + cap_height
+            // Check for single-card deal - render just the rank number instead of a full diagram
+            if let Some((_suit, rank)) = board.deal.get_single_visible_card(&board.hidden) {
+                // Single-card: render board label and rank centered vertically
+                // Total available height: cap_height * 2.0 + line_height (from measurement)
+                let total_height = cap_height * 2.0 + line_height;
+                // Content is just one line of text
+                let content_height = line_height;
+                // Vertical offset to center content
+                let vertical_offset = (total_height - content_height) / 2.0;
+                let centered_y = start_y - vertical_offset - cap_height;
+
+                // Render board label on the left
+                if show_board {
+                    if let Some(ref board_id) = board.board_id {
+                        let label = self.settings.board_label_format.replace('%', board_id);
+                        layer.use_text_builtin(
+                            label,
+                            font_size,
+                            Mm(column_x),
+                            Mm(centered_y),
+                            hand_record_fonts.bold_italic,
+                        );
+                    }
+                }
+
+                // Render rank number centered in the diagram area
+                let rank_text = rank.to_char().to_string();
+                let rank_font_size = font_size; // Use same font size as board label
+
+                // Calculate x position - center in the diagram area
+                let hand_w = self.settings.hand_width;
+                let compass_size = 10.0; // Approximate compass box size
+                let north_base_x = diagram_x + hand_w + (compass_size - hand_w) / 2.0;
+                let compass_center_x = north_base_x + compass_size / 2.0;
+
+                // Measure text width for centering
+                let text_measurer = text_metrics::BuiltinFontMeasurer::new(diagram_fonts.regular);
+                let text_width = text_measurer.measure_width_mm(&rank_text, rank_font_size);
+                let rank_x = compass_center_x - text_width / 2.0;
+
+                layer.use_text_builtin(
+                    rank_text,
+                    rank_font_size,
+                    Mm(rank_x),
+                    Mm(centered_y),
+                    diagram_fonts.regular,
+                );
+
+                // Debug box for single card area
+                self.draw_debug_box(layer, column_x, start_y, column_width, total_height);
+
+                current_y = start_y - total_height;
             } else {
-                start_y
-            };
+                // Full compass: diagram starts at start_y (title already moved down by title_spacing)
+                // Hidden compass: cards should be on same line as title text
+                // The diagram renderer subtracts cap_height internally, so we add it back
+                let diagram_y = if diagram_options.hide_compass {
+                    first_baseline + cap_height
+                } else {
+                    start_y
+                };
 
-            let hand_renderer = HandDiagramRenderer::new(
-                diagram_fonts.regular,
-                diagram_fonts.bold,
-                card_table_fonts.regular,
-                fonts.symbol_font(),
-                &self.settings,
-            );
-            let diagram_height = hand_renderer.render_deal_with_options(
-                layer,
-                &board.deal,
-                (Mm(diagram_x), Mm(diagram_y)),
-                &diagram_options,
-            );
+                let hand_renderer = HandDiagramRenderer::new(
+                    diagram_fonts.regular,
+                    diagram_fonts.bold,
+                    card_table_fonts.regular,
+                    fonts.symbol_font(),
+                    &self.settings,
+                );
+                let diagram_height = hand_renderer.render_deal_with_options(
+                    layer,
+                    &board.deal,
+                    (Mm(diagram_x), Mm(diagram_y)),
+                    &diagram_options,
+                );
 
-            // Debug box for diagram
-            self.draw_debug_box(layer, diagram_x, diagram_y, column_width, diagram_height);
+                // Debug box for diagram
+                self.draw_debug_box(layer, diagram_x, diagram_y, column_width, diagram_height);
 
-            current_y = diagram_y - diagram_height;
+                current_y = diagram_y - diagram_height;
+            }
         } else if inline_board_label {
             // Auction-only with inline board label: add top padding before content
             current_y = first_baseline - cap_height;
@@ -877,7 +961,7 @@ impl DocumentRenderer {
             }
         }
 
-        // Render commentary - simplified for column layout (no floating)
+        // Render commentary - simplified for column layout (no floating, skip blank blocks)
         if show_commentary {
             let commentary_renderer = CommentaryRenderer::new(
                 commentary_fonts.regular,
@@ -888,8 +972,10 @@ impl DocumentRenderer {
                 &self.settings,
             );
 
-            let block_count = board.commentary.len();
-            for (i, block) in board.commentary.iter().enumerate() {
+            let non_blank_blocks: Vec<_> =
+                board.commentary.iter().filter(|c| !c.is_blank()).collect();
+            let block_count = non_blank_blocks.len();
+            for (i, block) in non_blank_blocks.iter().enumerate() {
                 let block_start_y = current_y;
                 let height = commentary_renderer.render(
                     layer,
@@ -955,18 +1041,20 @@ impl DocumentRenderer {
             &self.settings,
         );
 
-        // Determine which commentary blocks go before vs after the diagram
+        // Determine which commentary blocks go before vs after the diagram (skip blank blocks)
+        let non_blank_blocks: Vec<_> =
+            board.commentary.iter().filter(|c| !c.is_blank()).collect();
         let (event_commentary, final_commentary): (Vec<_>, Vec<_>) =
-            if show_commentary && board.commentary.len() > 1 {
+            if show_commentary && non_blank_blocks.len() > 1 {
                 // Multiple blocks: all but last are event, last is final
-                let split_point = board.commentary.len() - 1;
+                let split_point = non_blank_blocks.len() - 1;
                 (
-                    board.commentary.iter().take(split_point).collect(),
-                    board.commentary.iter().skip(split_point).collect(),
+                    non_blank_blocks.iter().take(split_point).copied().collect(),
+                    non_blank_blocks.iter().skip(split_point).copied().collect(),
                 )
             } else if show_commentary {
                 // Single block: treat as event commentary (before diagram)
-                (board.commentary.iter().collect(), vec![])
+                (non_blank_blocks, vec![])
             } else {
                 (vec![], vec![])
             };
@@ -1647,7 +1735,7 @@ impl DocumentRenderer {
         }
 
         // Render commentary if present - using floating layout
-        if self.settings.show_commentary && !board.commentary.is_empty() {
+        if self.settings.show_commentary && board.commentary.iter().any(|c| !c.is_blank()) {
             let commentary_renderer = CommentaryRenderer::new(
                 commentary_fonts.regular,
                 commentary_fonts.bold,
@@ -1677,11 +1765,13 @@ impl DocumentRenderer {
                 full_width,
             };
 
-            // Start commentary at the top of the page, using floating layout
+            // Start commentary at the top of the page, using floating layout (skip blank blocks)
             let mut commentary_y = page_top;
             let mut first_block = true;
+            let non_blank_blocks: Vec<_> =
+                board.commentary.iter().filter(|c| !c.is_blank()).collect();
 
-            for block in &board.commentary {
+            for block in &non_blank_blocks {
                 if first_block {
                     // First block uses floating layout
                     let result = commentary_renderer.render_float(

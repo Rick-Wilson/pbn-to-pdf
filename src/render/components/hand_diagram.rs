@@ -197,14 +197,16 @@ impl<'a> HandDiagramRenderer<'a> {
         let compass_size = self.compass_box_size();
         let compass_center_offset = (compass_size - hand_h) / 2.0;
 
+        // Small gap between compass and South hand
+        let compass_hand_gap = 1.5;
+
         // north_y = oy.0
         // row2_y = north_y - hand_h
         // west_y = row2_y - compass_center_offset
-        // south_y = west_y - hand_h - compass_center_offset
+        // south_y = west_y - hand_h - compass_center_offset - compass_hand_gap
         // height = oy.0 - (south_y - hand_h)
-        // = oy.0 - (oy.0 - hand_h - compass_center_offset - hand_h - compass_center_offset - hand_h)
-        // = 3*hand_h + 2*compass_center_offset
-        3.0 * hand_h + 2.0 * compass_center_offset
+        // = 3*hand_h + 2*compass_center_offset + compass_hand_gap
+        3.0 * hand_h + 2.0 * compass_center_offset + compass_hand_gap
     }
 
     /// Render a complete deal with compass rose - Bridge Composer style
@@ -358,8 +360,23 @@ impl<'a> HandDiagramRenderer<'a> {
         // We want the hand content centered with the compass center
         let compass_center_offset = (compass_size - hand_h) / 2.0;
 
+        // Small gap between compass and South hand
+        let compass_hand_gap = 1.5;
+
+        // Calculate compass center position (needed for centering N/S when no suit symbols)
+        let north_base_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
+        let suit_symbol_width = if show_suit_symbol { 5.0 } else { 0.0 };
+        let half_char_adjust = if show_suit_symbol { 1.5 } else { 0.0 };
+        let compass_center_x =
+            north_base_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
+
         // Row 1: North hand (centered above compass)
-        let north_x = ox.0 + hand_w + (compass_size - hand_w) / 2.0;
+        // When no suit symbol, center the cards over the compass
+        let north_x = if show_suit_symbol {
+            north_base_x
+        } else {
+            compass_center_x - north_w / 2.0
+        };
         let north_y = oy.0;
         if !options.hidden.north {
             self.draw_debug_box(layer, north_x, north_y, north_w, hand_h);
@@ -375,10 +392,7 @@ impl<'a> HandDiagramRenderer<'a> {
         // Row 2: West hand | Compass | East hand
         let row2_y = north_y - hand_h;
 
-        // Compass rose - centered in the row (calculate first for positioning)
-        let suit_symbol_width = if show_suit_symbol { 5.0 } else { 0.0 };
-        let half_char_adjust = if show_suit_symbol { 1.5 } else { 0.0 };
-        let compass_center_x = north_x + suit_symbol_width + compass_size / 2.0 - half_char_adjust;
+        // Compass positioning
         let compass_y = row2_y - hand_h / 2.0 - compass_center_offset;
         let compass_left = compass_center_x - compass_size / 2.0;
         let compass_right = compass_center_x + compass_size / 2.0;
@@ -424,13 +438,20 @@ impl<'a> HandDiagramRenderer<'a> {
         }
 
         // Row 3: South hand (below compass, centered)
-        let south_y = west_y - hand_h - compass_center_offset;
+        // Add small gap between compass and South
+        let south_y = west_y - hand_h - compass_center_offset - compass_hand_gap;
+        // When no suit symbol, center the cards over the compass
+        let south_x = if show_suit_symbol {
+            north_base_x
+        } else {
+            compass_center_x - south_w / 2.0
+        };
         if !options.hidden.south {
-            self.draw_debug_box(layer, north_x, south_y, south_w, hand_h);
+            self.draw_debug_box(layer, south_x, south_y, south_w, hand_h);
             self.render_fragment_hand(
                 layer,
                 &deal.south,
-                (Mm(north_x), Mm(south_y)),
+                (Mm(south_x), Mm(south_y)),
                 suits_present,
                 show_suit_symbol,
             );

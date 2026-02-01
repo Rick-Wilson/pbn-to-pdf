@@ -213,8 +213,11 @@ fn test_generate_all_pdfs() {
         let pbn_path = entry.path();
         let stem = pbn_path.file_stem().unwrap().to_string_lossy();
 
-        // Generate analysis PDF (default layout)
-        let analysis_output = output_dir.join(format!("{}.pdf", stem));
+        // Check if this is an "exercises" file (only generate Analysis layout)
+        let is_exercises = stem.to_lowercase().ends_with("exercises");
+
+        // Generate analysis PDF
+        let analysis_output = output_dir.join(format!("{} - Analysis.pdf", stem));
         let status = Command::new(&binary)
             .args([
                 "--layout",
@@ -235,6 +238,12 @@ fn test_generate_all_pdfs() {
             "Analysis PDF not created for {}",
             stem
         );
+
+        // Skip other layouts for exercises files
+        if is_exercises {
+            println!("Generated Analysis PDF for exercises file: {}", stem);
+            continue;
+        }
 
         // Generate bidding sheets PDF
         let bidding_output = output_dir.join(format!("{} - Bidding Sheets.pdf", stem));
@@ -305,7 +314,7 @@ fn test_generate_all_pdfs() {
             stem
         );
 
-        println!("Generated PDFs for: {}", stem);
+        println!("Generated all layout PDFs for: {}", stem);
     }
 }
 

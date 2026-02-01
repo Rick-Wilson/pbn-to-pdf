@@ -52,6 +52,24 @@ impl FormattedText {
         self.spans.is_empty()
     }
 
+    /// Returns true if the text is empty or contains only whitespace
+    pub fn is_blank(&self) -> bool {
+        if self.spans.is_empty() {
+            return true;
+        }
+        // Check if all spans are whitespace-only or line breaks
+        self.spans.iter().all(|span| match span {
+            TextSpan::Plain(s)
+            | TextSpan::Bold(s)
+            | TextSpan::Italic(s)
+            | TextSpan::BoldItalic(s)
+            | TextSpan::Underline(s) => s.trim().is_empty(),
+            TextSpan::LineBreak => true,
+            // Suit symbols and card refs are not whitespace
+            TextSpan::SuitSymbol(_) | TextSpan::CardRef { .. } => false,
+        })
+    }
+
     pub fn to_plain_text(&self) -> String {
         let mut result = String::new();
         for span in &self.spans {
@@ -92,6 +110,11 @@ impl CommentaryBlock {
     pub fn is_empty(&self) -> bool {
         self.content.is_empty()
     }
+
+    /// Returns true if the content is empty or contains only whitespace
+    pub fn is_blank(&self) -> bool {
+        self.content.is_blank()
+    }
 }
 
 #[cfg(test)]
@@ -106,5 +129,40 @@ mod tests {
         text.push(TextSpan::SuitSymbol(Suit::Spades));
 
         assert_eq!(text.to_plain_text(), "Bidding. Open 1♠");
+    }
+
+    #[test]
+    fn test_is_blank_empty() {
+        let text = FormattedText::new();
+        assert!(text.is_blank());
+    }
+
+    #[test]
+    fn test_is_blank_whitespace_only() {
+        let mut text = FormattedText::new();
+        text.push(TextSpan::Plain(" ".to_string()));
+        assert!(text.is_blank());
+    }
+
+    #[test]
+    fn test_is_blank_with_content() {
+        let mut text = FormattedText::new();
+        text.push(TextSpan::Plain("Hello".to_string()));
+        assert!(!text.is_blank());
+    }
+
+    #[test]
+    fn test_is_blank_with_suit_symbol() {
+        let mut text = FormattedText::new();
+        text.push(TextSpan::SuitSymbol(Suit::Spades));
+        assert!(!text.is_blank());
+    }
+
+    #[test]
+    fn test_commentary_block_is_blank() {
+        let mut text = FormattedText::new();
+        text.push(TextSpan::Plain(" ".to_string()));
+        let block = CommentaryBlock::new(text);
+        assert!(block.is_blank());
     }
 }

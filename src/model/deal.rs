@@ -90,6 +90,59 @@ impl Deal {
     pub fn is_empty(&self) -> bool {
         self.suits_present().is_empty()
     }
+
+    /// Count total visible cards across all non-hidden hands
+    pub fn visible_card_count(&self, hidden: &super::HiddenHands) -> usize {
+        let mut count = 0;
+        if !hidden.north {
+            count += self.north.card_count();
+        }
+        if !hidden.east {
+            count += self.east.card_count();
+        }
+        if !hidden.south {
+            count += self.south.card_count();
+        }
+        if !hidden.west {
+            count += self.west.card_count();
+        }
+        count
+    }
+
+    /// Get the single visible card if there's exactly one visible card in the deal
+    /// Returns Some((Suit, Rank)) if exactly one card is visible, None otherwise
+    pub fn get_single_visible_card(
+        &self,
+        hidden: &super::HiddenHands,
+    ) -> Option<(super::card::Suit, super::card::Rank)> {
+        if self.visible_card_count(hidden) != 1 {
+            return None;
+        }
+
+        // Find the single card
+        for direction in Direction::ALL {
+            let is_hidden = match direction {
+                Direction::North => hidden.north,
+                Direction::East => hidden.east,
+                Direction::South => hidden.south,
+                Direction::West => hidden.west,
+            };
+            if is_hidden {
+                continue;
+            }
+
+            let hand = self.hand(direction);
+            for suit in super::card::SUITS_DISPLAY_ORDER {
+                let holding = hand.holding(suit);
+                if !holding.is_empty() {
+                    // Return the first (and only) rank in this holding
+                    return Some((suit, holding.ranks[0]));
+                }
+            }
+        }
+
+        None
+    }
 }
 
 #[cfg(test)]

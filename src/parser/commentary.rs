@@ -47,10 +47,45 @@ pub fn replace_suit_escapes(input: &str) -> String {
     result
 }
 
+/// Strip empty or whitespace-only italic tags like `<i> </i>` or `<i></i>`.
+/// These are sometimes used in PBN files for formatting around punctuation
+/// (e.g., em-dashes) and would otherwise appear as raw tags in output.
+fn strip_empty_italic_tags(input: &str) -> String {
+    let mut result = input.to_string();
+    // Keep stripping until no more matches (handles multiple occurrences)
+    loop {
+        let before = result.clone();
+        // Match <i> followed by optional whitespace and </i>
+        if let Some(start) = result.find("<i>") {
+            if let Some(end_tag_start) = result[start..].find("</i>") {
+                let content = &result[start + 3..start + end_tag_start];
+                // If content is empty or whitespace-only, strip the whole tag
+                if content.trim().is_empty() {
+                    // Replace with just the whitespace content (preserve spacing)
+                    result = format!(
+                        "{}{}{}",
+                        &result[..start],
+                        content,
+                        &result[start + end_tag_start + 4..]
+                    );
+                }
+            }
+        }
+        if result == before {
+            break;
+        }
+    }
+    result
+}
+
 /// Parse formatted text with HTML-like tags and suit symbols
 pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
+    // Pre-process: strip empty or whitespace-only italic tags like <i> </i>
+    // These are sometimes used in PBN files for formatting around punctuation
+    let input = strip_empty_italic_tags(input);
+
     let mut text = FormattedText::new();
-    let mut remaining = input;
+    let mut remaining = input.as_str();
     let mut plain_buffer = String::new();
 
     while !remaining.is_empty() {
@@ -393,5 +428,26 @@ mod tests {
             text.spans[0],
             TextSpan::Underline("Lead the ♠Q".to_string())
         );
+    }
+
+    #[test]
+    fn test_strip_empty_italic_tags() {
+        // Test case from real PBN: <b>Exercise One<i> </i>—<i> </i>Ruffing Losers</b>
+        // The <i> </i> tags around the em-dash should be stripped, preserving the spaces
+        let text =
+            parse_formatted_text("<b>Exercise One<i> </i>—<i> </i>Ruffing Losers</b>").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::Bold("Exercise One — Ruffing Losers".to_string())
+        );
+    }
+
+    #[test]
+    fn test_strip_empty_italic_tags_no_content() {
+        // Empty italic tags with no content at all
+        let text = parse_formatted_text("Before<i></i>After").unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(text.spans[0], TextSpan::Plain("BeforeAfter".to_string()));
     }
 }
