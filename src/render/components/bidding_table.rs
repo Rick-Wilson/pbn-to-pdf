@@ -124,29 +124,31 @@ impl<'a> BiddingTableRenderer<'a> {
             row += 1;
         } else if let Some((d1, d2)) = uncontested_pair {
             // Two-column mode: count only calls from the bidding pair
-            let mut col = 0;
+            let mut last_col: Option<usize> = None; // Track last column rendered
             let mut current_player = auction.dealer;
 
             for _ in calls.iter().take(calls_to_render) {
                 if current_player == d1 || current_player == d2 {
-                    col += 1;
-                    if col >= 2 {
-                        col = 0;
+                    // Determine which column (0 or 1) based on which player in the pair
+                    let display_col = if current_player == d1 { 0 } else { 1 };
+
+                    // Increment row when transitioning from column 1 to column 0
+                    if last_col == Some(1) && display_col == 0 {
                         row += 1;
                     }
+
+                    last_col = Some(display_col);
                 }
                 current_player = current_player.next();
             }
 
             // "All Pass" goes on next row after content
             if show_all_pass {
-                if col > 0 {
-                    row += 1; // Move past partial row
-                }
+                row += 1; // Move to next row
                 row += 1; // Row for "All Pass"
-            } else if col == 0 && calls_to_render > 0 {
-                // Complete last row - the row++ moved us to an unused row
-                ended_on_complete_row = true;
+            } else if last_col.is_some() {
+                // Account for the row we just counted
+                row += 1;
             }
         } else {
             // Standard 4-column mode: count rows for regular calls
@@ -412,7 +414,7 @@ impl<'a> BiddingTableRenderer<'a> {
         } else if let Some(pair) = uncontested_pair {
             // Two-column mode: only show the bidding pair's calls
             let (d1, d2) = pair;
-            let mut col = 0;
+            let mut last_col: Option<usize> = None; // Track last column rendered
             let mut current_player = auction.dealer;
 
             for annotated in calls.iter().take(calls_to_render) {
@@ -420,26 +422,28 @@ impl<'a> BiddingTableRenderer<'a> {
                 if current_player == d1 || current_player == d2 {
                     // Determine which column (0 or 1) based on which player in the pair
                     let display_col = if current_player == d1 { 0 } else { 1 };
+
+                    // Increment row when transitioning from column 1 to column 0
+                    // This handles the case where d2 opens (e.g., South opens 1NT)
+                    // and we need to move to the next row before d1 responds
+                    if last_col == Some(1) && display_col == 0 {
+                        row += 1;
+                    }
+
                     let x = ox.0 + (display_col as f32 * col_width);
                     let y = oy.0 - (row as f32 * row_height);
 
                     self.render_annotated_call(layer, annotated, (Mm(x), Mm(y)));
 
-                    col += 1;
-                    if col >= 2 {
-                        col = 0;
-                        row += 1;
-                    }
+                    last_col = Some(display_col);
                 }
                 current_player = current_player.next();
             }
 
             // Render "All Pass" on next row if needed
             if show_all_pass {
-                // Move to next row if current row has content
-                if col > 0 {
-                    row += 1;
-                }
+                // Always move to next row for "All Pass"
+                row += 1;
                 let x = ox.0;
                 let y = oy.0 - (row as f32 * row_height);
 
@@ -452,9 +456,9 @@ impl<'a> BiddingTableRenderer<'a> {
                     self.font,
                 );
                 row += 1;
-            } else if col == 0 && calls_to_render > 0 {
-                // Complete last row - the row++ moved us to an unused row
-                ended_on_complete_row = true;
+            } else if last_col.is_some() {
+                // Account for the row we just rendered to
+                row += 1;
             }
         } else {
             // Standard 4-column mode
