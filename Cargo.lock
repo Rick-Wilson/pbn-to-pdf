@@ -1579,7 +1579,7 @@ dependencies = [
 
 [[package]]
 name = "pbn-to-pdf"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "bridge-types",
@@ -2974,13 +2974,13 @@ dependencies = [
 ]
 
 [[patch.unused]]
-name = "bridge-solver"
-version = "0.4.0"
+name = "bridge-parsers"
+version = "0.1.0"
 
 [[patch.unused]]
 name = "bridge-encodings"
 version = "0.1.0"
 
 [[patch.unused]]
-name = "bridge-parsers"
-version = "0.1.0"
+name = "bridge-solver"
+version = "0.4.0"
