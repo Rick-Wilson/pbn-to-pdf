@@ -98,11 +98,12 @@ impl<'a> BiddingTableRenderer<'a> {
         // Check if auction is passed out (exactly 4 passes, no bids)
         let is_passed_out = calls.len() == 4 && calls.iter().all(|a| a.call == Call::Pass);
 
-        // Check if auction ends with 3+ passes after bidding (for "All Pass" rendering)
+        // Check if auction ends with 3+ unannotated passes after bidding (for "All Pass" rendering)
+        // If any trailing pass has an annotation, show passes individually
         let trailing_passes = calls
             .iter()
             .rev()
-            .take_while(|a| a.call == Call::Pass)
+            .take_while(|a| a.call == Call::Pass && a.annotation.is_none())
             .count();
         let show_all_pass = !is_passed_out && trailing_passes >= 3;
         let calls_to_render = if is_passed_out || show_all_pass {
@@ -371,11 +372,12 @@ impl<'a> BiddingTableRenderer<'a> {
         // Check if auction is passed out (exactly 4 passes, no bids)
         let is_passed_out = calls.len() == 4 && calls.iter().all(|a| a.call == Call::Pass);
 
-        // Check if auction ends with 3+ passes after bidding (for "All Pass" rendering)
+        // Check if auction ends with 3+ unannotated passes after bidding (for "All Pass" rendering)
+        // If any trailing pass has an annotation, show passes individually
         let trailing_passes = calls
             .iter()
             .rev()
-            .take_while(|a| a.call == Call::Pass)
+            .take_while(|a| a.call == Call::Pass && a.annotation.is_none())
             .count();
         let show_all_pass = !is_passed_out && trailing_passes >= 3;
         let calls_to_render = if is_passed_out || show_all_pass {
