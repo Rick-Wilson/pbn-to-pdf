@@ -1,0 +1,2321 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.57
+%Created: Fri Aug 19 08:49:03 2016 -0700
+%BCOptions Center GutterH GutterV Justify PageHeader STBorder STShade TwoColAuctions
+%BidAndCardSpacing Thin
+%BoardsPerPage fit,2
+%CardTableColors #008000,#ffffff,#aaaaaa
+%EventSpacing 12
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Arial",12,400,0
+%Font:Diagram "Arial",12,400,0
+%Font:Event "Arial",18,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%GutterSize 250,250
+%HRTitleDate 2016.08.19
+%HRTitleEvent "ABS2-4 Eliminating Losers -- Ruffing and Discarding"
+%HRTitleLogo "logo.png"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite "Stoneridge Creek Pleasanton"
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,1000,750
+%PageFooter:0,0 "%D\\n%s"
+%PageFooter:0,1 "Presented by\\nGrant Robinson"
+%PageFooter:0,2 "%n"
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SelectedBoard 0
+%ShowBoardLabels 1
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "%)"
+[Event "Ruffing and Discarding Losers"]
+[Site ""]
+[Date ""]
+{<b>Exercise One<i> </i>—<i> </i>Ruffing Losers in Dummy</b>
+
+South is declarer. Do the holdings in Exercise One provide an opportunity to
+ruff losers in the dummy?}
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{ }
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:8... ... A42... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:T987... ... AK... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:42... ... QJ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 965... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AK6... ... 5... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Two<i> </i>—<i> </i>Managing Trumps</b>
+
+How many trumps in dummy does declarer (South) need to keep to get the most
+extra tricks from the following holdings?}
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:K4... ... A85... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... T53... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:A... ... 754... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:Q2... ... AK4... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:QJ... ... 542... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise One Answers</b>}
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{ }
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-1)</b> <i>Yes. Declarer holds greater length than dummy.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-2)</b> <i>No. Declarer does not hold greater length than dummy.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-3)</b> <i>No. Declarer does not hold greater length than dummy.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-4)</b> <i>Yes. Declarer holds greater length than dummy.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-5)</b> <i>No. Declarer does not hold greater length than dummy.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> Side suits that are equally divided between declarer’s hand and the
+dummy do not provide an opportunity to ruff losers. The cards in a side suit
+have to be unevenly divided with the declarer having more cards than the dummy
+to allow losers to be ruffed in the dummy.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Two Answers</b>}
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-1)</b> <i>One.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-2)</b> <i>Three.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-3)</b> <i>Two.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-4)</b> <i>None. There are no losers.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-5)</b> <i>One.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> When declarer decides the best way to eliminate a loser is to ruff
+it in the dummy, declarer has to calculate how many trumps will be needed to do
+the job. Declarer can draw some of the outstanding trumps as long as enough
+remain in the dummy to ruff declarer’s losers.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Three — Preparing to Ruff Losers</b>
+
+How many times does declarer (South) have to give up the lead before the
+situation is right to ruff losers in dummy?}
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:A4... ... 983... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:J... ... T98... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:75... ... 983... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 643... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:5... ... A42... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Four — Discarding Losers</b>
+
+How many losers can declarer (South) discard using the holdings in Exercise
+Four? What preparation is necessary?}
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AKQ... ... 98... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KQJ... ... 74... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AK764... ... 983... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AQJ... ... 83... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:QJT9... ... 65... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000b"]
+[Hidden "EW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Three Answers</b>}
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-1)</b> <i>Once.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-2)</b> <i>Once.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-3)</b> <i>Twice.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-4)</b> <i>None.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-5)</b> <i>None.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> Sometimes, before you can ruff a loser in the dummy, you have to
+give up the lead to the opponents once or even twice. This can be
+nerve-wracking, since you wonder what the opponents will do when they get the
+lead. You’ll have to learn to live with this, because it’s often the only way
+to get the extra trick you need to make the contract.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Four Answers</b>}
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-1)</b> <i>One.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-2)</b> <i>One, but declarer will need to promote the extra winner.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-3)</b> <i>Two, if the suit divides 3-2, but declarer will need to concede one (as
+by ducking one round).</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-4)</b> <i>One, but declarer will need to finesse, if entries permit. If the finesse
+wins, declarer can repeat the finesse and still discard a loser. If the finesse
+losers, dummy will still have an extra winner.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-5)</b> <i>Two, but declarer will need to promote the extra winners.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> When you are looking at alternative ways of disposing of losers in
+a trump contract, look to see if dummy has additional winners in a side
+suit — a suit other than the trump suit — on which to discard losers. It often
+happens that when you have weakness in one area, it’s compensated for by extra
+strength somewhere else.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Five<i> </i>— Third Hand High</b>
+
+West leads the 5 against a contract of 3NT, and the 3 is played from dummy.
+What card should East play in each of the holdings in Exercise Five?}
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:843... KT6... ... 5..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600808"]
+[Hidden "S"]
+[Play "W"]
+S5 S3
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:Q63... KJ2... ... 5..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600808"]
+[Hidden "S"]
+[Play "W"]
+S5 S3
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:93... KQ4... ... 5..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600808"]
+[Hidden "S"]
+[Play "W"]
+S5 S3
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Six — The Takeout Double (review)</b>
+
+The opponent on your right opens 1\D. What is your call with each of the
+following hands?
+}
+[Board "6"]
+[West ""]
+[North ""]
+[East ""]
+[South "You"]
+[Dealer "E"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "37"]
+[Auction "E"]
+1D +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:... AJ63.AJ75.4.K942 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000f"]
+[Hidden "ESW"]
+[Auction "W"]
+1D +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:... AK7.93.AJ73.J972 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000f"]
+[Hidden "ESW"]
+[Auction "W"]
+1D +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:... AQJ83.A7.32.K852 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000f"]
+[Hidden "ESW"]
+[Auction "W"]
+1D +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:... KT93.QJ82..AT762 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000f"]
+[Hidden "ESW"]
+[Auction "W"]
+1D +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:... KJT.AQ3.AQJ.T972 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000f"]
+[Hidden "ESW"]
+[Auction "W"]
+1D +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:... J83.52.AKJ98.A73 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60000f"]
+[Hidden "ESW"]
+[Auction "W"]
+1D +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Five Answers</b>}
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-1)</b> <i>Play the king, third hand high.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-2)</b> <i>Play the jack, only as high as necessary.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-3)</b> <i>Play the queen, only as high as necessary.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> Third hand's play is the last chance for your side to try to win
+the trick. It's generally a good idea to play the highest card necessary to try
+to take the trick. Make use of the guideline <i>third hand high</i>.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Six Answers</b>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-1)</b> <i>Double for takeout showing 13 or more dummy points with support for each</i>
+<i>of the unbid suits. Add three points for the singleton club.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-2)</b> <i>Pass. You hold an opening hand, but it is unsuited to any action.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-3)</b> <i>Bid 1\S showing 8–18 points and at lead five good spades.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-4)</b> <i>Double for takeout showing 13 or more dummy points with support for each</i>
+<i>of the unbid suits. Add five points for the club void. Doubling is more</i>
+<i>descriptive than overcalling 2\C.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-5)</b> <i>Bid 1NT showing a balanced hand of 15–18 points with quality in opener's
+suit.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-6)</b> <i>Pass. You are happy to defend 1\D, but a double now would be for takeout.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> The takeout double requires an opening bid (13–17, counting dummy
+points) and support for the unbid suits, or a hand strong enough to stand on
+its own (18 or more points). It’s a good way to get into the bidding when an
+opponent has opened the bidding in a suit.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Seven — Advancing a Takeout Double (review)</b>
+
+How do you advance the bidding with each of the hands in Exercise Seven?
+}
+[Board "7"]
+[West ""]
+[North ""]
+[East ""]
+[South "You"]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "37"]
+[Auction "W"]
+1D X Pass +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:764.J983.J872.T8 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:A984.T2.943.QJ85 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:74.AQT97.T63.KJ4 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KT8.85.K82.KQT97 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:JT8.K94.KQT8.AJ2 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AT.QJ863.942.AQ4 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Eight — Rebids by a Takeout Doubler (review)</b>
+
+The opponent on you right opens 1\H and you double for takeout. The player on
+your left passes. and partner, the advancer, bids 1\S. Opener passes. What do
+you rebid with each of the following hands?
+}
+[Board "8"]
+[West ""]
+[North ""]
+[East ""]
+[South "You"]
+[Dealer "E"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "37"]
+[Auction "E"]
+1H X Pass 1S
+Pass +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "8-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KJ93.4.KQ82.K962 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "8-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AKT8.95.KQJ.AT82 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "8-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KQ95.2.AKJ3.KJT9 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Seven Answers</b>}
+[Board "7"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "27"]
+[Auction "W"]
+1D X Pass +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-1)</b> <i>Bid 1\H. Partner has forced you to bid.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-2)</b> <i>Bid 1\S. Prefer a major suit to a minor suit.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-3)</b> <i>Bid 2\H. Jump to show 9–11 points and invite game. You are raising
+partner.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-4)</b> <i>Bid 2NT. With a stopper in diamonds, try for 3NT rather than game in
+clubs.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-5)</b> <i>Bid 2NT. You don't hold enough diamonds to defend 1\D.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7-6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-6)</b> <i>Bid 4\H. 14 points plus partner's 13 or more should give game good play.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "7 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> The takeout double is forcing and advancer must reply unless the
+opponent on the right does not pass. In this exercise, since there wasn’t an
+intervening action, advancer couldn’t pass. To advance in a suit, with a
+minimum hand (0–8 points) advancer makes a bid as cheaply as possible. With a
+medium hand (9–11 points) advancer jumps one level. With a maximum hand (12 or
+more points) advancer makes sure that the partnership ends up in a game.
+Advances in notrump are constructive — \n
+1NT shows 7–10 points; 2NT shows 11–13 points.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Eight Answers</b>}
+[Board "8"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "27"]
+[Auction "W"]
+1H X Pass 1S
+Pass +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "8-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>8-1)</b> <i>Pass. Partner holds eight points at most, so there is no chance of game.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "8-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>8-2)</b> <i>Bid 2\S. With 18 dummy points, game is possible if partner holds 7–8
+points.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "8-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>8-3)</b> <i>Bid 3\S. With 20 dummy points, game is likely unless partner is very
+weak.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "8 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> The takeout doubler can try for game by raising advancer or bidding
+a new suit.}
+[BCFlags "17"]
