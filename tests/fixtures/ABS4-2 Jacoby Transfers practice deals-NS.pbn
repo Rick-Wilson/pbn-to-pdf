@@ -1,0 +1,288 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.109
+%Created: Thu Dec  5 16:39:08 2024 -0800
+%BCOptions Float Justify NoHRStats  STBorder STShade ShowHCP
+%BidAndCardSpacing Hair
+%BoardsPerPage 1
+%CardTableColors #008000,#ffffff,#aaaaaa
+%DDAFormat 0
+%DefaultPagination 0
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Arial",11,400,0
+%Font:Diagram "Arial",12,400,0
+%Font:Event "Arial",18,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%GutterSize 500,500
+%HRTitleDate 2018.03.30
+%HRTitleEvent "ABS4-2 Jacoby Transfers"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite "Stoneridge Creek Pleasanton"
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,1000,1000
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SectionSpacing 12,0,0
+%SelectedBoard 2
+%ShowBoardLabels 1
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "Deal %"
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:K762.J6.AKJ4.KQT A84.K4.T9863.A65 953.QT9752.5.J94 QJT.A83.Q72.8732"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "2H"]
+[Result ""]
+{<b>Bidding.</b> After North opens 1NT and East passes, South knows the partnership
+belongs in a partscore in hearts. Using a <i>Jacoby Transfer</i> bid, South responds
+2\D, asking that opener bid 2\H. South now passes to leave the partnership in
+its best contract.
+
+<b>Defense.</b> East is on lead and selects the \D10, highest of touching honors. West
+should play the \DQ in case East has lead from \DK 10 9.
+
+<b>Declarer play.</b> With the lead of a diamond, North has three sure tricks in
+diamonds, but no other sure tricks.
+
+Four tricks in hearts can be promoted, but the lead will have to be lost twice.
+Another two tricks can be promoted in clubs. That's plenty of winners. <i>Is there
+any problem?</i>
+
+To promote sufficient tricks, the lead must be lost three times. North must
+consider the number of tricks that could be lost. Two heart and one club trick
+must be lost, and possibly three tricks in spades. That's too many. <i>What
+precaution should declarer take?</i>
+
+With the lead of a diamond, North has three winners in diamonds and two <i>extra
+winners</i> — winners on which losers can be discarded. North cannot discard enough
+losers in clubs to matter, but can discard two losers in spades. Then, the most
+North can lose in spades is one trick before being able to ruff.
+
+Discarding immediate losers must be done first. Declarer should play three high
+clubs, discarding spades from dummy. Only then can trumps be drawn. Lastly,
+North plays on clubs.
+
+<b>Key point.</b> Notice that the 2\H contract might be less successful if played from
+South’s side of the table. West might lead the \SQ, trapping North’s \SK. The
+defenders could take three spade tricks, two heart tricks and the \DA to defeat
+the contract. The transfer bid makes quite a difference to the outcome.
+
+East–West will have difficulty defeating a 2\H contract played from the North
+hand. The only winning defense is for East to lead a heart! This hand
+illustrates one of the advantages of Jacoby transfer bids. The opening leader
+has to choose a lead that plays into the strong hand. This frequently costs the
+defense one or more tricks.
+
+South does well to remove partner from the 1NT contract. After a diamond lead
+against 1NT, careful defense will restrict North to three diamond tricks and
+two club tricks.}
+[BCFlags "1f"]
+[RotationNote "Board 1, chOption: N, chBasis: N, basisKind:Declarer, nOption:0, nBasis: 0, nRot: 0, useStandardVul: false"]
+[DealId "ABS4-2.1"]
+[Auction "N"]
+1NT Pass 2D =1= Pass
+2H AP
+[Note "1:Jacoby transfer"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "NS"]
+[Deal "E:T2.QJT75.874.K84 Q75.K6.AQT63.A93 84.A93.K52.QJT62 AKJ963.842.J9.75"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4S"]
+[Result ""]
+{<b>Bidding.</b> After South opens 1NT, North uses a Jacoby Transfer bid to request
+that partner bid spades. After South accepts the transfer, North raises to 4\S
+holding 11 points and knowing that there is at least an 8-card spade fit.
+
+If not playing Jacoby Transfers, North should just respond 4\S.
+
+<b>Defense.</b> South is now declarer and West has the opening lead. The \CQ stands
+out. East encourages with the \C8.
+
+<b>Declarer play.</b> South counts six immediate tricks in spades plus one in diamonds
+and clubs. There may be a trick in hearts, but the diamond suit looks more
+fruitful. Even if the diamond finesse loses, there are at least two more tricks
+to be had. <i>Is there any problem?</i>
+
+Check the number of immediate losers. With the club lead, South might lose one
+club, one diamond, and two heart tricks if neither the heart or diamond
+finesses are working. <i>What what precaution should declarer take?</i>
+
+The trick is to keep East from gaining the lead. Only East can lead through
+South's vulnerable \HK. Even if the diamond finesse loses, West cannot lead
+hearts to good effect.
+
+South should let West win the \CQ! Then the second round of clubs can be won
+with the \CA and a third round ruffed in dummy (if necessary) without East ever
+gaining the lead. After pulling trumps, ending in the North hand, declarer runs
+the \DJ, losing to the \DK. But, declarer can use dummy's good diamonds to
+discard heart losers. In fact, if West does not cash the \HA, she won't get it!
+
+<b>Key point.</b> Although East–West cannot legitimately defeat a contract of 4\H
+played by South if declarer is careful, they may get an opportunity. When West
+leads the \CQ, East should play the \C8 as an encouraging signal. If declarer
+wins the first trick with the \CA, draws trumps, and then takes the diamond
+finesse, West can win the \DK and lead a club to East’s \CK. East can finish
+off a fine defense by leading the \HQ to trap declarer’s \HK.
+
+If North–South aren’t using transfer bids, East–West will have an excellent
+chance to defeat the contract. East would be on lead and could lead the \HQ,
+giving the defenders the first two tricks. If they now switch to clubs, they
+can take a club trick after declarer loses the finesse to West’s \DK.}
+[BCFlags "1f"]
+[RotationNote "Board 2, chOption: S, chBasis: S, basisKind:Declarer, nOption:2, nBasis: 2, nRot: 0, useStandardVul: false"]
+[DealId "ABS4-2.2"]
+[Auction "E"]
+Pass 1NT Pass 2H =1=
+Pass 2S Pass 4S
+AP
+[Note "1:Jacoby transfer"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "NS"]
+[Deal "W:Q96.982.KQ2.T983 AK85.QT5.A74.KJ4 JT3.A6.JT963.Q52 742.KJ743.85.A76"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "4H"]
+[Result ""]
+{<b>Bidding.</b> With an invitational-strength hand and a five-card major suit, South
+transfers North to 2\H and then bids 2NT. With a maximum-strength hand for the
+1NT opening bid, North has enough to accept the invitation. With the knowledge
+that South has five hearts, North puts the partnership in game in the eight-card
+fit.
+
+If not playing Jacoby Transfers, South should respond Stayman 2\C, then bid 3\H
+(forcing) when North replies 2\S.
+
+<b>Defense.</b> East is on lead and probably will start with the \DJ, highest of
+touching honors.
+
+<b>Declarer play.</b> North counts two immediate spade winners, another in diamonds,
+and two more in clubs. That leaves North needing to find five more tricks.
+
+Four tricks probably can be promoted in hearts. A finesse of the \CJ is a
+possibility for another trick, as is a 3–3 division of spades. Checking
+immediate losers. there are only two, the \HA and a diamond, so no worries
+there.
+
+Let's say North wins the \DA and tackles trumps, ruffing the third round of
+diamonds if necessary. <i>What should declarer play after drawing trumps?</i>
+
+North should next test the spades. A spade must be lost in any event, but then
+North's fourth spade is the game-going winner. If spades had not divided 3–3,
+only then would North have needed to try the club finesse.
+
+<b>Key point.</b> If declarer tries the club finesse before testing spades, the
+contract can be defeated. When the club finesse loses, declarer can end up
+losing a trick in every suit. With a choice of plays for extra winners, plays
+when both can be attempted, first try the one in which a trick <i>must </i>be lost
+(spades), saving for second the one in which a trick <i>might </i>be lost (clubs).
+
+If South–North reach 3NT, rather than 4\H, the defenders have an opportunity to
+defeat the contract. East will start with the \DJ, and West must be careful
+to play a high diamond on this trick to avoid blocking the suit. If West plays
+the two high diamonds early, East–West can get four diamond tricks to go
+along with the \HA.}
+[BCFlags "1f"]
+[RotationNote "Board 3, chOption: N, chBasis: W, basisKind:Declarer, nOption:0, nBasis: 3, nRot: 1, useStandardVul: false"]
+[DealId "ABS4-2.3"]
+[Auction "W"]
+Pass 1NT Pass 2D =1=
+Pass 2H Pass 2NT
+Pass 4H AP
+[Note "1:Jacoby transfer"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "All"]
+[Deal "N:AQJT.A86.J9.A853 K842.T953.A5.QJT 3.742.QT8763.964 9765.KQJ.K42.K72"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "3D"]
+[Result ""]
+{<b>Bidding.</b> After North’s opening 1NT bid, South has a hand for which the best
+contract is likely to be a partscore in diamonds. Since a 2\D response would be
+a transfer to hearts, South starts by responding 2\S. This asks North to bid 3\C.
+South now bids 3\D, a sign-off bid, and North passes.
+
+<b>Defense.</b> West is on lead and probably will lead the \HK. Short but strong
+suits are attractive leads against suit contracts (but not against notrump
+contracts). East discourages with the \H3 (West might hold only the \HK Q, so
+East has no equivalent honor).
+
+<b>Declarer play.</b> South counts just three immediate winners, so needs six more.
+Promotion in diamonds will garner four more. Spades will provide two more. A
+check of immediate losers reveals only five, two in hearts, two in diamonds,
+and probably one in spades. <i>What should declarer do first?</i>
+
+If South first plays on trumps, the defense might take two diamond and two heart
+tricks, then play on clubs. Then, when South loses the \SK, the defense will
+take two additional tricks in clubs. Spades should be played first.
+
+With no fast entry to take the spade finesse, South just plays the \SA and
+another from dummy. If East covers with the \SK, South can ruff and lose no
+spade tricks! If East plays low, South can just discard a heart loser. This
+type of play is called “discarding a loser on a loser” — if you lose the trick,
+you've eliminated a loser anyway, so nothing is lost!
+
+Now, when the defenders play on clubs, South can win the \CA in dummy and
+discard two club losers on the established spades.
+
+<b>Key point.</b> When playing Jacoby Transfers, a response of 2\S is used to show a
+hand that wants to sign off in 3\C or 3\D. Should have a six-card suit and less
+than eight points. An immediate response of 3\C or 3\D is invitational to 3NT,
+an 8–9 point hand with a six-card minor.}
+[BCFlags "1f"]
+[RotationNote "Board 4, chOption: S, chBasis: E, basisKind:Declarer, nOption:2, nBasis: 1, nRot: 1, useStandardVul: false"]
+[DealId "ABS4-2.4"]
+[Auction "N"]
+1NT Pass 2S =1= Pass
+3C Pass 3D AP
+[Note "1:Sign off in clubs or diamonds"]

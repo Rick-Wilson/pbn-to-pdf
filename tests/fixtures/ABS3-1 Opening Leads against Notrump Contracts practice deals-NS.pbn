@@ -1,0 +1,291 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.109
+%Created: Thu Dec  5 16:33:50 2024 -0800
+%BCOptions Float Justify NoHRStats  STBorder STShade ShowHCP
+%BidAndCardSpacing Thin
+%BoardsPerPage 1
+%CardTableColors #008000,#ffffff,#aaaaaa
+%DDAFormat 0
+%DefaultPagination 0
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Times New Roman",12,400,0
+%Font:Diagram "Times New Roman",13,400,0
+%Font:Event "Times New Roman",22,700,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Times New Roman",12,400,0
+%GutterSize 500,500
+%HRTitleDate 2023.12.10
+%HRTitleEvent "BB3-1 Opening Leads against Notrump Contracts"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite ""
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,1000,900
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SectionSpacing 12,0,0
+%SelectedBoard 2
+%ShowBoardLabels 1
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "Deal %"
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:QJ84.52.QJT82.AK AT7.AJ9.AK6.8642 652.QT8743.97.73 K93.K6.543.QJT95"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "3NT"]
+[Result ""]
+{<b>Regarding Partner</b>
+
+<b>Bidding.</b> West opens 1\D. North's 1NT overcall shows much the same as a 1NT
+opening bid, but also with some strength in opener's suit.
+
+East passes. South holds 10 points, giving her side at least 25 points, making
+3NT a good proposition.
+
+<b>Defense.</b> It is unlikely that East can set up and run hearts given that there
+are no outside entries. East chooses to lead partner's suit, and starts with
+the \D9, highest of a doubleton.
+
+<i>Fine point. </i>West can afford to overtake the \D9 opening lead in case East
+started with a singleton.
+
+<b>Declarer play.</b> You (North) count six sure tricks and need three more. A finesse
+of the \HJ might get you one more, but that's not enough. You will need to
+promote three tricks in clubs.
+
+You should hold up in diamonds in case diamonds are 5-2 or 6-1 and East holds
+the \CA or \CK.
+
+Unfortunately for you, if East leads diamonds and the defenders continue
+diamonds at every opportunity, the defense will take three diamond and two club
+tricks. Had diamonds not been led, or if diamonds had divided 4-3, or if East
+held the \CA or \CK, then you would have made 3NT.
+
+<b>Key point.</b> The diamonds offer the best chance of defeating the contract, but
+the defenders have to be persistent. The first step is for East to lead
+diamonds, the suit East's partner bid. Then, West has to continue leading
+diamonds at every opportunity in order to defeat declarer’s contract. Notrump
+contracts are often a race to see which side can develop sufficient winners
+first.}
+[BCFlags "1f"]
+[RotationNote "Board 1, chOption: N, chBasis: E, basisKind:Declarer, nOption:0, nBasis: 1, nRot: 3, useStandardVul: false"]
+[Auction "W"]
+1D 1NT =1= Pass 3NT
+AP
+[Note "1:15–17"]
+[Play "E"]
+D9
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "NS"]
+[Deal "E:8753.A762.72.763 AT.Q43.KQ965.QJ8 962.KJT9.T43.A94 KQJ4.85.AJ8.KT52"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "3NT"]
+[Result ""]
+{<b>In Good Order</b>
+
+<b>Bidding.</b> East passes. South holds a balanced hand of 15 points, and opens 1NT,
+though some might find a 1\D opening bid more to their taste.
+
+West passes. North holds the values for game (but not slam), but would prefer
+to play in spades if South also holds four. North uses the Stayman 2\C
+convention to see if South holds four spades.
+
+East passes. South bids 2\D to deny holding a four-card major.
+
+West passes. North proceeds to the game in notrump since there is no fit in
+spades.
+
+<i>Alternate bidding. </i>If South judges the hand as not strong enough to open 1NT,
+the auction would be:
+
+     1\D-1\S; 1NT-3NT; All pass
+
+<b>Defense.</b> Hearts is West's best suit. On the \HJ opening lead (highest of
+interior sequence), East realizes that South holds the \HQ. She plays the \HA
+in case partner holds the \HK, which avoids presenting declarer with an
+undeserved trick with the \HQ. East returns the \H2 as a count signal so that
+West will know that East started with an even number of hearts (and now has an
+odd number remaining). The recommended auction also revealed that South does
+not hold four hearts.
+
+<b>Declarer play. </b>The defenders must immediately take their four heart tricks and
+the \CA to defeat 3NT. Otherwise declarer takes nine tricks — four spades and
+five diamonds.
+
+<b>Key point.</b> Leading the highest card from a strong sequence often provides the
+defenders with a good chance to defeat the contract. If partner leads a high
+card, you have to use your imagination to visualize partner’s holding in the
+suit. In this deal, East knew from West’s opening lead that declarer held the
+\HQ. If partner held the \HK, then declarer’s \HQ could be trapped — if East
+won the first trick with the \HA.}
+[BCFlags "1f"]
+[RotationNote "Board 2, chOption: S, chBasis: S, basisKind:Declarer, nOption:2, nBasis: 2, nRot: 0, useStandardVul: false"]
+[Auction "E"]
+Pass 1NT =1= Pass 2C
+Pass 2D Pass 3NT
+AP
+[Note "1:15–17"]
+[Play "W"]
+HJ
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "NS"]
+[Deal "W:J953.74.982.A975 AK8.QJ5.AQJ6.KQ4 T762.AK962.T4.63 Q4.T83.K753.JT82"]
+[Scoring ""]
+[Declarer "N"]
+[Contract "3NT"]
+[Result ""]
+{<b>Bidding.</b> West passes. North holds a balanced hand of 22 points. North
+starts with an opening bid of 2\C to show at least 22 points of any
+distribution.
+
+East passes. South must respond to a 2\C opening bid. With less than eight
+points, South responds 2\D, an artificial “waiting” bid.
+
+West passes. North rebids 2NT to show a balanced hand of 22–24 points.
+
+East passes. South knows there are enough points for game, but not slam. With
+no interest in a major-suit contract, South bids 3NT to end the auction.
+
+<b>Defense.</b> Without a sequence, East leads \H6 (fourth-best). West cannot
+contribute to winning the trick, so plays the \H7 as a count signal.
+
+<b>Declarer play.</b> You count seven sure winners, plus a heart trick from the
+opening lead. You will need to get a trick from clubs.
+
+<i>Fine point. </i>Declarer's best line is to win the opening lead with the
+\H10 and immediately lead the \C2 (or tricky \CJ) <u>from dummy</u> since there
+will have nine tricks if West ducks (East will never duck the \CA if looking
+at the setting tricks in hearts). West must realize that East can have at
+most seven points, and that the \HK Q and \CQ will not be enough to defeat the
+contract. Only the \HA K x x x will suffice to defeat the contract, so West
+should play for that holding by winning the \CA and returning a heart.
+
+Of course, this is a difficult defense to envision. Another winning view is
+that West must win the \CA immediately and lead hearts in order to preserve
+any later entry East may have.
+
+If declarer plays winners immediately, West will need to keep her second heart
+so that she can play it after winning the \CA.
+
+<b>Key point.</b> The only way for the defenders to defeat the contract is for
+East to lead a low heart. Declarer takes the first trick, but when West gets
+the lead with the \CA, West leads a heart. East has enough winners to defeat
+the contract. Notice that West should return partner’s suit even when declarer
+or dummy wins the first trick. Also notice that West must rise with the \CA at
+the first opportunity — otherwise, declarer has nine winners (four diamonds,
+three spades, one heart and one club) for game.}
+[BCFlags "1f"]
+[RotationNote "Board 3, chOption: N, chBasis: W, basisKind:Declarer, nOption:0, nBasis: 3, nRot: 1, useStandardVul: false"]
+[Auction "W"]
+Pass 2C =1= Pass 2D =2=
+Pass 2NT Pass 3NT
+AP
+[Note "1:22 or more, forcing"]
+[Note "2:Waiting"]
+[Play "E"]
+H6
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "All"]
+[Deal "E:98765.742.6.K943 KQJ.96.KJ943.A76 4.A853.A875.QT82 AT32.KQJT.QT2.J5"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "3NT"]
+[Result ""]
+{<b>A Little Help</b>
+
+<b>Bidding.</b> East passes. South holds a balanced hand of 15 points, and
+opens 1NT, though some might find a 1\D opening bid more to their taste.
+
+West passes. North holds enough points for game, but not slam. North would
+prefer to play in a major-suit fit, if one exists, so bids the Stayman 2\C
+convention.
+
+East passes. South bids 2\D to deny holding a four-card major suit.
+
+West passes. North places the contract in 3NT, assured that there is no fit in
+a major suit.
+
+<b>Defense.</b> West leads the \C2 as less is needed from partner in clubs to
+develop tricks than in hearts or diamonds. Besides, the \HA and \DA will be
+entries to established clubs, but not the reverse.
+
+<i>Fine point. </i>East should play \C9 if declarer ducks the opening lead in
+dummy, but it doesn't matter here. We will look more closely at surrounding
+dummy's honors in the class about <i>third-hand play<b>.</b></i>
+
+If declarer holds up the \CA, East continues with a low club as a count signal
+to show that she remains with an odd number of clubs.
+
+<b>Declarer play.</b> You count five sure tricks and need four more. You should
+play on diamonds, rather than hearts, as diamonds alone will provide enough
+extra tricks for the contract.
+
+West can take her club tricks and the \HA once she wins the \DA. If East is
+going to win the fourth club, then West should cash the \HA before giving up
+the lead.
+
+<b>Key point.</b> West has a choice of three suits that would be reasonable to
+lead. If North opens 1\D rather than 1NT, West can eavesdrop on the opponent's
+bidding, making the better unbid suit the logical choice for an opening lead.
+If North opens 1NT, West will have less information to guide her opening lead,
+and must reason well to find the club lead. If West leads any other suit,
+declarer will have no trouble making the contract.}
+[BCFlags "1f"]
+[RotationNote "Board 4, chOption: S, chBasis: N, basisKind:Declarer, nOption:2, nBasis: 0, nRot: 2, useStandardVul: false"]
+[Auction "E"]
+Pass 1NT =1= Pass 2C
+Pass 2D Pass 3NT
+AP
+[Note "1:15–17"]
+[Play "W"]
+C2

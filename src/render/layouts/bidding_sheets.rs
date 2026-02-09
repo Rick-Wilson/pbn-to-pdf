@@ -336,8 +336,9 @@ impl BiddingSheetsRenderer {
 
     /// Count the number of lines in the auction setup for practice pages
     fn count_auction_setup_lines(&self, board: &Board, player: Direction) -> usize {
-        // 1 line for "who bids first"
-        let who_first_lines = 1;
+        // 1 line for "who bids first" (0 if empty, e.g. when opponent opens)
+        let who_first = self.who_bids_first(board, player);
+        let who_first_lines = if who_first.is_empty() { 0 } else { 1 };
 
         // Count opposition bidding lines
         let opp_lines = self.format_opposition_bidding(board, player).len();
@@ -1161,11 +1162,13 @@ impl BiddingSheetsRenderer {
         let line_height = font_size * LINE_HEIGHT_MULTIPLIER * 0.4;
         let mut current_y = y;
 
-        // Who bids first (at the top)
+        // Who bids first (at the top) - may be empty when opponent opens
         let who_first = self.who_bids_first(board, player);
-        layer.set_fill_color(Color::Rgb(BLACK));
-        layer.use_text_builtin(&who_first, font_size, Mm(x), Mm(current_y), text_font);
-        current_y -= line_height;
+        if !who_first.is_empty() {
+            layer.set_fill_color(Color::Rgb(BLACK));
+            layer.use_text_builtin(&who_first, font_size, Mm(x), Mm(current_y), text_font);
+            current_y -= line_height;
+        }
 
         // Opposition bidding
         let opp_lines = self.format_opposition_bidding(board, player);
@@ -1214,14 +1217,26 @@ impl BiddingSheetsRenderer {
                         level,
                         strain: suit,
                     } => {
-                        let action = if is_opening_bid { "opens" } else { "bids" };
-                        lines.push(MixedText::bid_action_with_position(
-                            current_seat,
-                            position,
-                            action,
-                            *level,
-                            *suit,
-                        ));
+                        if is_opening_bid {
+                            // Opponent is dealer and opens - state as fact
+                            lines.push(MixedText::opening_bid(
+                                position, *level, *suit,
+                            ));
+                            let who_next = if current_seat == rho {
+                                "You bid next."
+                            } else {
+                                "Partner bids next."
+                            };
+                            lines.push(MixedText::plain(who_next));
+                        } else {
+                            lines.push(MixedText::bid_action_with_position(
+                                current_seat,
+                                position,
+                                "bids",
+                                *level,
+                                *suit,
+                            ));
+                        }
                         is_opening_bid = false;
                         prev_bid = Some((*level, *suit));
                         found_opp_bid = true;
@@ -1275,17 +1290,39 @@ impl BiddingSheetsRenderer {
         };
 
         let partner = player.partner();
+        let lho = player.next();
         let rho = player.next().next().next(); // 3 steps = RHO
 
+        // Check if opponents are silent (only pass)
+        let opponents_silent = board
+            .auction
+            .as_ref()
+            .map(|auction| {
+                let mut seat = auction.dealer;
+                auction.calls.iter().all(|a| {
+                    let is_opp = seat == lho || seat == rho;
+                    let ok = !is_opp || matches!(a.call, Call::Pass);
+                    seat = seat.next();
+                    ok
+                })
+            })
+            .unwrap_or(true);
+
         if dealer == player {
-            "You are dealer.".to_string()
-        } else if dealer == rho {
-            "RHO is dealer. You bid second.".to_string()
+            "You bid first.".to_string()
         } else if dealer == partner {
-            "Partner is dealer.".to_string()
+            "Partner bids first.".to_string()
+        } else if opponents_silent {
+            // When opponents deal but are silent, just say who bids first
+            if dealer == rho {
+                "You bid first.".to_string()
+            } else {
+                // LHO is dealer; after LHO passes, partner bids first
+                "Partner bids first.".to_string()
+            }
         } else {
-            // LHO is dealer
-            "LHO is dealer.".to_string()
+            // Opponent opens - format_opposition_bidding handles the details
+            String::new()
         }
     }
 
@@ -1632,7 +1669,19 @@ impl MixedText {
         }
     }
 
-    /// Format: "East (LHO) Opens 1♠ if possible."
+    /// Format: "RHO opens the bidding 1♦."
+    fn opening_bid(position: &str, level: u8, suit: BidSuit) -> Self {
+        Self {
+            segments: vec![
+                TextSegment::Plain(format!("{} opens the bidding ", position)),
+                TextSegment::Plain(format!("{}", level)),
+                TextSegment::Suit(suit),
+                TextSegment::Plain(".".to_string()),
+            ],
+        }
+    }
+
+    /// Format: "East (LHO) bids 1♠ if possible."
     fn bid_action_with_position(
         seat: Direction,
         position: &str,
