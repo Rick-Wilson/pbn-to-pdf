@@ -1219,9 +1219,7 @@ impl BiddingSheetsRenderer {
                     } => {
                         if is_opening_bid {
                             // Opponent is dealer and opens - state as fact
-                            lines.push(MixedText::opening_bid(
-                                position, *level, *suit,
-                            ));
+                            lines.push(MixedText::opening_bid(position, *level, *suit));
                             let who_next = if current_seat == rho {
                                 "You bid next."
                             } else {

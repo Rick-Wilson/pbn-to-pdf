@@ -1042,8 +1042,7 @@ impl DocumentRenderer {
         );
 
         // Determine which commentary blocks go before vs after the diagram (skip blank blocks)
-        let non_blank_blocks: Vec<_> =
-            board.commentary.iter().filter(|c| !c.is_blank()).collect();
+        let non_blank_blocks: Vec<_> = board.commentary.iter().filter(|c| !c.is_blank()).collect();
         let (event_commentary, final_commentary): (Vec<_>, Vec<_>) =
             if show_commentary && non_blank_blocks.len() > 1 {
                 // Multiple blocks: all but last are event, last is final
