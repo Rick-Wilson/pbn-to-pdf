@@ -114,11 +114,9 @@ impl<'a> BiddingTableRenderer<'a> {
 
         // Start counting rows: spacing + header + optional player names row
         // Row 0 is spacing, Row 1 is header, Row 2 is player names (if present)
+        // After counting, `row` will be one past the last content row
         let has_player_names = players.is_some_and(|p| p.has_any());
         let mut row = if has_player_names { 3 } else { 2 };
-
-        // Track whether we end on a complete row (need to adjust height)
-        let mut ended_on_complete_row = false;
 
         // Handle passed out auction
         if is_passed_out {
@@ -170,19 +168,18 @@ impl<'a> BiddingTableRenderer<'a> {
                     row += 1; // Move past partial row
                 }
                 row += 1; // Row for "All Pass"
-            } else if col == 0 && calls_to_render > 0 {
-                // Complete last row - the row++ moved us to an unused row
-                ended_on_complete_row = true;
+            } else if col > 0 {
+                // Partial last row - move past it
+                row += 1;
             }
+            // If col == 0 and calls_to_render > 0, row was already incremented in the loop
         }
 
-        // Adjust for complete last row (we over-counted by 1)
-        if ended_on_complete_row {
-            row -= 1;
-        }
-
-        // Calculate table height (before notes)
-        let table_height = row as f32 * row_height;
+        // Calculate table height: extend to last row's text descenders, not a full row below
+        // row is one past the last content row, so last baseline is at (row-1) * row_height
+        let measurer = text_metrics::get_times_measurer();
+        let descender = measurer.descender_mm(settings.body_font_size);
+        let table_height = (row - 1) as f32 * row_height + descender;
 
         // Account for notes (with word wrapping if max_width specified)
         // Note: render_notes adds one line_height of spacing before the first note
@@ -388,10 +385,8 @@ impl<'a> BiddingTableRenderer<'a> {
 
         // Start row accounting for spacing + header + optional player names row
         // Row 0 is spacing, Row 1 is header, Row 2 is player names (if present)
+        // After counting, `row` will be one past the last content row
         let mut row = if has_player_names { 3 } else { 2 };
-
-        // Track whether we end on a complete row (need to adjust height)
-        let mut ended_on_complete_row = false;
 
         // Handle passed out auction
         if is_passed_out {
@@ -499,19 +494,18 @@ impl<'a> BiddingTableRenderer<'a> {
                     self.font,
                 );
                 row += 1;
-            } else if col == 0 && calls_to_render > 0 {
-                // Complete last row - the row++ moved us to an unused row
-                ended_on_complete_row = true;
+            } else if col > 0 {
+                // Partial last row - move past it
+                row += 1;
             }
+            // If col == 0 and calls_to_render > 0, row was already incremented in the loop
         }
 
-        // Adjust for complete last row (we over-counted by 1)
-        if ended_on_complete_row {
-            row -= 1;
-        }
-
-        // Calculate table height (before notes)
-        let table_height = row as f32 * row_height;
+        // Calculate table height: extend to last row's text descenders, not a full row below
+        // row is one past the last content row, so last baseline is at (row-1) * row_height
+        let measurer = self.get_measurer();
+        let descender = measurer.descender_mm(self.settings.body_font_size);
+        let table_height = (row - 1) as f32 * row_height + descender;
 
         // Render notes if present and return combined height
         if !auction.notes.is_empty() {

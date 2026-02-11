@@ -202,8 +202,8 @@ impl DocumentRenderer {
                 height = cap_height * 2.0 + line_height;
             } else if diagram_options.hide_compass {
                 let diagram_height = self.measure_diagram_height(&diagram_options);
-                // North-only: title and cards on same line, need cap_height for text ascenders
-                height = cap_height * 2.0 + diagram_height.max(title_lines as f32 * line_height);
+                // North-only: title and cards share same top line, height is the taller of the two
+                height = diagram_height.max(cap_height + title_lines as f32 * line_height);
             } else if centered_with_commentary {
                 let diagram_height = self.measure_diagram_height(&diagram_options);
                 // Centered mode: commentary comes first, needs cap_height for text ascenders
@@ -214,8 +214,8 @@ impl DocumentRenderer {
                 height = diagram_height;
             }
         } else if effective_title_lines > 0 {
-            // Title lines but no diagram: need cap_height for text ascenders + title spacing
-            height = cap_height * 2.0 + effective_title_lines as f32 * line_height;
+            // Title lines but no diagram: cap_height for ascenders + title line spacing
+            height = cap_height + effective_title_lines as f32 * line_height;
         } else if inline_board_label {
             // Auction-only with inline board label: cap_height for ascenders + top padding
             height = cap_height * 2.0;
