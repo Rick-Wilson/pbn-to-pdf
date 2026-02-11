@@ -736,12 +736,13 @@ impl<'a> CommentaryRenderer<'a> {
         }
 
         // Return total height used and final Y position
-        // Adjust for the last line: we don't need full line_height spacing after it,
-        // just enough for the text descenders. Add back partial line_height.
-        let descender_allowance = line_height * 0.3; // Approximate descender space
+        // Height is the advancement from first baseline to last baseline: (N-1)*line_height.
+        // The caller handles positioning the first baseline (cap_height below start_y),
+        // and descenders on the last line hang below into inter-board spacing.
+        // This keeps centering based on the main body of text rather than descenders.
         FloatRenderResult {
-            height: oy.0 - y - (line_height - descender_allowance),
-            final_y: y + (line_height - descender_allowance),
+            height: ((oy.0 - y) - line_height).max(0.0),
+            final_y: y + line_height,
         }
     }
 }

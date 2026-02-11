@@ -206,8 +206,9 @@ impl DocumentRenderer {
                 height = diagram_height.max(cap_height + title_lines as f32 * line_height);
             } else if centered_with_commentary {
                 let diagram_height = self.measure_diagram_height(&diagram_options);
-                // Centered mode: commentary comes first, needs cap_height for text ascenders
-                height = cap_height + diagram_height;
+                // Centered mode: commentary comes first at commentary_font_size
+                let commentary_ascender = measurer.ascender_mm(self.settings.commentary_font_size);
+                height = commentary_ascender + diagram_height;
             } else {
                 let diagram_height = self.measure_diagram_height(&diagram_options);
                 // Full compass: diagram starts at top, no extra spacing needed
@@ -220,8 +221,9 @@ impl DocumentRenderer {
             // Auction-only with inline board label: cap_height for ascenders + top padding
             height = cap_height * 2.0;
         } else {
-            // Commentary-only: cap_height for ascenders + top padding
-            height = cap_height * 2.0;
+            // Commentary-only: position first baseline so ascenders reach start_y
+            let commentary_ascender = measurer.ascender_mm(self.settings.commentary_font_size);
+            height = commentary_ascender;
         }
 
         // Auction height
@@ -389,7 +391,8 @@ impl DocumentRenderer {
             }
         }
 
-        (line_count as f32) * line_height
+        // Advancement from first baseline to last baseline (caller handles cap_height positioning)
+        (line_count.max(1) - 1) as f32 * line_height
     }
 
     /// Generate a PDF from a list of boards
@@ -832,8 +835,10 @@ impl DocumentRenderer {
             // Title lines: content starts below title lines
             current_y = first_baseline - (title_line as f32 * line_height);
         } else {
-            // Commentary-only: add top padding before content
-            current_y = first_baseline - cap_height;
+            // Commentary-only: position first baseline so ascenders reach start_y
+            let commentary_ascender =
+                get_times_measurer().ascender_mm(self.settings.commentary_font_size);
+            current_y = start_y - commentary_ascender;
         }
 
         // Render bidding table if present and enabled
@@ -984,8 +989,9 @@ impl DocumentRenderer {
                     column_width,
                 );
 
-                // Debug box for commentary block
-                self.draw_debug_box(layer, column_x, block_start_y, column_width, height);
+                // Debug box for commentary block (top at ascender above baseline, bottom at last baseline)
+                let asc = get_times_measurer().ascender_mm(self.settings.commentary_font_size);
+                self.draw_debug_box(layer, column_x, block_start_y + asc, column_width, asc + height);
 
                 current_y -= height;
                 // Add spacing between blocks, but not after the last one
@@ -1026,9 +1032,10 @@ impl DocumentRenderer {
         let cap_height = measurer.cap_height_mm(self.settings.body_font_size);
 
         // Start rendering from the top
-        // In centered layout, commentary comes first, so we just need cap_height
-        // for text ascenders (title is rendered after diagram, not at top)
-        let mut current_y = start_y - cap_height;
+        // In centered layout, commentary comes first at commentary_font_size,
+        // so position first baseline so ascenders reach start_y
+        let commentary_ascender = measurer.ascender_mm(self.settings.commentary_font_size);
+        let mut current_y = start_y - commentary_ascender;
 
         // In Center layout: split commentary into event (before diagram) and final (after diagram)
         // If there are multiple commentary blocks, the last one is "final" (rendered after diagram)
@@ -1067,7 +1074,8 @@ impl DocumentRenderer {
                 (Mm(column_x), Mm(current_y)),
                 column_width,
             );
-            self.draw_debug_box(layer, column_x, block_start_y, column_width, height);
+            let asc = get_times_measurer().ascender_mm(self.settings.commentary_font_size);
+            self.draw_debug_box(layer, column_x, block_start_y + asc, column_width, asc + height);
             current_y -= height;
             // Add spacing between blocks
             if i < event_commentary.len() - 1 {
@@ -1489,7 +1497,8 @@ impl DocumentRenderer {
                     (Mm(column_x), Mm(current_y)),
                     column_width,
                 );
-                self.draw_debug_box(layer, column_x, block_start_y, column_width, height);
+                let asc = get_times_measurer().ascender_mm(self.settings.commentary_font_size);
+                self.draw_debug_box(layer, column_x, block_start_y + asc, column_width, asc + height);
                 current_y -= height;
                 // Add spacing between blocks, but not after the last one
                 if i < final_commentary.len() - 1 {
