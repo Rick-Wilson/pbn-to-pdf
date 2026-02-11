@@ -41,8 +41,13 @@ pub fn parse_deal(input: &str) -> Result<Deal, String> {
     Ok(deal)
 }
 
-/// Parse a single hand notation: "AKQ.JT9.876.5432"
+/// Parse a single hand notation: "AKQ.JT9.876.5432" or "-" for unknown/empty hand
 fn parse_hand(input: &str) -> Result<Hand, String> {
+    // A single dash means unknown/not dealt hand (PBN spec)
+    if input == "-" {
+        return Ok(Hand::new());
+    }
+
     let suits: Vec<&str> = input.split('.').collect();
 
     if suits.len() != 4 {
@@ -129,6 +134,26 @@ mod tests {
 
         // West is fourth
         assert_eq!(deal.west.spades.len(), 2); // 94
+    }
+
+    #[test]
+    fn test_parse_deal_with_dash_hands() {
+        // PBN uses "-" for unknown/not-dealt hands
+        let input = "W:- K43.AQJ54.63.T95 - A5.KT83.K752.843";
+        let deal = parse_deal(input).unwrap();
+
+        // West and East are dashes (empty hands)
+        assert_eq!(deal.west.card_count(), 0);
+        assert_eq!(deal.east.card_count(), 0);
+
+        // North has cards
+        assert_eq!(deal.north.card_count(), 13);
+        assert_eq!(deal.north.spades.len(), 3); // K43
+        assert_eq!(deal.north.total_hcp(), 10);
+
+        // South has cards
+        assert_eq!(deal.south.card_count(), 13);
+        assert_eq!(deal.south.spades.len(), 2); // A5
     }
 
     #[test]
