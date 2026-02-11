@@ -55,8 +55,22 @@ pub fn parse_auction(dealer: Direction, input: &str) -> Result<Auction, String> 
 
         if let Some(call) = Call::from_pbn(&clean_token) {
             auction.add_annotated_call(call, annotation);
+        } else if clean_token.is_empty() && token.starts_with('$') {
+            // Standalone $N NAG marker — attach as annotation to previous call
+            // PBN standard: $1 = "!", $2 = "?", $3 = "!!", $4 = "??"
+            if let Some(last_call) = auction.calls.last_mut() {
+                let nag_text = match token {
+                    "$1" => "!",
+                    "$2" => "?",
+                    "$3" => "!!",
+                    "$4" => "??",
+                    _ => "",
+                };
+                if !nag_text.is_empty() {
+                    last_call.annotation = Some(nag_text.to_string());
+                }
+            }
         } else {
-            // Skip unrecognized tokens (might be NAG markers like $1)
             log::debug!("Skipping unrecognized auction token: {}", token);
         }
     }

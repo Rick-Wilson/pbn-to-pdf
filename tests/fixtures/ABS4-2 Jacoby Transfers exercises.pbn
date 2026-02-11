@@ -1,0 +1,1804 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.66
+%Created: Sun Mar 25 08:47:22 2018 -0700
+%BCOptions Center GutterH GutterV Justify NoHRStats PageHeader STBorder STShade TwoColAuctions
+%BidAndCardSpacing Thin
+%BoardsPerPage fit,2
+%CardTableColors #008000,#ffffff,#aaaaaa
+%EventSpacing 12
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Arial",12,400,0
+%Font:Diagram "Arial",12,400,0
+%Font:Event "Arial",18,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%GutterSize 250,250
+%HRTitleDate 2018.03.30
+%HRTitleEvent "ABS4-2 Jacoby Transfers"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite "Stoneridge Creek Pleasanton"
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,1000,750
+%PageFooter:0,0 "%D\\n%s"
+%PageFooter:0,1 "Presented by\\nGrant Robinson"
+%PageFooter:0,2 "%n"
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SelectedBoard 85
+%ShowBoardLabels 1
+%ShowCardTable 0
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "%)"
+[Event "Jacoby Transfers"]
+[Site ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise One — Using Jacoby Transfer Bids</b>
+
+Partner opens 1NT. What do you respond with each of the hands in Exercise One?
+What do you plan to do next?}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-1"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:4.JT8753.Q832.98 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-2"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KJ9654.83.K6.742 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-3"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AK.T97652.K76.54 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-4"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:QJ642.Q83.842.K6 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-5"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KQ6.AT852.T3.Q43 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-6"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KQJ82..AQ974.T83 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise One Answer</b>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-1 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-1)</b> <i>Respond 2\D (transfer). Then pass partner's 2\H bid.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-2 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-2)</b> <i>Respond 2\H (transfer). Then raise to 3\S, invitational.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-3 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-3)</b> <i>Respond 2\D (transfer). Then raise to 4\H.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-4)</b> <i>Respond 2\H (transfer). Then bid 2NT, invitational and offering choice of
+whether to play in hearts or notrump.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-5 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-5)</b> <i>Respond 2\D (transfer). Then jump to 3NT to offer a choice of whether to
+play in hearts or notrump.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1-6 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-6)</b> <i>Respond 2\H (transfer). Then bid 3\D (forcing) to show the second suit.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "1 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Jacoby Transfers Summary</b>
+
+Complete the chart on page 7.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Two — Opener's Response to a Jacoby Transfer</b>
+
+You open 1NT with the following hand:
+}
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:K6.KQ82.AJ93.KJ4 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+What is your rebid with each of the auctions in Exercise Two?}
+[BCFlags "70003f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-1"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KJ6.KQ9.J8.KQJ73 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2H Pass
+___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-2"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KT863.A98.KT5.AJ ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2D Pass
+___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-3"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AKJ7.T864.K4.KJ9 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2H Pass
+2S Pass 3NT Pass
+____ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-4"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AKJ7.T864.K4.KJ9 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2H Pass
+2S Pass 2NT Pass
+____ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Two Answer</b>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-1 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-1)</b> <i>Bid 2\S. Accept the transfer.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-2 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-2)</b> <i>Bid 3\H. With maximum values and four-card support, super accept the
+transfer.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-3 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-3)</b> <i>Pass. Partner is showing a game-going hand (10–15 points) with exactly
+five spades, and asking you to choose between playing in 3NT and 4\S.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-4)</b> <i>Bid 3NT. Partner has shown an invitational hand (8 or 9 points) with</i>
+<i>exactly five spades; accept in notrump with a maximum-strength hand but no
+fit</i> <i>in spades.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "2 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Responding to Jacoby Transfer Summary</b>
+
+Opener does have some leeway over the transfer bid. With a maximum-strength
+hand and excellent support — usually four-card support — opener may super
+accept the transfer by jumping a level. With a minimum hanr<i> </i>d or poor support,
+opener should accept the transfer at the lowest possible level.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Three — The Subsequent Auction</b>
+
+You open 1NT with the following hand:
+}
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AQ63.KQJ5.Q65.J4 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{What is your next bid with each of the auctions in Exercise Three?}
+[BCFlags "70003f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-1"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... QT85.A863.83.AJ6 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2S Pass
+___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-2"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 83.QJ83.AT5.J865 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2S Pass
+3D Pass 3D Pass
+___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-3"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... Q873.9763.J7543. ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 3C Pass
+___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-4"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... AT62.KJT83.Q43.5 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2C Pass
+2H Pass 3NT Pass
+___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-5"]
+[West ""]
+[North "You"]
+[East ""]
+[South "Partner"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 6.A93.AKJ863.K84 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2C Pass
+2H Pass 3C Pass
+___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Three Answer</b>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-1 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-1)</b> <i>Bid 3\C. Accept the relay.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-2 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-2)</b> <i>Pass. Partner is showing a weak and with a long diamond suit.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-3 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-3)</b> <i>Pass. Partner is showing an invitational hand with a long club suit; with
+a minimum-strength hand, settle for a partscore in clubs.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-4)</b> <i>Bid 4\S. Partner has a game-going hand with four spades; play game in the
+major-suit fit.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3-5 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>3-5)</b> <i>Bid 3\S. Partner is showing a hand with a long club suit and interest in
+slam, but may also have four spades. Show your spades, then pass if partner
+bids 3NT.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Three Summary</b>
+
+Transfer bids cover a lot of ground — from showing two-suited hands to getting
+to slam. Once you understand the basics, you’ll find that there are many
+advantages to this convention.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+{<b>Exercise Four — Responding with Minor Suits</b>
+
+Partner opens 1NT. What do you respond with each of the hands in Exercise Four?
+What do you plan to do next?
+}
+[Board "4"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "700027"]
+[Hidden "NESW"]
+[Auction "N"]
+1NT Pass 2C Pass
+2H Pass +
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-1"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 943.8.863.QT8764 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-2"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 6.Q95.J986542.J5 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-3"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 32.854.J76.KT864 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-4"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 942.K8.KJT863.84 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-5"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 742.KQ.AQJ973.T8 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-6"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... A4.64.KQ7.KQJT83 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT Pass ___ $2 Pass
+___ $2 Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Four Answer</b>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-1 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-1)</b> <i>Respond 2\S. Then pass partner's 3\C bid.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-2 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-2)</b> <i>Respond 2\S. Then bid 3\D to sign off in diamonds.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-3 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-3)</b> <i>Pass. Since you cannot sign off at 2\C, the choice is between playing
+partscore in 1NT or partscore in 3\C. It should be easier to take seven tricks
+in notrump than nine tricks in clubs.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-4)</b> <i>Respond 3\D (invitational). With nine points, make an invitational bid.</i>
+<i>Partner can pass to play a partscore in diamonds, or accept and play game in</i>
+<i>notrump (or rarely in diamonds).</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-5 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-5)</b> <i>Respond 3NT. With enough strength for game, but not slam, bid game in</i>
+<i>notrump. It should be easier to take nine tricks than 11 (in 5\D).</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "4-6 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>4-6)</b> <i>Bid 2\C (Stayman). Then bid 3\C (forcing) to show slam interest in clubs.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AQ43.KQ62.AQ3.74 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Five — Handling Interference</b>
+
+Patner opens 1NT, and the opponent on your right overcalls 2\H. What call do
+you make with each of the hands in Exercise Five?}
+[BCFlags "700017"]
+[Hidden "ESW"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-1"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 842.J7.Q8643.T53 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "6000db"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT 2H ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-2"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... KJ765.82.Q964.J8 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT 2H ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-3"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... AQJ83.5.T85.KJ96 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT 2H ___ $2
+[Note "1:Not playing Jacoby Transfers"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-4"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... QJ8742.T3.AK6.95 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+1NT 2H ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Five Answer</b>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-1 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-1)</b> <i>Pass. With a weak hand, it is best to stay out of trouble.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-2 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-2)</b> <i>Bid 2\S, natural and mildly invitational. Jacoby transfers do not apply
+after and overall; with a weak had you would have passed.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-3 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-3)</b> <i>Bid 3\S (forcing). Asks opener to choose between playing in 3NT or 4\S.
+Jacoby transfers do not apply after an overcall.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-4)</b> <i>Bid 4\S. You want to be in game in spades and can no longer use a Jacoby
+transfer.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-4)</b> <i>Bid 3\H. A cue-bid of the opponent's suit replaces game-going Stayman
+when there is an overcall.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "5-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-4)</b> <i>Bid 2NT. Make an invitational raise, just as you would have done without
+the interference.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "3/4/5 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Handling Interference Summary</b>
+
+If an opponent overcalls directly over the 1NT opening bid, revert to standard
+bidding. Jacoby transfers no longer apply. If the opponent doubles, however,
+transfers can still be used.}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "spacer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+
+
+
+
+
+
+ }
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Six — Responding to 2NT</b>
+
+Partner opens 2NT (20 or 21 points). What do you respond with each of the hands
+in Exercise Six? What is your plan?}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-1"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... 75.T86432.753.42 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+2NT Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-2"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... QJ865.K83.92.T73 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+2NT Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-3"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... JT4.QT7652.K3.86 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+2NT Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-4"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... KT752.Q963.95.J7 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+2NT Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-5"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... J83.6.Q9764.K854 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+2NT Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-6"]
+[West ""]
+[North "Partner"]
+[East ""]
+[South "You"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... KJ8.QT4.K765.AJ2 ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "NEW"]
+[Auction "N"]
+2NT Pass ___ $2
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Six Answer</b>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-1 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-1)</b> <i>Respond 3\D (transfer). Then pass for partner to play in a 3\H partscore.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-2 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-2)</b> <i>Respond 3\H (transfer). Then bid 3NT to give partner the choice of 3NT or
+4\H.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-3 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-3)</b> <i>Respond 3\D (transfer). Then raise to game (4\H). Partner will play the
+contract.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-4 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-4)</b> <i>Respond 3\C (Stayman). If partner shows a four-card major, raise to game.
+If partner bids 3\D, you bid 3\S to show a five-card suit and give partner the
+choice of 3NT or 4\S. If you were to transfer to spades first, you would not
+have the bidding room to search for a fit in hearts.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-5 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-5)</b> <i>Respond 3NT. Settle for game in notrump, even with an unbalanced hand.
+There is no way to explore for a minor-suit fit using standard methods.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6-6 answer"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-6)</b> <i>Respond 6NT. Combined 34 or 35 points. Checking on aces is unnecessary
+when both hands are balanced.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Site ""]
+[Date ""]
+[Board "6 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Responding to 2NT Summary</b>
+
+Jacoby transfers for the major suits can be used over an opening bid of 2NT as
+well as an opening bid of 1NT. The 3\S relay to a minor suit usually is not
+used over 2NT.}
+[BCFlags "17"]

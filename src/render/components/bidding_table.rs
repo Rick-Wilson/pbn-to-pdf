@@ -537,14 +537,29 @@ impl<'a> BiddingTableRenderer<'a> {
     ) {
         let call_width = self.render_call(layer, &annotated.call, pos);
 
-        // If there's an annotation, render it as superscript
+        // If there's an annotation, render it
         if let Some(ref annotation) = annotated.annotation {
-            let sup_x = Mm(pos.0 .0 + call_width);
-            let sup_y = Mm(pos.1 .0 + (self.settings.body_font_size * SUPERSCRIPT_RISE * 0.352778)); // Convert pt to mm
-            let sup_size = self.settings.body_font_size * SUPERSCRIPT_RATIO;
+            if annotated.call == Call::Blank {
+                // For blanks, render annotation at normal size after the line
+                let text_x = Mm(pos.0 .0 + call_width + 0.5);
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text_builtin(
+                    annotation,
+                    self.settings.body_font_size,
+                    text_x,
+                    pos.1,
+                    self.font,
+                );
+            } else {
+                // For other calls, render as superscript
+                let sup_x = Mm(pos.0 .0 + call_width);
+                let sup_y =
+                    Mm(pos.1 .0 + (self.settings.body_font_size * SUPERSCRIPT_RISE * 0.352778));
+                let sup_size = self.settings.body_font_size * SUPERSCRIPT_RATIO;
 
-            layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text_builtin(annotation, sup_size, sup_x, sup_y, self.font);
+                layer.set_fill_color(Color::Rgb(BLACK));
+                layer.use_text_builtin(annotation, sup_size, sup_x, sup_y, self.font);
+            }
         }
     }
 

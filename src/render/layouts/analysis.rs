@@ -103,7 +103,7 @@ impl BoardVisibility {
             show_vulnerable: has_content
                 && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true)
                 && show_diagram_flag,
-            show_diagram: !deal_is_empty && show_diagram_flag,
+            show_diagram: !deal_is_empty && show_diagram_flag && !board.hidden.all_hidden(),
             show_auction: has_auction
                 && flags.map(|f| f.show_auction()).unwrap_or(true)
                 && settings.show_bidding,
@@ -631,7 +631,7 @@ impl DocumentRenderer {
             has_content && flags.map(|f| !f.hide_dealer()).unwrap_or(true) && show_diagram_flag;
         let show_vulnerable =
             has_content && flags.map(|f| !f.hide_vulnerable()).unwrap_or(true) && show_diagram_flag;
-        let show_diagram = !deal_is_empty && show_diagram_flag;
+        let show_diagram = !deal_is_empty && show_diagram_flag && !board.hidden.all_hidden();
         let show_auction = has_auction
             && flags.map(|f| f.show_auction()).unwrap_or(true)
             && self.settings.show_bidding;
