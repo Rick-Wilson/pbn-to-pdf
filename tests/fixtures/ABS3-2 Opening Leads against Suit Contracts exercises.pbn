@@ -1,0 +1,1643 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=UTF-8
+%Creator: BridgeComposer Version 5.109
+%Created: Thu Dec  5 16:37:08 2024 -0800
+%BCOptions Center GutterH GutterV Justify NoHRStats PageHeader STBorder STShade TwoColAuctions
+%BidAndCardSpacing Thin
+%BoardsPerPage fit,2
+%CardTableColors #008000,#ffffff,#aaaaaa
+%DDAFormat 0
+%DefaultPagination 0
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Times New Roman",12,400,0
+%Font:Diagram "Times New Roman",13,400,0
+%Font:Event "Times New Roman",22,700,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Tempus Sans ITC",12,400,0
+%GutterSize 250,250
+%HRTitleDate 0
+%HRTitleEvent "ABS3-2 Opening Leads against Suit Contracts"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HRTitleSite ""
+%HtmlClubs entity,"http://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"http://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"http://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"http://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,1000,750
+%PageFooter:0,0 "%D\\n%s"
+%PageFooter:0,1 "Grant Robinson\\ngrant4bridge.com"
+%PageFooter:0,2 "%n"
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Cards Decorative","Cards",0,0x53,0x48,0x44,0x43
+%ScoreTableColors #e6e6e6,#000000
+%SectionSpacing 12,0,0
+%SelectedBoard 68
+%ShowBoardLabels 1
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+%Translate "Board %" "%)"
+[Event "Opening Leads against Suit Contracts"]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.05.20"]
+{<b>Exercise One — Strength Versus Length</b>
+
+Compare what would happen if you (West) led each of the suits in Exercise One
+against a notrump contract and against a suit contract (assuming another suit
+is trumps). Look at the number of winners you are likely to get if you lead the
+suit and the number of tricks you sacrifice by leading the suit. Would you
+normally lead the suit against a notrump contract, a suit contract. or both?}
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "2600033"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "1-1"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:754... J93... AQ... KT862..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{When you lead the suit (fourth highest), declarer takes two tricks with the
+queen and ace, rather than one. Against a notrump contract, you are willing to
+sacrifice one trick since you end up developing three tricks. Against a suit
+contract, however, you will have sacrificed that trick in vain. Declarer would
+end up with no losers in the suit, rather than the one declarer started with.
+Declarer can ruff any further leads of the suit in hand. In conclusion, you
+would want to lead this suit against a notrump contract, but not against a suit
+contract.}
+[BCFlags "60001b"]
+
+[Event ""]
+[Date ""]
+[Board "1-2"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:743... T65... A982... KQJ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{You can take two tricks by leading the suit against a notrump contract, but
+declarer also gets two tricks. By leading this suit, you actually are helping
+declarer develop an extra winner. It usually will be best to avoid leading this
+suit. Keep your high cards as later entries to your long suit and make declarer
+do the work of developing an extra trick in the suit. Against a trump contract,
+declarer already has two losers in this suit (since it divides 3–3). By leading
+the suit, you are not helping declarer, since you are getting only the tricks
+to which you are entitled. This is a good suit to lead against a suit contract.
+If you wait too long, declarer may be able to discard some of the losers in
+hand.}
+[BCFlags "60001b"]
+
+[Event ""]
+[Date ""]
+[Board "1-3"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:985... T63... KJ... AQ742..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{Against a notrump contract, you give declarer a trick by leading the suit, but
+in doing so, you develop four tricks. You may not be able to wait for partner
+to get in and lead the suit, so this is a good choice of suits to lead against
+a notrump contract. Against a suit contract, you give declarer an extra trick.
+Declarer started with two losers but ends up with only one if you lead the
+suit. It is better to wait until declarer or partner leads the suit. Then you
+take the two tricks to which you are entitled.}
+[BCFlags "60001b"]
+
+[Event ""]
+[Date ""]
+[Board "1-4"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:K95... 642... A73... QJT8..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{You can develop two tricks in the suit against a notrump contract without
+sacrificing any, so this is a good choice of suits to lead. Against a suit
+contract, you can promote one trick in the suit without sacrificing any. Since
+declarer starts with one loser, a suit in which you hold a sequence and four or
+more cards is good to lead against a suit contract as well as a notrump
+contract. You want to develop your winner before declarer can discard the
+loser.}
+[BCFlags "60001b"]
+
+[Event ""]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.05.20"]
+{<b>Exercise Two — Utilizing Your Trumps</b>
+
+You (West) are defending a contract of 4\S with no other suits bid during the
+auction. What might be the advantage of leading a diamond rather than a club on
+each of the hands in Exercise Two?}
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "2600033"]
+[Hidden "NES"]
+[ScoreTable "Section\1L;PairId_NS\2R;PairId_EW\2R;Contract\4L;Declarer\1L;Lead\2L;Result\2R;Score_NS\5R;Score_EW\5R;MP_NS\4R;MP_EW\4R;Names_NS;Names_EW"]
+
+[Event ""]
+[Date ""]
+[Board "2-1"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... 865.J94.4.Q97642"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4S"]
+[Result ""]
+{
+
+Try for a ruff by leading your singleton diamond. Your club suit does not look
+too promising, since even if partner has some help, you won’t be able to take
+too many tricks before declarer can ruff. Partner is marked with some strength
+because you are weak, so there is a good chance of partner winning a couple of
+tricks and giving you one or more ruffs.}
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "2-2"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... QJ98.J942.QJT9.5"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4S"]
+[Result ""]
+{
+
+There is no point in looking for ruffs by leading your singleton since you are
+likely to have a couple of natural trump tricks anyway. Leading diamonds to try
+to establish one or more winners in that suit is likely to work better.}
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "2-3"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... 8652.J94.AKQJ9.3"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4S"]
+[Result ""]
+{
+
+You have four trumps, so leading your diamond winners is probably best. If you
+can force declarer to ruff, you may end up with more trumps than declarer has.
+If you lead the \DA, you could always switch to another suit after seeing the
+dummy. If you start by leading your singleton club, you may be too late to
+adopt the best defense.}
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise One Answers</b>}
+[BCFlags "2000017"]
+
+[Event ""]
+[Date ""]
+[Board "1-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-1)</b> <i>You can establish three tricks in this suit against a notrump contract,</i>
+<i>sacrificing one trick to the queen. Against a suit contract, leading this
+suit</i> <i>still sacrifices a trick, but you get nothing in return. You should like
+to</i> <i>lead this suit only against a notrump contract.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "1-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-2)</b> <i>You can establish two tricks in this suit against a notrump contract, but</i>
+<i>declarer also gets two tricks. Against a suit contract, leading this suit can</i>
+<i>get you the two tricks to which you are entitled before declarer can discard</i>
+<i>losers in this suit. This is a good suit to lead only</i> <i>against a suit contract.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "1-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-3)</b> <i>You can establish four tricks in this suit against a notrump
+contract, sacrificing one trick to the jack. Against a suit contract, leading
+this suit still sacrifices a trick, but you get nothing in return. You should
+like to lead this suit only against a notrump contract.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "1-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>1-4)</b> <i>You can develop two tricks in the suit against a notrump contract without</i>
+<i>sacrificing any. Against a suit</i> <i>contract, you can promote one trick in the suit
+without sacrificing any. </i>A<i> suit in which you hold both a sequence and</i> <i>four or
+more cards is good to lead against a suit contract as well as a notrump</i>
+<i>contract.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "1 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point. </b>Against a suit contract, the emphasis is on developing
+tricks from promotion rather than length. Avoid leading a suit which sacrifices
+a trick. A strong sequence is usually good to lead against notrump or suit
+contracts.}
+[BCFlags "17"]
+
+[Event ""]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.05.20"]
+{<b>Exercise Two Answers</b>}
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "2600033"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "2-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-1)</b> <i>Try for a ruff by leading your singleton diamond. Your club suit does not
+look</i> <i>too promising, since even if partner has some help, you won’t be able to
+take</i> <i>too many tricks before declarer can ruff. Partner is marked with some
+strength</i> <i>because you are weak, so there is a good chance of partner winning a
+couple of</i> <i>tricks and giving you one or more ruffs.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "2-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-2)</b> <i>There is no point in looking for ruffs by leading your singleton since
+you are</i> <i>likely to have a couple of natural trump tricks anyway. Leading
+diamonds to try</i> <i>to establish one or more winners in that suit is likely to work
+better.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "2-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>2-3)</b> <i>You have four trumps, so leading your diamond winners is probably best.
+If you</i> <i>can force declarer to ruff, you may end up with more trumps than
+declarer has.</i> <i>If you lead the \DA, you could always switch to another suit
+after seeing the</i> <i>dummy. If you start by leading your singleton club, you may be
+too late to</i> <i>adopt the best defense.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "2 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point. </b>Often a singleton is a good lead against a suit contract. Before
+you automatically lead a singleton just because you have one, consider two
+things: (1) whether you can reasonably expect your partner to be able to lead
+the suit before declarer pulls your trumps, and (2) whether you will gain
+anything if partner can lead the suit. You are probably better off to look
+elsewhere for your tricks, if you have natural trump tricks or a lot of trumps.}
+[BCFlags "17"]
+
+[Event ""]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.05.20"]
+{<b>Exercise Three — Leading Trumps</b>
+
+For each of the auctions in Exercise Three, write down possible hands for both
+declarer’s hand and the dummy, using “x” to represent cards. On which auctions
+might leading a trump prevent declarer from ruffing losers in the dummy?}
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "2600033"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+{<b>3-1)</b>}
+[Board "3-1"]
+[West "Dummy"]
+[North "Partner"]
+[East "Declarer"]
+[South "You"]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:xxx.xx.xxxx.xxxx ... xx.xxxxx.xxxx.xx ..."]
+[Scoring ""]
+[Declarer "E"]
+[Contract "2D"]
+[Result ""]
+{
+
+The diagram shown is consistent with the bidding. East holds five hearts and
+four or more diamonds. West probably holds four diamonds. East will be
+pleased to trump hearts in dummy. Lead trumps to hinder declarer's plan.}
+[BCFlags "600033"]
+[Hidden "SWNE"]
+[Auction "W"]
+Pass Pass 1H Pass
+1NT Pass 2D AP
+
+[Event ""]
+[Date ""]
+{<b>3-2)</b>}
+[Board "3-2"]
+[West "Dummy"]
+[North "Partner"]
+[East "Declarer"]
+[South "You"]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:.xxxx.xxxxx.xxxx ... xxxxx.xxxx.xx.xx ..."]
+[Scoring ""]
+[Declarer "E"]
+[Contract "4H"]
+[Result ""]
+{
+
+The diagram shown is consistent with the bidding. West holds four hearts and
+at most one spade. East holds five spades and four hearts. Declarer will be
+pleased to ruff spades in dummy. Lead trumps to hinder declarer's plan.}
+[BCFlags "600033"]
+[Hidden "SWNE"]
+[Auction "W"]
+1D Pass 1S Pass
+2C Pass 2H =1= Pass
+3H Pass 4H AP
+[Note "1:Fourth suit forcing (to game)"]
+
+[Event ""]
+[Date ""]
+{<b><i>3-3)</i></b>}
+[Board "3-3"]
+[West "Dummy"]
+[North "Partner"]
+[East "Declarer"]
+[South "You"]
+[Dealer "E"]
+[Vulnerable "None"]
+[Deal "E:xxxxx.xx.xx.xxxx ... xxx.xxx.xx.xxxxx ..."]
+[Scoring ""]
+[Declarer "E"]
+[Contract "4S"]
+[Result ""]
+{
+
+The diagram shown is consistent with the bidding. West holds three spades and
+four or more clubs. East holds five spades and four or more clubs. While East
+is two-suited, she will not be able to ruff clubs in dummy, or any other suit,
+for that matter. Leading trumps is not indicated.}
+[BCFlags "600033"]
+[Hidden "WNES"]
+[Auction "E"]
+1S Pass 2C Pass
+3C Pass 3S Pass
+4S AP
+
+[Event ""]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.05.20"]
+{<b>Exercise Four — Choosing the Suit</b>
+
+You (West) are on lead against a contract of 4\H with the following hand. What
+is your opening lead given the bidding described in each situation in Exercise
+Four?
+}
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... Q92.863.KQ82.Q72 ... ..."]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4H"]
+[Result ""]
+{
+
+}
+[BCFlags "270003b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+{<b>4-1)</b> Your partner overcalled in clubs. What is your opening lead?}
+[Board "4-1"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+{<b>4-2)</b> Partner didn't bid, and the opponents only bid hearts. What is your
+opening lead?}
+[Board "4-2"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+{<b>4-3)</b> Partner didn't bid, and the opponents bid all four suits naturally. What
+is your opening lead?}
+[Board "4-3"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+{<b>4-4)</b> Your partner didn't bid, and the opponents bid hearts and diamonds. What
+is your opening lead?}
+[Board "4-4"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+[Hidden "NESW"]
+
+[Event ""]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.05.20"]
+{<b>Exercise Three Answers</b>}
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "2600033"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "3-1"]
+[West "Declarer"]
+[North "You"]
+[East "Dummy"]
+[South "Partner"]
+[Dealer "E"]
+[Vulnerable "None"]
+[Deal "E:xxx.xx.xxxx.xxxx ... xx.xxxxx.xxxx.xx ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+<i>The diagram shown is consistent with the bidding. West holds five hearts and
+four or more diamonds. East probably holds four diamonds. West will be
+pleased to ruff hearts in dummy. Lead trumps to hinder declarer's plan.</i>}
+[BCFlags "60001f"]
+[Hidden "SN"]
+
+[Event ""]
+[Date ""]
+[Board "3-2"]
+[West "Declarer"]
+[North "You"]
+[East "Dummy"]
+[South "Partner"]
+[Dealer "E"]
+[Vulnerable "None"]
+[Deal "E:.xxxx.xxxxx.xxxx ... xxxxx.xxxx.xx.xx ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+<i>The diagram shown is consistent with the bidding. East holds four or more
+diamonds, four or more clubs, four hearts, and so at most one spade. West holds
+five spades and four hearts. Declarer will be pleased to ruff spades in dummy.
+Lead trumps to hinder declarer's plan.</i>}
+[BCFlags "60001f"]
+[Hidden "SN"]
+
+[Event ""]
+[Date ""]
+[Board "3-3"]
+[West "Declarer"]
+[North "You"]
+[East "Dummy"]
+[South "Partner"]
+[Dealer "W"]
+[Vulnerable "None"]
+[Deal "W:xxxxx.xx.xx.xxxx ... xxx.xxx.xx.xxxxx ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+<i>The diagram shown is consistent with the bidding. East holds three spades and
+four or more clubs. West holds five spades and four or more clubs. While West
+is two-suited, she will not be able to ruff clubs in dummy, or probably ruff
+any other suit, for that matter. Leading trumps is not indicated.</i>}
+[BCFlags "60001f"]
+[Hidden "SN"]
+
+[Event ""]
+[Date ""]
+[Board "3 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point. </b>As you start paying more attention to the opponents’ auction before
+choosing your opening lead, you will start to recognize opportunities for
+leading trumps to prevent declarer from ruffing losers. Otherwise, lead a trump
+only if everything else looks too dangerous. Try not to be “in doubt” when you
+choose to lead a trump.}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Four Answers</b>}
+[BCFlags "2000017"]
+
+[Event ""]
+[Date ""]
+{<b>4-1)</b> <i>Since partner bid clubs, you should lead a club (\C2) since there is
+nothing</i> <i>clearly</i> <i>better to do.</i>}
+[Board "4-1"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600037"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+{<b>4-2)</b> <i>If the only suit bid was hearts, look at the unbid suits. The strong
+holding in</i> <i>diamonds suggests a diamond lead (\DK), rather than a spade or a
+club, where you will</i> <i>need help from partner — and may not find it.</i>}
+[Board "4-2"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600037"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+{<b>4-3)</b> <i>A trump rates to be the safest lead, leaving declarer to find enough
+tricks.</i>}
+[Board "4-3"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600037"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+{<b>4-4)</b> <i>Anything except a diamond could be right. There is a good case for
+guessing</i> <i>whether to lead spades or clubs, but perhaps a trump is the safest
+lead.</i>}
+[Board "4-4"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "600033"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+[Board "4 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point. </b>When choosing an opening lead, the bidding often guides your
+decision. If partner has bid a suit, you can lead that suit. Otherwise, you
+tend to lead an unbid suit, preferably one with touching high cards. If the
+conditions are right, a singleton or a trump may be attractive.}
+[BCFlags "17"]
+
+[Event ""]
+[Site "##Diablo Valley Bridge Center"]
+[Date "2013.05.20"]
+{<b>Exercise Five — Choosing the Card</b>
+
+You (West) are on lead and decide to lead the suits shown in Exercise Five.
+Which is the best card to lead against a notrump contract? Which is the best
+card to lead against a suit contract?
+}
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+}
+[BCFlags "2600033"]
+[Hidden "NESW"]
+
+[Event ""]
+[Date ""]
+[Board "5-1"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:753... T6... QJ9... AK842..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+If you lead the two high cards against a notrump contract and then lead the
+suit again, you have established two winners. Note, however, that there may be
+no entry to them if partner next gets the lead. Since declarer is entitled to
+one trick, leading a low card costs nothing and avoids stranding your winners.
+
+Against a suit contract, however, leading a low card would give declarer an
+undeserved trick. Declarer may even be able to discard some losers and you may
+not get either your ace or your king. By leading the ace, the king and then
+another one, partner will be able to ruff.}
+[BCFlags "60001b"]
+
+[Event ""]
+[Date ""]
+[Board "5-2"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:8... 7542... KQ6... AJT93..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+You would lead the top of your interior sequence, the jack, against a notrump
+contract. Declarer can win the queen, but if partner gets in to lead the suit
+back, you end up taking four tricks since declarer’s king is trapped.
+
+Against a suit contract, however, you may never get a trick with your ace if
+you lead the jack. Declarer will win the first trick with the queen and may be
+able to ruff the remaining two cards in the dummy. If you lead the suit, the
+ace is safer, although you probably would be better off selecting a different
+suit to lead.}
+[BCFlags "60001b"]
+
+[Event ""]
+[Date ""]
+[Board "5-3"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:64... T5... AJ82... KQ973..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{
+
+You would lead a low card against a notrump contract. Declarer gets two tricks
+in the suit, but you eventually establish three winners.
+
+Against a suit contract, however, the king is a better choice. It prevents
+declarer from escaping with no losers in the suit, and if declarer wins the ace
+and leads the suit again, your partner may be able to ruff (perhaps overruffing
+the dummy).}
+[BCFlags "60001b"]
+
+[Event ""]
+[Date ""]
+{<b>Exercise Six — Putting It All Together</b>
+
+The auction proceeds:
+}
+[Board "6"]
+[West ""]
+[North "Dummy"]
+[East ""]
+[South "Declarer"]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4S"]
+[Result ""]
+{
+
+Which card would you lead from each of the hands in Exercise Six?}
+[BCFlags "70003f"]
+[Hidden "NESW"]
+[Auction "S"]
+1C Pass 1H Pass
+1S Pass 2S Pass
+4S AP
+
+[Event ""]
+[Date ""]
+[Board "6-1"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... Q74.J83.QJ62.JT8 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "6-2"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... J92.J75.AJ975.Q4 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "6-3"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... K8.Q97.QT832.Q54 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "6-4"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... A93.T8532.6.J865 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "6-5"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... 864.J932.K5.Q874 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "6-6"]
+[West "You"]
+[North "Dummy"]
+[East "Partner"]
+[South "Declarer"]
+[Dealer "S"]
+[Vulnerable "None"]
+[Deal "S:... 753.AT5.AQT.KT42 ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001b"]
+[Hidden "NES"]
+
+[Event ""]
+[Date ""]
+[Board "5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Five Answers</b>}
+[BCFlags "2000017"]
+
+[Event ""]
+[Date ""]
+[Board "5-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-1)</b> <i>Against a notrump contract, lead low (4) so that partner will have one
+left to lead to you if partner next gets the lead.</i>
+
+<i>Against a suit contract, however, leading a low card would give declarer an
+undeserved trick. Lead the ace, the king and then another one, which partner
+will be able to ruff, so declarer will lose three tricks in the suit.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "5-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-2)</b> <i>Against a notrump contract, lead the jack, highest of an interior
+sequence. Declarer can win the queen, but if partner gets in to lead the suit
+back, you end up taking four tricks since declarer’s king is trapped.</i>
+
+<i>Against a suit contract, however, you may never get a trick with your ace if
+you lead the jack. If you lead the suit, the ace is safer, although you
+probably would be better off selecting a different suit to lead.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "5-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>5-3)</b> <i>Against a notrump contract, lead low (7). Declarer is entitled to two
+tricks, but leading low allows partner to help you establish three tricks.</i>
+
+<i>Against a suit contract, lead</i> <i>the king to prevent declarer from getting an
+undeserved trick and avoid having any losers in this suit.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "5 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point. </b>When leading against a suit contract, choose the highest card of a
+two-card or longer sequence. If your suit is headed by an ace, lead the ace
+rather than away from it.}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Six Answers</b>}
+[BCFlags "2000017"]
+
+[Event ""]
+[Date ""]
+[Board "6-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-1)</b> <i>\DQ, highest of touching honors.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "6-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-2)</b> <i>\DA.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "6-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-3)</b> <i>\D3, fourth-best without touching honors (or the</i> <i>ace).</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "6-4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-4)</b> <i>\D6, conditions are right to lead your singleton.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "6-5"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-5)</b> <i>\DK, highest of doubleton.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "6-6"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>6-6)</b> <i>\S3, safest.</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "6 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> Before you lead, consider the bidding. Generally it is a good idea
+to lead your partner’s suit and to avoid the opponent/s suits. Favor honor
+sequences. Consider the lead of a singleton or a trump. Make your best effort
+and remember that choosing the best lead is a guess at any time.}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "7"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Seven — Responses to Opening Bids in a Suit (review)</b>
+
+What would you respond with each of the hands in Exercise Seven if partner
+opens 1\H? If partner opens 2\C? If partner opens 3\H?}
+[BCFlags "2000017"]
+
+[Event ""]
+[Date ""]
+[Board "7-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:Q7643.85.742.J86 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Date ""]
+[Board "7-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:KQ765.Q8.J92.T64 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Date ""]
+[Board "7-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AJ83.Q862.QJ9.J6 ... ... ..."]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+[BCFlags "60001f"]
+[Hidden "ESW"]
+
+[Event ""]
+[Date ""]
+{<b>Exercise Eight — Declarer's Plan (review)</b>
+
+Go through the steps of planning the play and decide how to play the deal in
+Exercise Eight in a contract of 4\H after the opening lead of the \CK.
+}
+[Board "8"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:Q.J753.AK52.7642 ... A95.QT986.Q3.A83 ...K"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "4H"]
+[Result ""]
+[BCFlags "2700839"]
+[Hidden "EW"]
+[Play "W"]
+CK
+
+[Event ""]
+[Date ""]
+[Board "7"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Seven Answers</b>}
+[BCFlags "2000017"]
+
+[Event ""]
+[Date ""]
+[Board "7-1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-1)</b> <i>1\H–<u>Pass</u> (0–5 points); 2\C–<u>2\D</u> (waiting); 3\H–<u>Pass</u> (not safe to bid
+higher).</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "7-2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-2)</b> <i>1\H–<u>1\S</u> (6+ points, 4+ spades, forcing); 2\C–<u>2\S</u> (8+ points, good 5+
+spades); 3\H–<u>Pass</u> (not safe to bid higher).</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "7-3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>7-3)</b> <i>1\H–<u>3\H</u> (11–12 points, 4+ hearts); 2\C–<u>2NT</u> (8+ points, balanced) (or 2\D
+so as not to “steal” notrump from partner); 3\H–<u>4\H</u> (increase the preempt with
+exceptional support at any vulnerability).</i>}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "7 summary"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Key point.</b> When partner opens one of a suit, you are in the position of
+captain but need more information from partner. Pass with fewer than six
+points. With support for partner’s major, you can raise the suit to the
+appropriate level. Otherwise, bid a new suit. With 6–9 points, you are too weak
+to bid a new suit at the two level. You have to respond 1NT if you can’t bid a
+suit at the one level. When partner opens 2\C, you are forced to reply even
+with no points. With eight or more points, you can raise with support or bid
+your own suit. When partner opens two or three of a suit, you need to decide
+how well your hand fits together with partner’s hand before you bid. Remember,
+the purpose of a preemptive bid is to interfere with the opponents’ bidding.
+}
+[BCFlags "17"]
+
+[Event ""]
+[Date ""]
+[Board "8"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal ""]
+[Scoring ""]
+[Declarer ""]
+[Contract ""]
+[Result ""]
+{<b>Exercise Eight Answer</b>
+
+1) The first step is to consider your objective.
+
+<i>Your objective is to take 10 tricks with hearts as trump.</i>
+
+2) The second step is to count the number of immediate winners you have, the
+number of tricks that you can take without giving up the lead.
+
+<i>There are five immediate winners — one spade,</i> <i>no hearts, three diamonds, one
+club.</i>
+
+3) The third step is to identify possible ways to get extra winners.
+
+<i>Ruff two spades in dummy. Promote three tricks in hearts. Length trick in
+clubs.</i>
+
+4) The last step is to choose you order of play.
+
+<i>You cannot afford to lead trumps</i> <i>right away for two reasons: (1) you need to
+ruff two spades in dummy, so cannot</i> <i>afford to play three rounds of hearts,
+which the defenders might do if you lead</i> <i>them; (2) with the club lead, the
+defenders threaten to take two club tricks</i> <i>plus their two heart tricks, too
+many. You must discard a club loser on the</i> <i>extra diamond winner in dummy, and
+ruff spades before leading trumps. The</i> <i>\CA and \DQ will be the two entries to
+your hand needed to ruff spades.</i>
+
+<i>Win the \CA. Play the \SA and ruff a spade. Play a diamond to the \DQ, and ruff</i>
+<i>your last spade. Play the \DA-K, discarding a club loser. That's seven tricks</i>
+<i>in, and nothing can stop you from promoting three more tricks in hearts.</i>}
+[BCFlags "2000017"]

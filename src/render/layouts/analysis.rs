@@ -277,6 +277,15 @@ impl DocumentRenderer {
             let non_blank_blocks: Vec<_> =
                 board.commentary.iter().filter(|c| !c.is_blank()).collect();
             let block_count = non_blank_blocks.len();
+
+            // In centered mode, add spacing between event commentary and diagram/auction
+            if centered_with_commentary
+                && block_count > 0
+                && (visibility.show_diagram || visibility.show_auction)
+            {
+                height += self.settings.line_height;
+            }
+
             for (i, block) in non_blank_blocks.iter().enumerate() {
                 height += self.measure_commentary_height(block, column_width);
                 // Add spacing between blocks, but not after the last one
@@ -1083,9 +1092,10 @@ impl DocumentRenderer {
             }
         }
 
-        // Add spacing after event commentary before diagram (only when there's also final commentary)
-        // This shifts the diagram down one line for the split-commentary layout
-        if !event_commentary.is_empty() && !final_commentary.is_empty() {
+        // Add spacing after event commentary before diagram/auction/final commentary
+        if !event_commentary.is_empty()
+            && (show_diagram || show_auction || !final_commentary.is_empty())
+        {
             current_y -= line_height;
         }
 
@@ -1439,14 +1449,26 @@ impl DocumentRenderer {
                 // Debug box for bidding table
                 self.draw_debug_box(layer, table_x, current_y, table_width, table_height);
 
-                current_y -= table_height + 2.0;
+                current_y -= table_height;
+
+                let has_contract = board.contract.is_some();
+                let has_lead = board
+                    .play
+                    .as_ref()
+                    .and_then(|p| p.tricks.first())
+                    .and_then(|t| t.cards[0])
+                    .is_some();
+                let has_more_below = !final_commentary.is_empty();
+
+                // Add spacing after auction before contract/lead
+                if has_contract || has_lead {
+                    current_y -= line_height;
+                }
 
                 // Render contract (only if explicitly in PBN, not inferred from auction)
                 if let Some(ref contract) = board.contract {
                     let colors =
                         SuitColors::new(self.settings.black_color, self.settings.red_color);
-                    // For centered contract, we'd need to measure and center the contract text
-                    // For now, render from the centered table position
                     self.render_contract(
                         layer,
                         contract,
@@ -1456,7 +1478,9 @@ impl DocumentRenderer {
                         fonts.symbol_font(),
                         &colors,
                     );
-                    current_y -= line_height;
+                    if has_lead || has_more_below {
+                        current_y -= line_height;
+                    }
                 }
 
                 // Render opening lead
@@ -1474,7 +1498,9 @@ impl DocumentRenderer {
                                 fonts.symbol_font(),
                                 &colors,
                             );
-                            current_y -= line_height;
+                            if has_more_below {
+                                current_y -= line_height;
+                            }
                         }
                     }
                 }
