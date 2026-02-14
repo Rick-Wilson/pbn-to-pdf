@@ -1698,6 +1698,10 @@ impl DocumentRenderer {
                 &diagram_options,
             );
 
+            // Debug box for diagram
+            let content_width = self.settings.content_width();
+            self.draw_debug_box(layer, diagram_x, diagram_y, content_width / 2.0, diagram_height);
+
             content_y = Mm(diagram_y - diagram_height - 5.0);
         } else {
             // No diagram, content starts below any title lines
@@ -1717,6 +1721,14 @@ impl DocumentRenderer {
                 );
                 // Use full content width for notes wrapping in single-board layout
                 let notes_max_width = self.settings.content_width();
+                let num_cols = if self.settings.two_col_auctions
+                    && auction.uncontested_pair().is_some()
+                {
+                    2
+                } else {
+                    4
+                };
+                let table_width = num_cols as f32 * self.settings.bid_column_width;
                 let table_height = bidding_renderer.render_with_players_and_notes_width(
                     layer,
                     auction,
@@ -1724,7 +1736,24 @@ impl DocumentRenderer {
                     Some(&board.players),
                     Some(notes_max_width),
                 );
-                content_y = Mm(content_y.0 - table_height - 2.0);
+
+                // Debug box for bidding table
+                self.draw_debug_box(layer, margin_left, content_y.0, table_width, table_height);
+
+                content_y = Mm(content_y.0 - table_height);
+
+                let has_contract = board.contract.is_some();
+                let has_lead = board
+                    .play
+                    .as_ref()
+                    .and_then(|p| p.tricks.first())
+                    .and_then(|t| t.cards[0])
+                    .is_some();
+
+                // Add spacing after auction before contract/lead
+                if has_contract || has_lead {
+                    content_y = Mm(content_y.0 - line_height);
+                }
 
                 // Render contract below auction (only if explicitly in PBN)
                 if let Some(ref contract) = board.contract {
@@ -1739,9 +1768,18 @@ impl DocumentRenderer {
                         fonts.symbol_font(),
                         &colors,
                     );
-                    // Continue after contract text
-                    let _ = x; // Contract rendered inline
-                    content_y = Mm(content_y.0 - line_height);
+                    // Debug box for contract line
+                    let contract_width = x - margin_left;
+                    self.draw_debug_box(
+                        layer,
+                        margin_left,
+                        content_y.0 + cap_height,
+                        contract_width,
+                        cap_height + descender,
+                    );
+                    if has_lead {
+                        content_y = Mm(content_y.0 - line_height);
+                    }
                 }
 
                 // Render opening lead if play sequence exists
@@ -1759,7 +1797,14 @@ impl DocumentRenderer {
                                 fonts.symbol_font(),
                                 &colors,
                             );
-                            content_y = Mm(content_y.0 - line_height);
+                            // Debug box for lead line
+                            self.draw_debug_box(
+                                layer,
+                                margin_left,
+                                content_y.0 + cap_height,
+                                table_width,
+                                cap_height + descender,
+                            );
                         }
                     }
                 }
@@ -1800,19 +1845,35 @@ impl DocumentRenderer {
             };
 
             // Start commentary at the top of the page, using floating layout (skip blank blocks)
-            let mut commentary_y = page_top;
+            // Position first baseline so cap tops align with page_top (matching title text)
+            let commentary_cap =
+                get_times_measurer().cap_height_mm(self.settings.commentary_font_size);
+            let mut commentary_y = page_top - commentary_cap;
             let mut first_block = true;
             let non_blank_blocks: Vec<_> =
                 board.commentary.iter().filter(|c| !c.is_blank()).collect();
 
+            let commentary_asc =
+                get_times_measurer().ascender_mm(self.settings.commentary_font_size);
+
             for block in &non_blank_blocks {
                 if first_block {
                     // First block uses floating layout
+                    let block_start_y = commentary_y;
                     let result = commentary_renderer.render_float(
                         layer,
                         block,
                         (Mm(float_layout.float_left), Mm(commentary_y)),
                         &float_layout,
+                    );
+                    // Debug box for floating commentary block
+                    let float_height = block_start_y - result.final_y + line_height;
+                    self.draw_debug_box(
+                        layer,
+                        float_layout.float_left,
+                        block_start_y + commentary_asc,
+                        float_layout.float_width,
+                        float_height + commentary_asc,
                     );
                     commentary_y = result.final_y - line_height;
                     first_block = false;
@@ -1825,20 +1886,37 @@ impl DocumentRenderer {
                     // Subsequent blocks: check if we're still above float_until_y
                     if commentary_y > float_until_y {
                         // Still in float zone
+                        let block_start_y = commentary_y;
                         let result = commentary_renderer.render_float(
                             layer,
                             block,
                             (Mm(float_layout.float_left), Mm(commentary_y)),
                             &float_layout,
                         );
+                        let float_height = block_start_y - result.final_y + line_height;
+                        self.draw_debug_box(
+                            layer,
+                            float_layout.float_left,
+                            block_start_y + commentary_asc,
+                            float_layout.float_width,
+                            float_height + commentary_asc,
+                        );
                         commentary_y = result.final_y - line_height;
                     } else {
                         // Below float zone, use full width
+                        let block_start_y = commentary_y;
                         let height = commentary_renderer.render(
                             layer,
                             block,
                             (Mm(margin_left), Mm(commentary_y)),
                             full_width,
+                        );
+                        self.draw_debug_box(
+                            layer,
+                            margin_left,
+                            block_start_y + commentary_asc,
+                            full_width,
+                            commentary_asc + height,
                         );
                         commentary_y -= height + line_height;
                     }
