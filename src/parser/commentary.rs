@@ -68,7 +68,9 @@ fn parse_italic_with_nested_underline(content: &str, text: &mut FormattedText) {
             remaining = &after_tag[u_end + 4..];
         } else {
             // Unclosed <u> tag — treat rest as italic
-            text.push(TextSpan::italic(replace_suit_escapes(&remaining[u_start..])));
+            text.push(TextSpan::italic(replace_suit_escapes(
+                &remaining[u_start..],
+            )));
             return;
         }
     }

@@ -1000,7 +1000,13 @@ impl DocumentRenderer {
 
                 // Debug box for commentary block (top at ascender above baseline, bottom at last baseline)
                 let asc = get_times_measurer().ascender_mm(self.settings.commentary_font_size);
-                self.draw_debug_box(layer, column_x, block_start_y + asc, column_width, asc + height);
+                self.draw_debug_box(
+                    layer,
+                    column_x,
+                    block_start_y + asc,
+                    column_width,
+                    asc + height,
+                );
 
                 current_y -= height;
                 // Add spacing between blocks, but not after the last one
@@ -1084,7 +1090,13 @@ impl DocumentRenderer {
                 column_width,
             );
             let asc = get_times_measurer().ascender_mm(self.settings.commentary_font_size);
-            self.draw_debug_box(layer, column_x, block_start_y + asc, column_width, asc + height);
+            self.draw_debug_box(
+                layer,
+                column_x,
+                block_start_y + asc,
+                column_width,
+                asc + height,
+            );
             current_y -= height;
             // Add spacing between blocks
             if i < event_commentary.len() - 1 {
@@ -1524,7 +1536,13 @@ impl DocumentRenderer {
                     column_width,
                 );
                 let asc = get_times_measurer().ascender_mm(self.settings.commentary_font_size);
-                self.draw_debug_box(layer, column_x, block_start_y + asc, column_width, asc + height);
+                self.draw_debug_box(
+                    layer,
+                    column_x,
+                    block_start_y + asc,
+                    column_width,
+                    asc + height,
+                );
                 current_y -= height;
                 // Add spacing between blocks, but not after the last one
                 if i < final_commentary.len() - 1 {
@@ -1700,7 +1718,13 @@ impl DocumentRenderer {
 
             // Debug box for diagram
             let content_width = self.settings.content_width();
-            self.draw_debug_box(layer, diagram_x, diagram_y, content_width / 2.0, diagram_height);
+            self.draw_debug_box(
+                layer,
+                diagram_x,
+                diagram_y,
+                content_width / 2.0,
+                diagram_height,
+            );
 
             content_y = Mm(diagram_y - diagram_height - 5.0);
         } else {
@@ -1721,13 +1745,12 @@ impl DocumentRenderer {
                 );
                 // Use full content width for notes wrapping in single-board layout
                 let notes_max_width = self.settings.content_width();
-                let num_cols = if self.settings.two_col_auctions
-                    && auction.uncontested_pair().is_some()
-                {
-                    2
-                } else {
-                    4
-                };
+                let num_cols =
+                    if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
+                        2
+                    } else {
+                        4
+                    };
                 let table_width = num_cols as f32 * self.settings.bid_column_width;
                 let table_height = bidding_renderer.render_with_players_and_notes_width(
                     layer,
