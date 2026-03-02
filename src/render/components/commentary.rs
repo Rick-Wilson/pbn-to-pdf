@@ -286,8 +286,7 @@ fn tokenize_spans(
             TextSpan::CardRef { suit, rank } => {
                 let symbol_w =
                     symbol_measurer.measure_width_mm(&suit.symbol().to_string(), font_size);
-                let rank_w =
-                    regular_measurer.measure_width_mm(&rank.display_str().to_string(), font_size);
+                let rank_w = regular_measurer.measure_width_mm(rank.display_str(), font_size);
                 current_group.push(RenderFragment::CardRef {
                     suit: *suit,
                     rank: *rank,
