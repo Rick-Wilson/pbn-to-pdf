@@ -8,6 +8,9 @@
 # Generated output
 *.pdf
 
+# Local cargo config (dev patches)
+.cargo/
+
 # macOS
 .DS_Store
 activity-log.json
