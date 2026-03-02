@@ -44,6 +44,8 @@ pub trait RankExt {
     fn all_display() -> [Rank; 13];
     fn from_pbn_char(c: char) -> Option<Rank>;
     fn hcp_value(&self) -> u8;
+    /// Display string for rendering: "10" for Ten, single char for others
+    fn display_str(&self) -> &'static str;
 }
 
 impl RankExt for Rank {
@@ -60,6 +62,25 @@ impl RankExt for Rank {
     /// Get HCP value (alias for hcp)
     fn hcp_value(&self) -> u8 {
         self.hcp()
+    }
+
+    /// Display string for rendering: "10" for Ten, single char for others
+    fn display_str(&self) -> &'static str {
+        match self {
+            Rank::Ace => "A",
+            Rank::King => "K",
+            Rank::Queen => "Q",
+            Rank::Jack => "J",
+            Rank::Ten => "10",
+            Rank::Nine => "9",
+            Rank::Eight => "8",
+            Rank::Seven => "7",
+            Rank::Six => "6",
+            Rank::Five => "5",
+            Rank::Four => "4",
+            Rank::Three => "3",
+            Rank::Two => "2",
+        }
     }
 }
 

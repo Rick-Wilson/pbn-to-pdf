@@ -9,6 +9,7 @@ use printpdf::{Color, Mm, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
 
 use crate::config::Settings;
 use crate::error::RenderError;
+use crate::model::card::RankExt;
 use crate::model::Board;
 
 use crate::render::helpers::colors::{SuitColors, BLACK};
@@ -337,7 +338,7 @@ impl DealerSummaryRenderer {
                     // Rank
                     layer.set_fill_color(Color::Rgb(BLACK));
                     layer.use_text_builtin(
-                        lead_card.rank.to_char().to_string(),
+                        lead_card.rank.display_str().to_string(),
                         font_size,
                         Mm(lead_x),
                         Mm(current_y),

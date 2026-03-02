@@ -1,4 +1,4 @@
-use super::card::{Rank, Suit};
+use super::card::{Rank, RankExt, Suit};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TextSpan {
@@ -86,7 +86,7 @@ impl FormattedText {
                 }
                 TextSpan::CardRef { suit, rank } => {
                     result.push(suit.symbol());
-                    result.push(rank.to_char());
+                    result.push_str(rank.display_str());
                 }
                 TextSpan::LineBreak => {
                     result.push('\n');

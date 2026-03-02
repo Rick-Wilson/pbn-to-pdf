@@ -2,7 +2,7 @@ use crate::config::Settings;
 use crate::model::{CommentaryBlock, FormattedText, Suit, TextSpan};
 use printpdf::{BuiltinFont, Color, FontId, Mm};
 
-use crate::model::card::Rank;
+use crate::model::card::{Rank, RankExt};
 use crate::render::helpers::colors::{SuitColors, BLACK};
 use crate::render::helpers::layer::LayerBuilder;
 use crate::render::helpers::text_metrics::{
@@ -287,7 +287,7 @@ fn tokenize_spans(
                 let symbol_w =
                     symbol_measurer.measure_width_mm(&suit.symbol().to_string(), font_size);
                 let rank_w =
-                    regular_measurer.measure_width_mm(&rank.to_char().to_string(), font_size);
+                    regular_measurer.measure_width_mm(&rank.display_str().to_string(), font_size);
                 current_group.push(RenderFragment::CardRef {
                     suit: *suit,
                     rank: *rank,
@@ -707,7 +707,7 @@ impl<'a> CommentaryRenderer<'a> {
 
                             let symbol = suit.symbol().to_string();
                             let symbol_width = symbol_measurer.measure_width_mm(&symbol, font_size);
-                            let rank_str = rank.to_char().to_string();
+                            let rank_str = rank.display_str().to_string();
                             let rank_width =
                                 regular_measurer.measure_width_mm(&rank_str, font_size);
 

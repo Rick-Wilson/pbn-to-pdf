@@ -1,5 +1,6 @@
 use crate::config::Settings;
 use crate::error::RenderError;
+use crate::model::card::RankExt;
 use crate::model::{BidSuit, Board, Direction, Suit, SUITS_DISPLAY_ORDER};
 use printpdf::{
     BuiltinFont, Color, FontId, Mm, PaintMode, PdfDocument, PdfPage, PdfSaveOptions, Rgb,
@@ -51,6 +52,11 @@ const SPACER_NAME: &str = "spacer";
 
 /// Check if a board is a column break marker
 fn is_column_break(board: &Board) -> bool {
+    // Check BCFlags bit 25
+    if board.bc_flags.as_ref().is_some_and(|f| f.column_break()) {
+        return true;
+    }
+    // Check board name
     board
         .board_id
         .as_ref()
@@ -63,6 +69,11 @@ fn is_column_break(board: &Board) -> bool {
 
 /// Check if a board is a page break marker
 fn is_page_break(board: &Board) -> bool {
+    // Check BCFlags bit 26
+    if board.bc_flags.as_ref().is_some_and(|f| f.page_break()) {
+        return true;
+    }
+    // Check board name
     board
         .board_id
         .as_ref()
@@ -138,8 +149,19 @@ impl DocumentRenderer {
     /// Measure the height a board would use in a column without rendering
     /// Returns 0.0 for break markers and boards with no content
     fn measure_board_height(&self, board: &Board, column_width: f32) -> f32 {
-        // Break markers have zero height
-        if is_column_break(board) || is_page_break(board) {
+        // Name-based break markers have zero height (no content)
+        // BCFlags-based breaks have real content to measure
+        let is_name_break = board
+            .board_id
+            .as_ref()
+            .map(|id| {
+                let id_lower = id.to_lowercase();
+                id_lower == COLUMN_BREAK_NAME
+                    || id_lower == SPACER_NAME
+                    || id_lower == PAGE_BREAK_NAME
+            })
+            .unwrap_or(false);
+        if is_name_break {
             return 0.0;
         }
 
@@ -218,8 +240,8 @@ impl DocumentRenderer {
             // Title lines but no diagram: cap_height for ascenders + title line spacing
             height = cap_height + effective_title_lines as f32 * line_height;
         } else if inline_board_label {
-            // Auction-only with inline board label: cap_height for ascenders + top padding
-            height = cap_height * 2.0;
+            // Auction-only with inline board label: cap_height for ascenders
+            height = cap_height;
         } else {
             // Commentary-only: position first baseline so ascenders reach start_y
             let commentary_ascender = measurer.ascender_mm(self.settings.commentary_font_size);
@@ -229,8 +251,26 @@ impl DocumentRenderer {
         // Auction height
         if visibility.show_auction {
             if let Some(ref auction) = board.auction {
-                let mut auction_height =
-                    self.measure_auction_height(auction, &board.players, Some(column_width));
+                // Use narrowed bid column width if 4 columns don't fit
+                let effective_bid_col_width =
+                    self.settings.bid_column_width.min(column_width / 4.0);
+                let narrowed_settings;
+                let bid_settings = if effective_bid_col_width < self.settings.bid_column_width {
+                    narrowed_settings = {
+                        let mut s = self.settings.clone();
+                        s.bid_column_width = effective_bid_col_width;
+                        s
+                    };
+                    Some(&narrowed_settings as &Settings)
+                } else {
+                    None
+                };
+                let mut auction_height = self.measure_auction_height(
+                    auction,
+                    &board.players,
+                    Some(column_width),
+                    bid_settings,
+                );
 
                 // For 2-column inline board labels, we skip the spacing row before the header
                 let is_two_col =
@@ -338,12 +378,13 @@ impl DocumentRenderer {
         auction: &crate::model::Auction,
         players: &crate::model::PlayerNames,
         notes_max_width: Option<f32>,
+        settings_override: Option<&Settings>,
     ) -> f32 {
         // Use the bidding table renderer's static measurement to ensure consistency
         BiddingTableRenderer::measure_height_static(
             auction,
             Some(players),
-            &self.settings,
+            settings_override.unwrap_or(&self.settings),
             notes_max_width,
         )
     }
@@ -533,15 +574,32 @@ impl DocumentRenderer {
                 while let Some(&next) = board_iter.peek() {
                     // Page break marker - force new page
                     if is_page_break(next) {
-                        board_iter.next(); // Consume the break marker
-                        force_page_break = true;
-                        break;
+                        // Name-based markers are just markers with no content — consume them
+                        // BCFlags-based breaks have content — only break if column has boards
+                        // (first board in a new page renders normally, preventing infinite loop)
+                        let is_bcflags = next.bc_flags.as_ref().is_some_and(|f| f.page_break());
+                        if is_bcflags && column_board_count[col_idx] == 0 {
+                            // First board in column — render it, don't break
+                        } else {
+                            if !is_bcflags {
+                                board_iter.next(); // Consume name-based break marker
+                            }
+                            force_page_break = true;
+                            break;
+                        }
                     }
 
                     // Column break marker - move to next column
                     if is_column_break(next) {
-                        board_iter.next(); // Consume the break marker
-                        break;
+                        let is_bcflags = next.bc_flags.as_ref().is_some_and(|f| f.column_break());
+                        if is_bcflags && column_board_count[col_idx] == 0 {
+                            // First board in column — render it, don't break
+                        } else {
+                            if !is_bcflags {
+                                board_iter.next(); // Consume name-based break marker
+                            }
+                            break;
+                        }
                     }
 
                     // Measure the board height to check if it fits
@@ -782,7 +840,7 @@ impl DocumentRenderer {
                 }
 
                 // Render rank number centered in the diagram area
-                let rank_text = rank.to_char().to_string();
+                let rank_text = rank.display_str().to_string();
                 let rank_font_size = font_size; // Use same font size as board label
 
                 // Calculate x position - center in the diagram area
@@ -838,8 +896,8 @@ impl DocumentRenderer {
                 current_y = diagram_y - diagram_height;
             }
         } else if inline_board_label {
-            // Auction-only with inline board label: add top padding before content
-            current_y = first_baseline - cap_height;
+            // Auction-only with inline board label: position at first_baseline
+            current_y = first_baseline;
         } else if title_line > 0 {
             // Title lines: content starts below title lines
             current_y = first_baseline - (title_line as f32 * line_height);
@@ -853,21 +911,37 @@ impl DocumentRenderer {
         // Render bidding table if present and enabled
         if show_auction {
             if let Some(ref auction) = board.auction {
-                let bidding_renderer = BiddingTableRenderer::new(
-                    hand_record_fonts.regular,
-                    hand_record_fonts.bold,
-                    hand_record_fonts.italic,
-                    fonts.symbol_font(),
-                    &self.settings,
-                );
-                // Calculate actual table width for centering
+                // Calculate effective bid column width that fits 4 columns in the column
+                // Use the same width for 2-col and 4-col so columns align vertically
+                let effective_bid_col_width =
+                    self.settings.bid_column_width.min(column_width / 4.0);
                 let num_cols =
                     if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
                         2
                     } else {
                         4
                     };
-                let table_width = num_cols as f32 * self.settings.bid_column_width;
+                let table_width = num_cols as f32 * effective_bid_col_width;
+
+                // Use narrowed bid column width if needed to fit
+                let narrowed_settings;
+                let bid_settings = if effective_bid_col_width < self.settings.bid_column_width {
+                    narrowed_settings = {
+                        let mut s = self.settings.clone();
+                        s.bid_column_width = effective_bid_col_width;
+                        s
+                    };
+                    &narrowed_settings
+                } else {
+                    &self.settings
+                };
+                let bidding_renderer = BiddingTableRenderer::new(
+                    hand_record_fonts.regular,
+                    hand_record_fonts.bold,
+                    hand_record_fonts.italic,
+                    fonts.symbol_font(),
+                    bid_settings,
+                );
 
                 // Center the auction table within the column
                 let table_x = column_x + (column_width - table_width) / 2.0;
@@ -907,8 +981,14 @@ impl DocumentRenderer {
                     Some(notes_max_width),
                 );
 
-                // Debug box for bidding table
-                self.draw_debug_box(layer, table_x, current_y, table_width, table_height);
+                // Debug box for bidding table: tightly bound visible content
+                // table_height is measured from origin which includes an empty spacing row (row 0)
+                // Header is at row 1 (origin - row_height), so subtract spacing row and add ascender
+                let row_height = self.settings.bid_row_height;
+                let bid_asc = get_times_measurer().ascender_mm(self.settings.body_font_size);
+                let box_top = auction_y - row_height + bid_asc;
+                let box_height = table_height - row_height + bid_asc;
+                self.draw_debug_box(layer, table_x, box_top, table_width, box_height);
 
                 // For 2-column inline labels, we moved auction up by row_height, so subtract less
                 if inline_board_label && num_cols == 2 {
@@ -1231,7 +1311,7 @@ impl DocumentRenderer {
                             let cards_str = holding
                                 .ranks
                                 .iter()
-                                .map(|r| r.to_char().to_string())
+                                .map(|r| r.display_str().to_string())
                                 .collect::<Vec<_>>()
                                 .join(" ");
                             if show_suit_symbols {
@@ -1282,7 +1362,7 @@ impl DocumentRenderer {
                         let cards_str = holding
                             .ranks
                             .iter()
-                            .map(|r| r.to_char().to_string())
+                            .map(|r| r.display_str().to_string())
                             .collect::<Vec<_>>()
                             .join(" ");
                         layer.use_text_builtin(
@@ -2045,7 +2125,7 @@ impl DocumentRenderer {
         current_x += measurer.measure_width_mm(&symbol, font_size);
 
         // Render rank in black
-        let rank = card.rank.to_char().to_string();
+        let rank = card.rank.display_str().to_string();
         layer.set_fill_color(Color::Rgb(BLACK));
         layer.use_text_builtin(&rank, font_size, Mm(current_x), y, text_font);
     }

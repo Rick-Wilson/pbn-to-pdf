@@ -80,6 +80,39 @@ fn parse_italic_with_nested_underline(content: &str, text: &mut FormattedText) {
     }
 }
 
+/// Parse italic content that contains nested `<b>` tags.
+/// Splits into italic spans and bold_italic spans.
+/// e.g., " and <b>1-5</b> are 2/1 GF auctions." becomes:
+///   Italic(" and "), BoldItalic("1-5"), Italic(" are 2/1 GF auctions.")
+fn parse_italic_with_nested_bold(content: &str, text: &mut FormattedText) {
+    let mut remaining = content;
+    while let Some(b_start) = remaining.find("<b>") {
+        // Push italic text before the <b> tag
+        let before = &remaining[..b_start];
+        if !before.is_empty() {
+            text.push(TextSpan::italic(replace_suit_escapes(before)));
+        }
+
+        // Find closing </b>
+        let after_tag = &remaining[b_start + 3..];
+        if let Some(b_end) = after_tag.find("</b>") {
+            let bold_content = &after_tag[..b_end];
+            text.push(TextSpan::bold_italic(replace_suit_escapes(bold_content)));
+            remaining = &after_tag[b_end + 4..];
+        } else {
+            // Unclosed <b> tag — treat rest as italic
+            text.push(TextSpan::italic(replace_suit_escapes(
+                &remaining[b_start..],
+            )));
+            return;
+        }
+    }
+    // Push any remaining italic text after the last </b>
+    if !remaining.is_empty() {
+        text.push(TextSpan::italic(replace_suit_escapes(remaining)));
+    }
+}
+
 /// Strip empty or whitespace-only italic tags like `<i> </i>` or `<i></i>`.
 /// These are sometimes used in PBN files for formatting around punctuation
 /// (e.g., em-dashes) and would otherwise appear as raw tags in output.
@@ -153,9 +186,12 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
 
             // Check for nested tags inside italic
             if italic_content.starts_with("<b>") && italic_content.ends_with("</b>") {
-                // Nested <b> inside <i> -> bold_italic
+                // Nested <b> wrapping entire <i> content -> bold_italic
                 let inner = &italic_content[3..italic_content.len() - 4];
                 text.push(TextSpan::bold_italic(replace_suit_escapes(inner)));
+            } else if italic_content.contains("<b>") {
+                // Nested <b> tags inside <i>: split into italic and bold_italic spans
+                parse_italic_with_nested_bold(italic_content, &mut text);
             } else if italic_content.contains("<u>") {
                 // Nested <u> tags inside <i>: split into italic and underline spans
                 parse_italic_with_nested_underline(italic_content, &mut text);

@@ -61,7 +61,7 @@ impl fmt::Display for Holding {
             write!(f, "-")
         } else {
             for rank in &self.ranks {
-                write!(f, "{}", rank.to_char())?;
+                write!(f, "{}", rank.display_str())?;
             }
             Ok(())
         }

@@ -11,6 +11,7 @@
 use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, Rgb};
 use std::collections::HashMap;
 
+use crate::model::card::RankExt;
 use crate::model::{BidSuit, Board, Card, Hand, Suit};
 use crate::render::components::{
     DummyRenderer, FanRenderer, LosersTableRenderer, WinnersTableRenderer,
@@ -527,7 +528,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         // Build the text components: "Lead: " + suit symbol + rank
         let label = "Lead: ";
         let suit_symbol = card.suit.symbol().to_string();
-        let rank_str = card.rank.to_char().to_string();
+        let rank_str = card.rank.display_str().to_string();
 
         // Measure widths
         let label_width = measurer.measure_width_mm(label, font_size);

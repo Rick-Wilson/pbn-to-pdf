@@ -1,4 +1,5 @@
 use crate::config::Settings;
+use crate::model::card::RankExt;
 use crate::model::{Deal, Direction, Hand, HiddenHands, Suit, SUITS_DISPLAY_ORDER};
 use printpdf::{BuiltinFont, Color, FontId, Mm, PaintMode, Rgb};
 
@@ -147,7 +148,7 @@ impl<'a> HandDiagramRenderer<'a> {
                     holding
                         .ranks
                         .iter()
-                        .map(|r| r.to_char().to_string())
+                        .map(|r| r.display_str().to_string())
                         .collect::<Vec<_>>()
                         .join(" ")
                 };
@@ -481,7 +482,7 @@ impl<'a> HandDiagramRenderer<'a> {
                     holding
                         .ranks
                         .iter()
-                        .map(|r| r.to_char().to_string())
+                        .map(|r| r.display_str().to_string())
                         .collect::<Vec<_>>()
                         .join(" ")
                 };
@@ -539,7 +540,7 @@ impl<'a> HandDiagramRenderer<'a> {
             holding
                 .ranks
                 .iter()
-                .map(|r| r.to_char().to_string())
+                .map(|r| r.display_str().to_string())
                 .collect::<Vec<_>>()
                 .join(" ")
         };
@@ -698,7 +699,7 @@ impl<'a> HandDiagramRenderer<'a> {
             holding
                 .ranks
                 .iter()
-                .map(|r| r.to_char().to_string())
+                .map(|r| r.display_str().to_string())
                 .collect::<Vec<_>>()
                 .join(" ")
         };

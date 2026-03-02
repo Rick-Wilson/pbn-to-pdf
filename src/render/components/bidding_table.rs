@@ -338,7 +338,7 @@ impl<'a> BiddingTableRenderer<'a> {
                 self.settings.header_font_size,
                 Mm(x),
                 header_y,
-                self.font, // Use regular font for direction names
+                self.italic_font, // Use italic font for direction names (Bridge Composer style)
             );
         }
 
