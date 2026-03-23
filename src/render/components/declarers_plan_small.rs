@@ -415,13 +415,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             let label = "Ctr: ";
             let label_width = measurer.measure_width_mm(label, header_font_size);
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text_builtin(
-                label,
-                header_font_size,
-                Mm(text_x),
-                Mm(header_y),
-                self.font,
-            );
+            layer.use_text_builtin(label, header_font_size, Mm(text_x), Mm(header_y), self.font);
 
             // Render contract with colored suit symbol
             let contract_x = text_x + label_width;
@@ -531,13 +525,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
                 .map(|t| t == BidSuit::NoTrump)
                 .unwrap_or(symbol == "NT");
             if is_nt {
-                layer.use_text_builtin(
-                    symbol,
-                    font_size,
-                    Mm(x.0 + level_width),
-                    y,
-                    self.bold_font,
-                );
+                layer.use_text_builtin(symbol, font_size, Mm(x.0 + level_width), y, self.bold_font);
             } else {
                 layer.use_text(
                     symbol,

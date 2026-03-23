@@ -295,10 +295,7 @@ impl DeclarersPlan2UpRenderer {
             // Draw horizontal separator between panels
             draw_horizontal_separator(&mut layer, &self.settings, center_y);
 
-            let slot_centers = [
-                (slot_cx, top_slot_cy),
-                (slot_cx, bottom_slot_cy),
-            ];
+            let slot_centers = [(slot_cx, top_slot_cy), (slot_cx, bottom_slot_cy)];
 
             for (i, board) in chunk.iter().enumerate() {
                 let prep = prepare_board(board);
