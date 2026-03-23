@@ -65,6 +65,8 @@ pub struct DeclarersPlanSmallRenderer<'a> {
     colors: SuitColors,
     /// Scale factor for card rendering
     card_scale: f32,
+    /// Scale factor for non-card elements (text, tables, spacing)
+    layout_scale: f32,
     /// Arc degrees for the fan display
     fan_arc: f32,
     /// Overlap ratio for dummy display
@@ -91,6 +93,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             symbol_font,
             colors,
             card_scale: 0.35,
+            layout_scale: 1.0,
             fan_arc: 30.0,
             dummy_overlap: 0.18, // Show some suit symbol on clipped cards
             show_bounds: false,
@@ -101,6 +104,12 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     /// Set the card scale factor
     pub fn card_scale(mut self, scale: f32) -> Self {
         self.card_scale = scale;
+        self
+    }
+
+    /// Set the layout scale factor for non-card elements (text, tables, spacing)
+    pub fn layout_scale(mut self, scale: f32) -> Self {
+        self.layout_scale = scale;
         self
     }
 
@@ -223,6 +232,8 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     /// Returns (width, height) in mm.
     /// Uses nominal dummy height (5-card suit) for consistent positioning.
     pub fn dimensions(&self, north: &Hand, south: &Hand, is_nt: bool) -> (f32, f32) {
+        let s = self.layout_scale;
+
         // Use None for trump since dimensions don't depend on suit order
         let dummy_renderer = self.dummy_renderer(None, north);
         let (dummy_width, _) = dummy_renderer.dimensions(north);
@@ -246,35 +257,45 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let width = dummy_width.max(table_width);
 
         // Total height: header + gap + dummy + gap + visible fan + gap + table
-        let height = HEADER_HEIGHT
-            + ELEMENT_GAP
+        let height = HEADER_HEIGHT * s
+            + ELEMENT_GAP * s
             + nominal_dummy_height
-            + ELEMENT_GAP
+            + ELEMENT_GAP * s
             + visible_fan_height
-            + ELEMENT_GAP
+            + ELEMENT_GAP * s
             + table_height;
 
         (width, height)
     }
 
-    /// Create the winners table renderer
+    /// Create the winners table renderer, scaled by layout_scale
     fn winners_table_renderer(&self) -> WinnersTableRenderer<'a> {
+        let s = self.layout_scale;
         WinnersTableRenderer::new(
             self.font,
             self.bold_font,
             self.symbol_font,
             self.colors.clone(),
         )
+        .font_sizes(14.0 * s, 12.0 * s)
+        .col_width(16.0 * s)
+        .row_height(8.0 * s)
+        .header_height(6.0 * s)
     }
 
-    /// Create the losers table renderer
+    /// Create the losers table renderer, scaled by layout_scale
     fn losers_table_renderer(&self) -> LosersTableRenderer<'a> {
+        let s = self.layout_scale;
         LosersTableRenderer::new(
             self.font,
             self.bold_font,
             self.symbol_font,
             self.colors.clone(),
         )
+        .font_sizes(14.0 * s, 12.0 * s)
+        .col_width(16.0 * s)
+        .row_height(8.0 * s)
+        .header_height(6.0 * s)
     }
 
     /// Render the declarer's plan layout from a Board
@@ -348,7 +369,13 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         trump: Option<BidSuit>,
         origin: (Mm, Mm),
     ) -> f32 {
+        let s = self.layout_scale;
         let (ox, oy) = (origin.0 .0, origin.1 .0);
+
+        let header_font_size = HEADER_FONT_SIZE * s;
+        let header_height = HEADER_HEIGHT * s;
+        let element_gap = ELEMENT_GAP * s;
+        let lead_box_font_size = LEAD_BOX_FONT_SIZE * s;
 
         // Content starts at origin
         let content_x = ox;
@@ -363,7 +390,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
 
         // Render header line at the top
         // Header Y position (baseline of text)
-        let header_y = oy - HEADER_HEIGHT + 2.0; // 2mm from bottom of header area
+        let header_y = oy - header_height + 2.0 * s; // scaled offset from bottom of header area
 
         layer.set_fill_color(Color::Rgb(BLACK));
         let measurer = text_metrics::get_times_measurer();
@@ -372,29 +399,40 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         let mut text_x = content_x;
         if let Some(deal_num) = deal_number {
             let deal_text = format!("Deal {}", deal_num);
-            let deal_width = measurer.measure_width_mm(&deal_text, HEADER_FONT_SIZE);
+            let deal_width = measurer.measure_width_mm(&deal_text, header_font_size);
             layer.use_text_builtin(
                 &deal_text,
-                HEADER_FONT_SIZE,
+                header_font_size,
                 Mm(text_x),
                 Mm(header_y),
                 self.bold_font,
             );
-            text_x += deal_width + 2.0; // Gap between deal and contract
+            text_x += deal_width + 2.0 * s; // Gap between deal and contract
         }
 
         // Contract right after deal number (abbreviated)
-        // Use serif for "Ctr: " label, sans for contract value
-        // Hearts and diamonds are rendered in red
         if let Some(contract) = contract_str {
             let label = "Ctr: ";
-            let label_width = measurer.measure_width_mm(label, HEADER_FONT_SIZE);
+            let label_width = measurer.measure_width_mm(label, header_font_size);
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text_builtin(label, HEADER_FONT_SIZE, Mm(text_x), Mm(header_y), self.font);
+            layer.use_text_builtin(
+                label,
+                header_font_size,
+                Mm(text_x),
+                Mm(header_y),
+                self.font,
+            );
 
             // Render contract with colored suit symbol
             let contract_x = text_x + label_width;
-            self.render_colored_contract(layer, contract, trump, Mm(contract_x), Mm(header_y));
+            self.render_colored_contract(
+                layer,
+                contract,
+                trump,
+                Mm(contract_x),
+                Mm(header_y),
+                header_font_size,
+            );
         }
 
         // Right: Goal text (right-justified)
@@ -404,31 +442,30 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         } else {
             "Goal: at most ____ losers"
         };
-        let goal_width = measurer.measure_width_mm(goal_text, HEADER_FONT_SIZE);
+        let goal_width = measurer.measure_width_mm(goal_text, header_font_size);
         let goal_x = right_edge - goal_width;
         layer.use_text_builtin(
             goal_text,
-            HEADER_FONT_SIZE,
+            header_font_size,
             Mm(goal_x),
             Mm(header_y),
             self.font,
         );
 
         // Dummy (North hand) - positioned below header with gap, raised by DUMMY_RAISE
-        let dummy_y = oy - HEADER_HEIGHT - ELEMENT_GAP + DUMMY_RAISE;
+        let dummy_y = oy - header_height - element_gap + DUMMY_RAISE * s;
         dummy_renderer.render(layer, north, (Mm(content_x), Mm(dummy_y)));
 
         // Fan (South hand) - positioned below dummy, raised by FAN_RAISE
         let fan_renderer = self.fan_renderer(dummy_width, south, trump);
         let (_, fan_height) = fan_renderer.dimensions(south);
         let visible_fan_height = fan_height * FAN_CROP_RATIO;
-        let fan_y = dummy_y - nominal_dummy_height - ELEMENT_GAP + FAN_RAISE;
+        let fan_y = dummy_y - nominal_dummy_height - element_gap + FAN_RAISE * s;
         fan_renderer.render(layer, south, (Mm(content_x), Mm(fan_y)));
 
         // Opening lead box (e.g., "Lead: ♠4") - positioned at left margin, above fan top
-        // This overlays the leftmost column of the dummy view
         if let Some(lead_card) = opening_lead {
-            self.render_opening_lead_box(layer, lead_card, content_x, fan_y + 9.0);
+            self.render_opening_lead_box(layer, lead_card, content_x, fan_y + 9.0 * s);
         }
 
         // Table below the VISIBLE portion of the fan (centered on dummy width), raised by TABLE_RAISE
@@ -438,7 +475,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             self.losers_table_renderer().dimensions()
         };
         let table_x = content_x + (dummy_width - table_width) / 2.0;
-        let table_y = fan_y - visible_fan_height - ELEMENT_GAP + TABLE_RAISE;
+        let table_y = fan_y - visible_fan_height - element_gap + TABLE_RAISE * s;
 
         if is_nt {
             let table = self.winners_table_renderer();
@@ -462,6 +499,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         trump: Option<BidSuit>,
         x: Mm,
         y: Mm,
+        font_size: f32,
     ) {
         // Use serif measurer for text width
         let measurer = text_metrics::get_times_measurer();
@@ -478,8 +516,8 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
 
             // Render level in black using builtin font
             layer.set_fill_color(Color::Rgb(BLACK));
-            let level_width = measurer.measure_width_mm(level, HEADER_FONT_SIZE);
-            layer.use_text_builtin(level, HEADER_FONT_SIZE, x, y, self.bold_font);
+            let level_width = measurer.measure_width_mm(level, font_size);
+            layer.use_text_builtin(level, font_size, x, y, self.bold_font);
 
             // Render symbol in appropriate color
             if is_red {
@@ -495,7 +533,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             if is_nt {
                 layer.use_text_builtin(
                     symbol,
-                    HEADER_FONT_SIZE,
+                    font_size,
                     Mm(x.0 + level_width),
                     y,
                     self.bold_font,
@@ -503,7 +541,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
             } else {
                 layer.use_text(
                     symbol,
-                    HEADER_FONT_SIZE,
+                    font_size,
                     Mm(x.0 + level_width),
                     y,
                     self.symbol_font,
@@ -512,7 +550,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
         } else {
             // Fallback: render whole contract using builtin font
             layer.set_fill_color(Color::Rgb(BLACK));
-            layer.use_text_builtin(contract, HEADER_FONT_SIZE, x, y, self.bold_font);
+            layer.use_text_builtin(contract, font_size, x, y, self.bold_font);
         }
 
         // Reset to black
@@ -522,7 +560,7 @@ impl<'a> DeclarersPlanSmallRenderer<'a> {
     /// Render opening lead box with mild yellow background (e.g., "Lead: ♠4")
     fn render_opening_lead_box(&self, layer: &mut LayerBuilder, card: Card, x: f32, y: f32) {
         let measurer = text_metrics::get_times_measurer();
-        let font_size = LEAD_BOX_FONT_SIZE;
+        let font_size = LEAD_BOX_FONT_SIZE * self.layout_scale;
         let cap_height = measurer.cap_height_mm(font_size);
 
         // Build the text components: "Lead: " + suit symbol + rank

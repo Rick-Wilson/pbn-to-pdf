@@ -13,7 +13,10 @@ pub use parser::{parse_pbn, PbnFile};
 pub use render::generate_pdf;
 
 use parser::header::parse_headers;
-use render::{BiddingSheetsRenderer, DealerSummaryRenderer, DeclarersPlanRenderer};
+use render::{
+    BiddingSheetsRenderer, DealerSummaryRenderer, DeclarersPlan1UpRenderer,
+    DeclarersPlan2UpRenderer, DeclarersPlanRenderer,
+};
 
 /// High-level API for rendering boards to PDF.
 ///
@@ -72,6 +75,14 @@ pub fn render_boards(
         Layout::Analysis => generate_pdf(boards, &settings),
         Layout::BiddingSheets => {
             let renderer = BiddingSheetsRenderer::new(settings);
+            renderer.render(boards)
+        }
+        Layout::DeclarersPlan1up => {
+            let renderer = DeclarersPlan1UpRenderer::new(settings);
+            renderer.render(boards)
+        }
+        Layout::DeclarersPlan2up => {
+            let renderer = DeclarersPlan2UpRenderer::new(settings);
             renderer.render(boards)
         }
         Layout::DeclarersPlan => {

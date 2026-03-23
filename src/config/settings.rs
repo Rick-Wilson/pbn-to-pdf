@@ -142,7 +142,7 @@ impl Settings {
         } else if args.layout == Layout::BiddingSheets {
             // Bidding sheets use standard margins by default
             (BIDDING_SHEETS_MARGIN, BIDDING_SHEETS_MARGIN)
-        } else if args.layout == Layout::DeclarersPlan {
+        } else if args.layout.is_declarers_plan() {
             // Declarer's plan uses 0.5" left/right, 1.0" top/bottom
             (DECLARERS_PLAN_MARGIN_LR, DECLARERS_PLAN_MARGIN_TB)
         } else {
@@ -174,7 +174,9 @@ impl Settings {
     pub fn for_layout(layout: Layout) -> Self {
         let (margin_lr, margin_tb) = match layout {
             Layout::BiddingSheets => (BIDDING_SHEETS_MARGIN, BIDDING_SHEETS_MARGIN),
-            Layout::DeclarersPlan => (DECLARERS_PLAN_MARGIN_LR, DECLARERS_PLAN_MARGIN_TB),
+            Layout::DeclarersPlan | Layout::DeclarersPlan1up | Layout::DeclarersPlan2up => {
+                (DECLARERS_PLAN_MARGIN_LR, DECLARERS_PLAN_MARGIN_TB)
+            }
             Layout::DealerSummary => (DECLARERS_PLAN_MARGIN_LR, DECLARERS_PLAN_MARGIN_TB),
             Layout::Analysis => (DEFAULT_PAGE_MARGIN, DEFAULT_PAGE_MARGIN),
         };

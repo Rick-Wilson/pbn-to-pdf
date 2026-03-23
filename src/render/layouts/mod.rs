@@ -8,4 +8,4 @@ pub mod declarers_plan;
 pub use analysis::generate_pdf;
 pub use bidding_sheets::BiddingSheetsRenderer;
 pub use dealer_summary::DealerSummaryRenderer;
-pub use declarers_plan::DeclarersPlanRenderer;
+pub use declarers_plan::{DeclarersPlan1UpRenderer, DeclarersPlan2UpRenderer, DeclarersPlanRenderer};

@@ -124,6 +124,12 @@ pub enum Layout {
     Analysis,
     /// Bidding practice sheets for face-to-face practice
     BiddingSheets,
+    /// Declarer's plan - 1 deal per page (full size)
+    #[value(name = "declarers-plan-1up")]
+    DeclarersPlan1up,
+    /// Declarer's plan - 2 deals per page (rotated 90°)
+    #[value(name = "declarers-plan-2up")]
+    DeclarersPlan2up,
     /// Declarer's plan practice sheets (4 deals per page)
     DeclarersPlan,
     /// Dealer summary showing board, dealer, contract, declarer, and lead (6 per page)
@@ -136,9 +142,19 @@ impl Layout {
         match self {
             Layout::Analysis => None,
             Layout::BiddingSheets => Some(" - Bidding Sheets"),
-            Layout::DeclarersPlan => Some(" - Declarers Plan"),
+            Layout::DeclarersPlan1up => Some(" - Declarers Plan"),
+            Layout::DeclarersPlan2up => Some(" - Declarers Plan 2up"),
+            Layout::DeclarersPlan => Some(" - Declarers Plan 4up"),
             Layout::DealerSummary => Some(" - Dealer Summary"),
         }
+    }
+
+    /// Returns true if this is any declarer's plan variant
+    pub fn is_declarers_plan(&self) -> bool {
+        matches!(
+            self,
+            Layout::DeclarersPlan | Layout::DeclarersPlan1up | Layout::DeclarersPlan2up
+        )
     }
 }
 

@@ -87,6 +87,12 @@ impl<'a> WinnersTableRenderer<'a> {
         self
     }
 
+    /// Set header row height
+    pub fn header_height(mut self, height: f32) -> Self {
+        self.header_height = height;
+        self
+    }
+
     /// Get the total dimensions of the table
     pub fn dimensions(&self) -> (f32, f32) {
         let width = self.col_width * 5.0; // 5 columns for suit row (techniques row uses 4 wider columns)

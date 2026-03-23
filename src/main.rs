@@ -6,7 +6,8 @@ use pbn_to_pdf::cli::{parse_board_range, Args, Layout};
 use pbn_to_pdf::config::Settings;
 use pbn_to_pdf::parser::parse_pbn;
 use pbn_to_pdf::render::{
-    generate_pdf, BiddingSheetsRenderer, DealerSummaryRenderer, DeclarersPlanRenderer,
+    generate_pdf, BiddingSheetsRenderer, DealerSummaryRenderer, DeclarersPlan1UpRenderer,
+    DeclarersPlan2UpRenderer, DeclarersPlanRenderer,
 };
 
 fn main() -> Result<()> {
@@ -69,6 +70,18 @@ fn main() -> Result<()> {
             renderer
                 .render(&boards)
                 .with_context(|| "Failed to generate bidding sheets PDF")?
+        }
+        Layout::DeclarersPlan1up => {
+            let renderer = DeclarersPlan1UpRenderer::new(settings);
+            renderer
+                .render(&boards)
+                .with_context(|| "Failed to generate declarer's plan 1-up PDF")?
+        }
+        Layout::DeclarersPlan2up => {
+            let renderer = DeclarersPlan2UpRenderer::new(settings);
+            renderer
+                .render(&boards)
+                .with_context(|| "Failed to generate declarer's plan 2-up PDF")?
         }
         Layout::DeclarersPlan => {
             let renderer = DeclarersPlanRenderer::new(settings);
