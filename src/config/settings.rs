@@ -36,6 +36,12 @@ pub struct Settings {
     pub show_hcp: bool,
     pub justify: bool,
     pub debug_boxes: bool,
+    /// Circle sure winners on declarer's plan layouts
+    pub circle_sure_winners: bool,
+    /// Circle promotable winners on declarer's plan layouts
+    pub circle_promotable_winners: bool,
+    /// Circle length winners on declarer's plan layouts
+    pub circle_length_winners: bool,
     /// Multi-column layout mode (1 = single column, 2+ = multi-column)
     pub column_count: u8,
     /// Two-column auctions mode (show uncontested auctions in 2 columns)
@@ -100,6 +106,9 @@ impl Default for Settings {
             show_hcp: false,
             justify: false,
             debug_boxes: false,
+            circle_sure_winners: false,
+            circle_promotable_winners: false,
+            circle_length_winners: false,
             column_count: 1,
             two_col_auctions: false,
             center: false,
@@ -165,6 +174,9 @@ impl Settings {
             show_commentary: args.show_commentary(),
             show_hcp: args.show_hcp(),
             debug_boxes: args.debug_boxes,
+            circle_sure_winners: args.circle_sure_winners,
+            circle_promotable_winners: args.circle_promotable_winners,
+            circle_length_winners: args.circle_length_winners,
             title_override: args.title.clone(),
             ..Default::default()
         }

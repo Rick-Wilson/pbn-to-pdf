@@ -7,14 +7,16 @@
 //! - **4-up**: Four deals per page in a 2x2 grid (original layout)
 
 use printpdf::{Color, CurTransMat, Mm, PdfDocument, PdfPage, PdfSaveOptions, Rgb};
+use std::collections::HashMap;
 
 use crate::config::Settings;
 use crate::error::RenderError;
-use crate::model::{BidSuit, Board, Deal, Direction, Hand};
+use crate::model::analysis::{find_length_winners, find_promotable_winners, find_sure_winners};
+use crate::model::{BidSuit, Board, Card, Deal, Direction, Hand};
 
 use crate::render::components::DeclarersPlanSmallRenderer;
 use crate::render::helpers::card_assets::CardAssets;
-use crate::render::helpers::colors::SuitColors;
+use crate::render::helpers::colors::{SuitColors, BLUE, GREEN, RED};
 use crate::render::helpers::compress::compress_pdf;
 use crate::render::helpers::fonts::FontManager;
 use crate::render::helpers::layer::LayerBuilder;
@@ -131,6 +133,53 @@ fn make_renderer<'a>(
     .show_bounds(settings.debug_boxes)
 }
 
+/// Compute cards to circle for a board based on CLI flags.
+/// Sure winners use red, promotable winners green, length winners blue.
+/// If the same card is identified by multiple analyses, the first match wins.
+fn circled_cards_for_board(
+    settings: &Settings,
+    dummy: &Hand,
+    declarer: &Hand,
+) -> HashMap<Card, Rgb> {
+    let mut circled: HashMap<Card, Rgb> = HashMap::new();
+    if settings.circle_sure_winners {
+        for card in find_sure_winners(dummy, declarer) {
+            circled.entry(card).or_insert(RED);
+        }
+    }
+    if settings.circle_promotable_winners {
+        let result = find_promotable_winners(dummy, declarer);
+        for card in result.winners {
+            circled.entry(card).or_insert(GREEN);
+        }
+    }
+    if settings.circle_length_winners {
+        let result = find_length_winners(dummy, declarer);
+        for card in result.winners {
+            circled.entry(card).or_insert(BLUE);
+        }
+    }
+    circled
+}
+
+/// Build a renderer for a specific board, applying circled cards based on settings
+fn renderer_for_board<'a>(
+    card_assets: &'a CardAssets,
+    fonts: &'a FontManager,
+    settings: &Settings,
+    card_scale: f32,
+    dummy: &Hand,
+    declarer: &Hand,
+) -> DeclarersPlanSmallRenderer<'a> {
+    let renderer = make_renderer(card_assets, fonts, settings, card_scale);
+    let circled = circled_cards_for_board(settings, dummy, declarer);
+    if circled.is_empty() {
+        renderer
+    } else {
+        renderer.circled_cards(circled)
+    }
+}
+
 /// Render a single prepared board into a layer
 fn render_prepared(
     renderer: &DeclarersPlanSmallRenderer<'_>,
@@ -202,12 +251,18 @@ impl DeclarersPlan1UpRenderer {
         let card_assets =
             CardAssets::load(&mut doc).map_err(|e| RenderError::CardAsset(e.to_string()))?;
 
-        let renderer = make_renderer(&card_assets, &fonts, &self.settings, SCALE_1UP);
-
         let mut pages = Vec::new();
 
         for board in boards {
             let prep = prepare_board(board);
+            let renderer = renderer_for_board(
+                &card_assets,
+                &fonts,
+                &self.settings,
+                SCALE_1UP,
+                &prep.dummy_hand,
+                &prep.declarer_hand,
+            );
             let mut layer = LayerBuilder::new();
 
             // Center the panel on the page
@@ -271,8 +326,6 @@ impl DeclarersPlan2UpRenderer {
         let card_assets =
             CardAssets::load(&mut doc).map_err(|e| RenderError::CardAsset(e.to_string()))?;
 
-        let renderer = make_renderer(&card_assets, &fonts, &self.settings, SCALE_2UP);
-
         let content_width =
             self.settings.page_width - self.settings.margin_left - self.settings.margin_right;
         let content_height =
@@ -299,6 +352,14 @@ impl DeclarersPlan2UpRenderer {
 
             for (i, board) in chunk.iter().enumerate() {
                 let prep = prepare_board(board);
+                let renderer = renderer_for_board(
+                    &card_assets,
+                    &fonts,
+                    &self.settings,
+                    SCALE_2UP,
+                    &prep.dummy_hand,
+                    &prep.declarer_hand,
+                );
                 let (dest_cx, dest_cy) = slot_centers[i];
 
                 // Virtual canvas: panel is rendered upright, then rotated 90° CW.
@@ -409,8 +470,6 @@ impl DeclarersPlanRenderer {
         fonts: &FontManager,
         card_assets: &CardAssets,
     ) {
-        let renderer = make_renderer(card_assets, fonts, &self.settings, SCALE_4UP);
-
         let margin_left = self.settings.margin_left;
         let margin_right = self.settings.margin_right;
         let margin_top = self.settings.margin_top;
@@ -445,6 +504,14 @@ impl DeclarersPlanRenderer {
 
             let (x, y) = positions[i];
             let prep = prepare_board(board);
+            let renderer = renderer_for_board(
+                card_assets,
+                fonts,
+                &self.settings,
+                SCALE_4UP,
+                &prep.dummy_hand,
+                &prep.declarer_hand,
+            );
             render_prepared(&renderer, layer, &prep, (Mm(x), Mm(y)));
         }
     }

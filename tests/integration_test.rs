@@ -1571,3 +1571,89 @@ fn test_two_col_auctions_stayman_exercises() {
     fs::write(&output_file, &pdf_bytes).expect("Failed to write test PDF");
     println!("Stayman exercises PDF written to: {:?}", output_file);
 }
+
+/// Exercise the --circle-* CLI flags end-to-end through all three declarer's
+/// plan layouts (4-up, 1-up, 2-up). Verifies the flags are wired from
+/// Settings through the renderers and that the resulting PDFs are valid.
+///
+/// Visual output is written to tests/output/ for manual inspection.
+#[test]
+fn test_declarers_plan_circle_flags() {
+    use pbn_to_pdf::render::{
+        DeclarersPlan1UpRenderer, DeclarersPlan2UpRenderer, DeclarersPlanRenderer,
+    };
+    use pbn_to_pdf::Layout;
+
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    let pbn_path = fixtures_path().join("ABS2-2 Promotion and Length practice deals.pbn");
+    let content = fs::read_to_string(&pbn_path).expect("Failed to read PBN file");
+    let pbn_file = parse_pbn(&content).expect("Failed to parse PBN");
+
+    // Confirm at least one board has analysis hits, otherwise the test is
+    // meaningless even if the PDF is valid.
+    let any_sure_winners = pbn_file.boards.iter().any(|b| {
+        !find_sure_winners(&b.deal.north, &b.deal.south).is_empty()
+            || !find_sure_winners(&b.deal.south, &b.deal.north).is_empty()
+    });
+    assert!(
+        any_sure_winners,
+        "Fixture should contain at least one board with sure winners"
+    );
+
+    // All three circle flags enabled simultaneously
+    let mut settings = Settings::for_layout(Layout::DeclarersPlan);
+    settings.circle_sure_winners = true;
+    settings.circle_promotable_winners = true;
+    settings.circle_length_winners = true;
+
+    // 4-up
+    let renderer = DeclarersPlanRenderer::new(settings.clone());
+    let pdf_4up = renderer
+        .render(&pbn_file.boards)
+        .expect("Failed to render 4-up PDF with circle flags");
+    assert!(pdf_4up.starts_with(b"%PDF"));
+    fs::write(output_dir.join("circle_flags_4up_test.pdf"), &pdf_4up)
+        .expect("Failed to write 4-up test PDF");
+
+    // 1-up
+    let mut settings_1up = Settings::for_layout(Layout::DeclarersPlan1up);
+    settings_1up.circle_sure_winners = true;
+    settings_1up.circle_promotable_winners = true;
+    settings_1up.circle_length_winners = true;
+    let renderer = DeclarersPlan1UpRenderer::new(settings_1up);
+    let pdf_1up = renderer
+        .render(&pbn_file.boards)
+        .expect("Failed to render 1-up PDF with circle flags");
+    assert!(pdf_1up.starts_with(b"%PDF"));
+    fs::write(output_dir.join("circle_flags_1up_test.pdf"), &pdf_1up)
+        .expect("Failed to write 1-up test PDF");
+
+    // 2-up
+    let mut settings_2up = Settings::for_layout(Layout::DeclarersPlan2up);
+    settings_2up.circle_sure_winners = true;
+    settings_2up.circle_promotable_winners = true;
+    settings_2up.circle_length_winners = true;
+    let renderer = DeclarersPlan2UpRenderer::new(settings_2up);
+    let pdf_2up = renderer
+        .render(&pbn_file.boards)
+        .expect("Failed to render 2-up PDF with circle flags");
+    assert!(pdf_2up.starts_with(b"%PDF"));
+    fs::write(output_dir.join("circle_flags_2up_test.pdf"), &pdf_2up)
+        .expect("Failed to write 2-up test PDF");
+
+    // Sanity check: with all flags enabled, the PDF should be larger than
+    // the same layout with no flags (extra ellipse drawing ops). Compare
+    // against a baseline render with no circles.
+    let baseline_settings = Settings::for_layout(Layout::DeclarersPlan);
+    let baseline = DeclarersPlanRenderer::new(baseline_settings)
+        .render(&pbn_file.boards)
+        .expect("Failed to render baseline 4-up PDF");
+    assert!(
+        pdf_4up.len() > baseline.len(),
+        "PDF with circle flags ({} bytes) should be larger than baseline ({} bytes)",
+        pdf_4up.len(),
+        baseline.len()
+    );
+}

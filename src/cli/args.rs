@@ -61,6 +61,18 @@ pub struct Args {
     #[arg(long)]
     pub debug_boxes: bool,
 
+    /// Circle sure winners on cards (declarer's plan layouts) - red
+    #[arg(long)]
+    pub circle_sure_winners: bool,
+
+    /// Circle promotable winners on cards (declarer's plan layouts) - green
+    #[arg(long)]
+    pub circle_promotable_winners: bool,
+
+    /// Circle length winners on cards (declarer's plan layouts) - blue
+    #[arg(long)]
+    pub circle_length_winners: bool,
+
     /// Title for bidding sheets banner. Overrides %HRTitleEvent.
     /// Use --title with no value to hide the title.
     #[arg(short = 't', long, num_args = 0..=1, default_missing_value = "")]
@@ -291,6 +303,9 @@ mod tests {
             boards: None,
             margins: None,
             debug_boxes: false,
+            circle_sure_winners: false,
+            circle_promotable_winners: false,
+            circle_length_winners: false,
             title: None,
             verbose: 0,
         };
