@@ -409,11 +409,11 @@ fn find_length_winners_in_suit(
     }
 
     // Sort ducks by rank (highest first) for consistent output
-    ducks.sort_by(|a, b| a.rank.cmp(&b.rank));
+    ducks.sort_by_key(|a| a.rank);
 
     // Sort winners by rank (highest first)
     let mut winners = winners;
-    winners.sort_by(|a, b| a.rank.cmp(&b.rank));
+    winners.sort_by_key(|a| a.rank);
 
     LengthResult { ducks, winners }
 }
@@ -598,7 +598,7 @@ fn find_promotable_winners_in_suit(dummy: &Hand, declarer: &Hand, suit: Suit) ->
         .collect();
 
     // Sort spent cards by rank (highest first) for consistent ordering
-    spent.sort_by(|a, b| a.rank.cmp(&b.rank));
+    spent.sort_by_key(|a| a.rank);
 
     PromotionResult { spent, winners }
 }
