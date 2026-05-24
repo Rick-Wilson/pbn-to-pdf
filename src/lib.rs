@@ -18,6 +18,22 @@ use render::{
     DeclarersPlan2UpRenderer, DeclarersPlanRenderer,
 };
 
+/// Optional rendering flags passed through from library consumers.
+///
+/// Currently used by the declarer's plan layouts (1-up, 2-up, 4-up) to
+/// highlight analysis-identified cards with colored circles. When multiple
+/// analyses identify the same card the highest-priority color wins
+/// (sure > promotable > length).
+#[derive(Debug, Default, Clone, Copy)]
+pub struct RenderOptions {
+    /// Circle sure winners in red (priority 1, highest)
+    pub circle_sure_winners: bool,
+    /// Circle promotable winners in green (priority 2)
+    pub circle_promotable_winners: bool,
+    /// Circle length winners in blue (priority 3)
+    pub circle_length_winners: bool,
+}
+
 /// High-level API for rendering boards to PDF.
 ///
 /// This is the recommended entry point for library consumers. It handles all
@@ -38,7 +54,7 @@ use render::{
 /// # Example
 ///
 /// ```no_run
-/// use pbn_to_pdf::{parse_pbn, render_boards, Layout};
+/// use pbn_to_pdf::{parse_pbn, render_boards, Layout, RenderOptions};
 ///
 /// let pbn_content = std::fs::read_to_string("hands.pbn").unwrap();
 /// let pbn_file = parse_pbn(&pbn_content).unwrap();
@@ -54,6 +70,7 @@ use render::{
 ///     &pbn_file.boards,
 ///     &metadata_comments,
 ///     Layout::DeclarersPlan,
+///     RenderOptions::default(),
 /// ).unwrap();
 ///
 /// std::fs::write("output.pdf", pdf_bytes).unwrap();
@@ -62,13 +79,17 @@ pub fn render_boards(
     boards: &[Board],
     metadata_comments: &[String],
     layout: Layout,
+    options: RenderOptions,
 ) -> Result<Vec<u8>, RenderError> {
     // Parse metadata from raw comment lines
     let comment_refs: Vec<&str> = metadata_comments.iter().map(|s| s.as_str()).collect();
     let metadata = parse_headers(&comment_refs);
 
     // Create settings with layout-appropriate defaults, then apply metadata
-    let settings = Settings::for_layout(layout).with_metadata(&metadata);
+    let mut settings = Settings::for_layout(layout).with_metadata(&metadata);
+    settings.circle_sure_winners = options.circle_sure_winners;
+    settings.circle_promotable_winners = options.circle_promotable_winners;
+    settings.circle_length_winners = options.circle_length_winners;
 
     // Route to the appropriate renderer based on layout
     match layout {
