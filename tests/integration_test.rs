@@ -1657,3 +1657,76 @@ fn test_declarers_plan_circle_flags() {
         baseline.len()
     );
 }
+
+/// Verify that `<span style=color:#XXX>...</span>` tags in commentary text are
+/// parsed into TextSpan::Colored and survive the full render pipeline.
+///
+/// The fixture's commentary includes:
+///   `<i><span style=color:#00f>2 Over 1 Game Force</span></i>`
+/// which should produce one italic-colored span (blue), not literal `<span>` text.
+#[test]
+fn test_colored_span_in_commentary() {
+    use pbn_to_pdf::model::TextSpan;
+
+    let output_dir = output_path();
+    fs::create_dir_all(&output_dir).expect("Failed to create output directory");
+
+    let pbn_path = fixtures_path().join("Forcing 1NT - 3 - practice hands (5-8).pbn");
+    let content = fs::read_to_string(&pbn_path).expect("Failed to read PBN file");
+    let pbn_file = parse_pbn(&content).expect("Failed to parse PBN");
+
+    // BridgeComposer omits the [Event] tag before the first board in some files.
+    // The PBN parser handles this by auto-creating a board on a leading [Board] tag.
+    assert_eq!(
+        pbn_file.boards.len(),
+        4,
+        "Expected all 4 boards to be parsed even though file starts with [Board \"1\"]"
+    );
+
+    let mut found_blue_2over1 = false;
+    for board in &pbn_file.boards {
+        for block in &board.commentary {
+            for span in &block.content.spans {
+                if let TextSpan::Colored { text, italic, rgb } = span {
+                    if text.contains("2 Over 1 Game Force") {
+                        assert!(
+                            *italic,
+                            "Expected italic-colored span for '2 Over 1 Game Force'"
+                        );
+                        assert_eq!(
+                            *rgb,
+                            (0, 0, 255),
+                            "Expected blue (#00f -> 0,0,255) for '2 Over 1 Game Force'"
+                        );
+                        found_blue_2over1 = true;
+                    }
+                }
+            }
+        }
+    }
+    assert!(
+        found_blue_2over1,
+        "Expected to find a blue italic-colored span containing '2 Over 1 Game Force'"
+    );
+
+    // Also verify that no literal '<span' text leaked through into any plain-text rendering
+    for board in &pbn_file.boards {
+        for block in &board.commentary {
+            let plain = block.content.to_plain_text();
+            assert!(
+                !plain.contains("<span"),
+                "Plain text should not contain raw <span tag: found in {:?}",
+                plain
+            );
+        }
+    }
+
+    // End-to-end render via the public API
+    let settings = Settings::default().with_metadata(&pbn_file.metadata);
+    let pdf_bytes = generate_pdf(&pbn_file.boards, &settings).expect("Failed to generate PDF");
+    assert!(pdf_bytes.starts_with(b"%PDF"));
+
+    let output_file = output_dir.join("colored_span_test.pdf");
+    fs::write(&output_file, &pdf_bytes).expect("Failed to write test PDF");
+    println!("Colored span test PDF written to: {:?}", output_file);
+}

@@ -215,12 +215,16 @@ fn process_tag(
             }
         }
         "Board" => {
+            // BridgeComposer sometimes omits [Event] before the first board.
+            // If no current board exists, start a new one so the board's data
+            // is captured (Deal, Auction, etc.).
+            if current_board.is_none() {
+                *current_board = Some(Board::new());
+            }
             if let Some(ref mut board) = current_board {
-                // Store raw board ID if non-empty
                 if !tag.value.is_empty() {
                     board.board_id = Some(tag.value.clone());
                 }
-                // Also try to parse as number for backward compatibility
                 if let Ok(num) = tag.value.parse::<u32>() {
                     board.number = Some(num);
                 }

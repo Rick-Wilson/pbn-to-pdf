@@ -1,0 +1,213 @@
+% PBN 2.1
+% EXPORT
+%Content-type: text/x-pbn; charset=ISO-8859-1
+%Creator: BridgeComposer Version 5.105
+%Created: Mon Feb  5 12:26:37 2024 -0800
+%BCOptions Float STBorder STShade ShowHCP
+%BidAndCardSpacing Thin
+%BoardsPerPage 1
+%CardTableColors #008000,#ffffff,#aaaaaa
+%DDAFormat 0
+%DefaultPagination 0
+%Font:CardTable "Arial",11,400,0
+%Font:Commentary "Arial",12,400,0
+%Font:Diagram "Times New Roman",12,400,0
+%Font:Event "Times New Roman",22,400,0
+%Font:FixedPitch "Courier New",10,400,0
+%Font:HandRecord "Arial",11,400,0
+%GutterSize 500,500
+%HRTitleDate 2024.01.23
+%HRTitleEvent "Forcing 1NT"
+%HRTitleSetID ""
+%HRTitleSetIDPrefix ""
+%HtmlClubs entity,"https://bridgecomposer.com/suitimg/c.gif"
+%HtmlDiamonds entity,"https://bridgecomposer.com/suitimg/d.gif"
+%HtmlHearts entity,"https://bridgecomposer.com/suitimg/h.gif"
+%HtmlNavBar 0.75,#cfe2f3
+%HtmlSpades entity,"https://bridgecomposer.com/suitimg/s.gif"
+%Margins 1000,1000,1000,1000
+%PaperSize 1,2159,2794,2
+%ParaIndent 0
+%PipColors #000000,#ff0000,#ff0000,#000000
+%PipFont "Symbol","Symbol",2,0xAA,0xA9,0xA8,0xA7
+%ScoreTableColors #e6e6e6,#000000
+%SectionSpacing 8,0,0
+%SelectedBoard 0
+%ShowBoardLabels 2
+%ShowCardTable 2
+%TSTCustomSortOrder Default
+%TSTReport List
+%TSTReportOrder ByNumber
+%TSTReportShade Yes
+[Board "1"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "N"]
+[Vulnerable "None"]
+[Deal "N:AQ832.52.KJ6.Q83 KT54.AJ7.T92.A54 7.QT9643.Q75.K62 J96.K8.A843.JT97"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "2H"]
+[Result ""]
+{<b>Bidding.</b> After North's 1\S opening, South isn't strong enough to bid
+2\H directly.  So South starts with the forcing 1NT.  North bids 2\C, which may
+be short.  South can now rebid 2\H, showing 6+ hearts and 6-10 points.  This is
+a "drop" bid, which partner should normally pass.
+
+<b>Opening Lead.</b>  \CJ, top of a solid sequence.  If dummy plays low, East
+should encourage with the \C5, saving the \CA to capture dummy's queen later.
+
+<b>Declarer's plan.</b>  Declarer has 2 club losers, 1 diamond loser, and 2 or
+3 heart losers.  There's no way to avoid losing the top two trumps, but playing
+East for the \HJ gives declarer the chance to make the contract.
+
+So declarer should win the first club with the \CK, lead a spade to dummy's
+ace, and lead a low heart back.  If East plays low, South should insert the
+ten.
+
+
+These hands are from <i><span style=color:#00f>2 Over 1 Game Force</span></i>,
+by Audrey Grant and Eric Rodwell.  This is a great book for people who play the
+2 Over 1 bidding system.
+
+
+}
+[BCFlags "1f"]
+[Auction "N"]
+1S Pass 1NT =1= Pass
+2C =2= Pass 2H =3= AP
+[Note "1:Forcing (one round)"]
+[Note "2:May be as few as 2 or 3"]
+[Note "3:6+ hearts and 6-10 points"]
+[Play "W"]
+CJ
+
+[Event "Forcing 1NT"]
+[Site "-"]
+[Date "2022.12.18"]
+[Board "2"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "E"]
+[Vulnerable "NS"]
+[Deal "E:AQ852.A9.52.AK92 JT7643.53.KJ64.3 K.K764.AT73.J765 9.QJT82.Q98.QT84"]
+[Scoring ""]
+[Declarer "W"]
+[Contract "3NT"]
+[Result ""]
+{<b>Bidding.</b> With a semi-balanced 17 HCP, and a 5 card major, it's usually
+best to open the major.  West makes the forcing 1NT bid, show 6-12 points. 
+Opener rebids 2\C, which could be short.  West now rebids 2NT, showing 11-12
+HCP and a balanced hand.  The singleton \SK is okay here because this was
+partner's opening suit.  With a maximum opener, East continues to game.
+
+<b>Opening Lead.</b>  Top of a solid sequence.
+
+<b>Declarer's plan.</b>  Declarer has 8 top tricks, and needs to develop one
+more.  The club suit is the most likely candidate.  Since declarer just need 1
+extra trick in clubs, it's safest to lead a club to dummy's king, then lead low
+back to the \CJ.  When we see South discarding on the 2nd round, we will lose
+that trick, but can take the marked finesse through North for the remaining two
+club tricks. 
+}
+[BCFlags "1f"]
+[Auction "E"]
+1S Pass 1NT =1= Pass
+2C =2= Pass 2NT =3= Pass
+3NT AP
+[BCNote ""]
+[Note "1:Forcing one round"]
+[Note "2:May be as short as 2 or 3"]
+[Note "3:11-12 balanced"]
+[Play "N"]
+HQ
+
+[Event "Forcing 1NT"]
+[Site "-"]
+[Date "2022.12.18"]
+[Board "3"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "S"]
+[Vulnerable "EW"]
+[Deal "S:AJ642.62.Q72.KQT 95.A85.JT984.A74 KQ8.Q743.A65.963 T73.KJT9.K3.J852"]
+[Scoring ""]
+[Declarer "S"]
+[Contract "3S"]
+[Result ""]
+{<b>Bidding.</b>  South has 12 HCP and one length point, for a total of 13, and
+opens 1\S.  North has 3-card support, and 11 points, and wants to show that. 
+This is a 3-card limit raise, and we have to make two bids: start with the
+forcing 1NT, then jump in spades on the 2nd round.  Opener is a minimum, so
+passes 3\S.
+
+<b>Opening Lead.</b>  Top of a solid sequence.
+
+<b>Declarer's plan.</b>  Declarer has 5 trumps, and with the opening lead will
+get 2 diamonds (by ducking trick one in dummy).  So declarer needs 2 tricks
+from the club suit.  Best is to lead clubs twice to finesse.  This will have to
+be done while drawing trumps, because trumps are dummy's only entry.  The first
+time declarer should lead to the \CK.  If this loses to the ace, then the
+second time declarer should lead to the \CT.
+
+<b>Defense.</b>  West can give declarer a problem by smoothly declining to
+capture the \CK with the \CA.  This will encourage declarer to lead to the \CQ
+next, which will lose to the \CA, and set up partner's \CJ in the process.}
+[BCFlags "1f"]
+[Auction "S"]
+1S Pass 1NT =1= Pass
+2C =2= Pass 3S =3= AP
+[Note "1:Forcing one round"]
+[Note "2:May be as short as 2 or 3"]
+[Note "3:3 spades and 11-12 points"]
+[Play "W"]
+DJ
+
+[Event "Forcing 1NT"]
+[Site "-"]
+[Date "2022.12.18"]
+[Board "4"]
+[West ""]
+[North ""]
+[East ""]
+[South ""]
+[Dealer "W"]
+[Vulnerable "All"]
+[Deal "W:63.QJT86.K76.AK4 KJ8752.A53.J4.86 AQ9.94.Q9532.J93 T4.K72.AT8.QT752"]
+[Scoring ""]
+[Declarer "E"]
+[Contract "1NT"]
+[Result ""]
+{<b>Bidding.</b>  West opens 1\H, and North overcalls 1\S.  East should respond
+1NT, showing 6-10 points and a spade stopper.  This is not a Forcing 1NT,
+because RHO made an interfering bid.
+
+<b>Opening Lead.</b>  With a doubleton in partner's suit, lead the higher of
+the two cards.
+
+<b>Declarer's plan.</b>  Declarer has two spades, and two clubs, and needs to
+get three more tricks from hearts.  But the defenders will get the lead twice
+while establishing the hearts, and there's a risk they can set up their spades
+in the process.
+
+To make things more difficult for them, duck the first spade.  South can lead
+spades a second time, and declarer wins.  Now lead a heart, and south doesn't
+have any more spades to lead when getting in with the \HK.  This will let
+declarer come home with 2 spades, 3 hearts, and 2 clubs - 7 in all.
+
+Note: If declarer doesn't duck the first spade, the contract will be down
+several tricks.
+}
+[BCFlags "1f"]
+[Auction "W"]
+1H 1S 1NT =1= AP
+[BCNote ""]
+[Note "1:Standard 6-10 NT here, not forcing, since RHO made a bid."]
+[Play "S"]
+ST

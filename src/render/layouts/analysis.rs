@@ -415,7 +415,8 @@ impl DocumentRenderer {
                 | TextSpan::Bold(text)
                 | TextSpan::Italic(text)
                 | TextSpan::BoldItalic(text)
-                | TextSpan::Underline(text) => {
+                | TextSpan::Underline(text)
+                | TextSpan::Colored { text, .. } => {
                     for word in text.split_whitespace() {
                         let word_width = measurer.measure_width_mm(word, font_size);
                         if total_width + word_width + base_space_width > max_width
@@ -1823,8 +1824,15 @@ impl DocumentRenderer {
                     fonts.symbol_font(), // DejaVu Sans for suit symbols
                     &self.settings,
                 );
-                // Use full content width for notes wrapping in single-board layout
-                let notes_max_width = self.settings.content_width();
+                // Notes wrap to the left half when commentary will float on the right,
+                // otherwise use the full content width.
+                let has_floating_commentary =
+                    self.settings.show_commentary && board.commentary.iter().any(|c| !c.is_blank());
+                let notes_max_width = if has_floating_commentary {
+                    self.settings.content_width() / 2.0 - 2.0
+                } else {
+                    self.settings.content_width()
+                };
                 let num_cols =
                     if self.settings.two_col_auctions && auction.uncontested_pair().is_some() {
                         2

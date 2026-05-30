@@ -60,9 +60,17 @@ pub struct CommentaryRenderer<'a> {
 /// A fragment is an atomic piece of text with a specific style
 #[derive(Debug, Clone)]
 enum RenderFragment {
-    Text { text: String, style: TextStyle },
+    Text {
+        text: String,
+        style: TextStyle,
+        /// Optional foreground color override (from `<span style=color:...>`)
+        color: Option<(u8, u8, u8)>,
+    },
     SuitSymbol(Suit),
-    CardRef { suit: Suit, rank: Rank },
+    CardRef {
+        suit: Suit,
+        rank: Rank,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -160,17 +168,27 @@ fn tokenize_spans(
 
     for span in spans {
         match span {
-            TextSpan::Plain(s)
-            | TextSpan::Italic(s)
-            | TextSpan::Bold(s)
-            | TextSpan::BoldItalic(s)
-            | TextSpan::Underline(s) => {
-                let style = match span {
-                    TextSpan::Plain(_) => TextStyle::Plain,
-                    TextSpan::Italic(_) => TextStyle::Italic,
-                    TextSpan::Bold(_) => TextStyle::Bold,
-                    TextSpan::BoldItalic(_) => TextStyle::BoldItalic,
-                    TextSpan::Underline(_) => TextStyle::Underline,
+            TextSpan::Plain(_)
+            | TextSpan::Italic(_)
+            | TextSpan::Bold(_)
+            | TextSpan::BoldItalic(_)
+            | TextSpan::Underline(_)
+            | TextSpan::Colored { .. } => {
+                let (s, style, color): (&str, TextStyle, Option<(u8, u8, u8)>) = match span {
+                    TextSpan::Plain(s) => (s.as_str(), TextStyle::Plain, None),
+                    TextSpan::Italic(s) => (s.as_str(), TextStyle::Italic, None),
+                    TextSpan::Bold(s) => (s.as_str(), TextStyle::Bold, None),
+                    TextSpan::BoldItalic(s) => (s.as_str(), TextStyle::BoldItalic, None),
+                    TextSpan::Underline(s) => (s.as_str(), TextStyle::Underline, None),
+                    TextSpan::Colored { text, italic, rgb } => (
+                        text.as_str(),
+                        if *italic {
+                            TextStyle::Italic
+                        } else {
+                            TextStyle::Plain
+                        },
+                        Some(*rgb),
+                    ),
                     _ => unreachable!(),
                 };
                 let measurer = match style {
@@ -194,6 +212,7 @@ fn tokenize_spans(
                             current_group.push(RenderFragment::Text {
                                 text: std::mem::take(&mut current_word),
                                 style,
+                                color,
                             });
                             current_group_width += w;
                             // Update card list state
@@ -222,6 +241,7 @@ fn tokenize_spans(
                             current_group.push(RenderFragment::Text {
                                 text: " ".to_string(),
                                 style,
+                                color,
                             });
                             current_group_width += space_w;
                         } else {
@@ -243,6 +263,7 @@ fn tokenize_spans(
                             current_group.push(RenderFragment::Text {
                                 text: std::mem::take(&mut current_word),
                                 style,
+                                color,
                             });
                             current_group_width += w;
                         }
@@ -266,6 +287,7 @@ fn tokenize_spans(
                     current_group.push(RenderFragment::Text {
                         text: current_word,
                         style,
+                        color,
                     });
                     current_group_width += w;
                     // Update card list state
@@ -653,7 +675,11 @@ impl<'a> CommentaryRenderer<'a> {
                 // Render all fragments in the group
                 for fragment in &group.fragments {
                     match fragment {
-                        RenderFragment::Text { text: txt, style } => {
+                        RenderFragment::Text {
+                            text: txt,
+                            style,
+                            color,
+                        } => {
                             let font = match style {
                                 TextStyle::Plain | TextStyle::Underline => self.font,
                                 TextStyle::Bold => self.bold_font,
@@ -677,7 +703,16 @@ impl<'a> CommentaryRenderer<'a> {
                                 underline_start_x = None;
                             }
 
-                            layer.set_fill_color(Color::Rgb(BLACK));
+                            let fill = match color {
+                                Some((r, g, b)) => printpdf::Rgb {
+                                    r: *r as f32 / 255.0,
+                                    g: *g as f32 / 255.0,
+                                    b: *b as f32 / 255.0,
+                                    icc_profile: None,
+                                },
+                                None => BLACK,
+                            };
+                            layer.set_fill_color(Color::Rgb(fill));
                             layer.use_text_builtin(txt, font_size, Mm(x), Mm(y), font);
 
                             x += width;

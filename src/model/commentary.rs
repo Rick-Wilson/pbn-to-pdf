@@ -7,8 +7,18 @@ pub enum TextSpan {
     Italic(String),
     BoldItalic(String),
     Underline(String),
+    /// Text with an explicit foreground color, optionally italic.
+    /// Parsed from `<span style=color:#XXX>...</span>`, possibly wrapped in `<i>...</i>`.
+    Colored {
+        text: String,
+        italic: bool,
+        rgb: (u8, u8, u8),
+    },
     SuitSymbol(Suit),
-    CardRef { suit: Suit, rank: Rank },
+    CardRef {
+        suit: Suit,
+        rank: Rank,
+    },
     LineBreak,
 }
 
@@ -31,6 +41,22 @@ impl TextSpan {
 
     pub fn underline(s: impl Into<String>) -> Self {
         TextSpan::Underline(s.into())
+    }
+
+    pub fn colored(s: impl Into<String>, rgb: (u8, u8, u8)) -> Self {
+        TextSpan::Colored {
+            text: s.into(),
+            italic: false,
+            rgb,
+        }
+    }
+
+    pub fn italic_colored(s: impl Into<String>, rgb: (u8, u8, u8)) -> Self {
+        TextSpan::Colored {
+            text: s.into(),
+            italic: true,
+            rgb,
+        }
     }
 }
 
@@ -64,6 +90,7 @@ impl FormattedText {
             | TextSpan::Italic(s)
             | TextSpan::BoldItalic(s)
             | TextSpan::Underline(s) => s.trim().is_empty(),
+            TextSpan::Colored { text, .. } => text.trim().is_empty(),
             TextSpan::LineBreak => true,
             // Suit symbols and card refs are not whitespace
             TextSpan::SuitSymbol(_) | TextSpan::CardRef { .. } => false,
@@ -80,6 +107,9 @@ impl FormattedText {
                 | TextSpan::BoldItalic(s)
                 | TextSpan::Underline(s) => {
                     result.push_str(s);
+                }
+                TextSpan::Colored { text, .. } => {
+                    result.push_str(text);
                 }
                 TextSpan::SuitSymbol(suit) => {
                     result.push(suit.symbol());

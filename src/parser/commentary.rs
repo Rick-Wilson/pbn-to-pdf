@@ -113,6 +113,93 @@ fn parse_italic_with_nested_bold(content: &str, text: &mut FormattedText) {
     }
 }
 
+/// Parse a `<span style=color:HEX>` opening tag.
+/// Returns `Some((rgb, byte_offset_past_closing_angle_bracket))` if matched, else `None`.
+///
+/// Accepts both shorthand (#RGB) and full (#RRGGBB) hex colors, with optional
+/// quotes around the style value and tolerant of extra whitespace.
+fn parse_span_open(remaining: &str) -> Option<((u8, u8, u8), usize)> {
+    if !remaining.starts_with("<span") {
+        return None;
+    }
+    // Find the closing '>' of the opening tag
+    let close_offset = remaining.find('>')?;
+    let tag = &remaining[..close_offset];
+    // Look for `color:` (case-insensitive prefix not required for our PBN inputs).
+    let lower = tag.to_ascii_lowercase();
+    let color_idx = lower.find("color:")?;
+    let hex_start = color_idx + "color:".len();
+    let after_prefix = &tag[hex_start..];
+    // Skip a leading '#' if present
+    let trimmed = after_prefix.trim_start();
+    let hex = trimmed.strip_prefix('#').unwrap_or(trimmed);
+    // Take hex digits only (stops at quote, semicolon, whitespace, or '>')
+    let hex_digits: String = hex.chars().take_while(|c| c.is_ascii_hexdigit()).collect();
+    let rgb = parse_hex_color(&hex_digits)?;
+    Some((rgb, close_offset + 1))
+}
+
+/// Parse a CSS-style hex color (`#RGB` or `#RRGGBB`, with leading `#` already stripped).
+fn parse_hex_color(hex: &str) -> Option<(u8, u8, u8)> {
+    match hex.len() {
+        3 => {
+            // #RGB -> each digit doubled
+            let r = u8::from_str_radix(&hex[0..1].repeat(2), 16).ok()?;
+            let g = u8::from_str_radix(&hex[1..2].repeat(2), 16).ok()?;
+            let b = u8::from_str_radix(&hex[2..3].repeat(2), 16).ok()?;
+            Some((r, g, b))
+        }
+        6 => {
+            let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
+            let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
+            let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
+            Some((r, g, b))
+        }
+        _ => None,
+    }
+}
+
+/// Parse italic content that contains a nested `<span style=color:...>` tag.
+/// Splits into italic spans and italic-colored spans.
+fn parse_italic_with_nested_span(content: &str, text: &mut FormattedText) {
+    let mut remaining = content;
+    while let Some(span_start) = remaining.find("<span") {
+        // Push italic text before the <span> tag
+        let before = &remaining[..span_start];
+        if !before.is_empty() {
+            text.push(TextSpan::italic(replace_suit_escapes(before)));
+        }
+
+        // Parse the span opening
+        let after_open = &remaining[span_start..];
+        let (rgb, open_len) = match parse_span_open(after_open) {
+            Some(v) => v,
+            None => {
+                // Malformed span — treat the rest as italic and bail
+                text.push(TextSpan::italic(replace_suit_escapes(after_open)));
+                return;
+            }
+        };
+        let body_and_rest = &after_open[open_len..];
+        // Find the closing </span>
+        if let Some(end_idx) = body_and_rest.find("</span>") {
+            let body = &body_and_rest[..end_idx];
+            text.push(TextSpan::italic_colored(replace_suit_escapes(body), rgb));
+            remaining = &body_and_rest[end_idx + "</span>".len()..];
+        } else {
+            // Unclosed </span> — treat the rest as italic-colored
+            text.push(TextSpan::italic_colored(
+                replace_suit_escapes(body_and_rest),
+                rgb,
+            ));
+            return;
+        }
+    }
+    if !remaining.is_empty() {
+        text.push(TextSpan::italic(replace_suit_escapes(remaining)));
+    }
+}
+
 /// Strip empty or whitespace-only italic tags like `<i> </i>` or `<i></i>`.
 /// These are sometimes used in PBN files for formatting around punctuation
 /// (e.g., em-dashes) and would otherwise appear as raw tags in output.
@@ -195,6 +282,9 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
             } else if italic_content.contains("<u>") {
                 // Nested <u> tags inside <i>: split into italic and underline spans
                 parse_italic_with_nested_underline(italic_content, &mut text);
+            } else if italic_content.contains("<span") {
+                // Nested <span> color tags inside <i>: split into italic and italic-colored spans
+                parse_italic_with_nested_span(italic_content, &mut text);
             } else {
                 text.push(TextSpan::italic(replace_suit_escapes(italic_content)));
             }
@@ -210,6 +300,29 @@ pub fn parse_formatted_text(input: &str) -> Result<FormattedText, String> {
             let underline_content = &remaining[3..end];
             text.push(TextSpan::underline(replace_suit_escapes(underline_content)));
             remaining = &remaining[end + 4..];
+        } else if remaining.starts_with("<span") {
+            // Color span: <span style=color:HEX>...</span>
+            if let Some((rgb, open_len)) = parse_span_open(remaining) {
+                // Flush plain buffer
+                if !plain_buffer.is_empty() {
+                    text.push(TextSpan::plain(std::mem::take(&mut plain_buffer)));
+                }
+                let body_and_rest = &remaining[open_len..];
+                if let Some(end_idx) = body_and_rest.find("</span>") {
+                    let body = &body_and_rest[..end_idx];
+                    text.push(TextSpan::colored(replace_suit_escapes(body), rgb));
+                    remaining = &body_and_rest[end_idx + "</span>".len()..];
+                } else {
+                    // Unclosed span — treat rest as colored
+                    text.push(TextSpan::colored(replace_suit_escapes(body_and_rest), rgb));
+                    remaining = "";
+                }
+            } else {
+                // Malformed <span ...> — fall through and consume one char
+                let c = remaining.chars().next().unwrap();
+                plain_buffer.push(c);
+                remaining = &remaining[c.len_utf8()..];
+            }
         } else if remaining.starts_with('\\') && remaining.len() >= 2 {
             // Check for suit symbol escape
             let next_char = remaining.chars().nth(1).unwrap();
@@ -513,6 +626,72 @@ mod tests {
             text.spans[0],
             TextSpan::Bold("Exercise One — Ruffing Losers".to_string())
         );
+    }
+
+    #[test]
+    fn test_colored_span_plain() {
+        let text = parse_formatted_text(r#"Click <span style=color:#00f>here</span> now"#).unwrap();
+        assert_eq!(text.spans.len(), 3);
+        assert_eq!(text.spans[0], TextSpan::Plain("Click ".to_string()));
+        assert_eq!(
+            text.spans[1],
+            TextSpan::Colored {
+                text: "here".to_string(),
+                italic: false,
+                rgb: (0, 0, 255),
+            }
+        );
+        assert_eq!(text.spans[2], TextSpan::Plain(" now".to_string()));
+    }
+
+    #[test]
+    fn test_colored_span_six_digit_hex() {
+        let text = parse_formatted_text(r#"<span style=color:#FF8800>warm</span>"#).unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::Colored {
+                text: "warm".to_string(),
+                italic: false,
+                rgb: (0xFF, 0x88, 0x00),
+            }
+        );
+    }
+
+    #[test]
+    fn test_italic_with_colored_span() {
+        // The fixture's exact pattern: italic wrapping a color span
+        let text =
+            parse_formatted_text(r#"<i><span style=color:#00f>2 Over 1 Game Force</span></i>"#)
+                .unwrap();
+        assert_eq!(text.spans.len(), 1);
+        assert_eq!(
+            text.spans[0],
+            TextSpan::Colored {
+                text: "2 Over 1 Game Force".to_string(),
+                italic: true,
+                rgb: (0, 0, 255),
+            }
+        );
+    }
+
+    #[test]
+    fn test_italic_mixed_with_colored_span() {
+        // Italic with both plain italic text and a colored span inside
+        let text =
+            parse_formatted_text(r#"<i>Read <span style=color:#00f>this book</span> first</i>"#)
+                .unwrap();
+        assert_eq!(text.spans.len(), 3);
+        assert_eq!(text.spans[0], TextSpan::Italic("Read ".to_string()));
+        assert_eq!(
+            text.spans[1],
+            TextSpan::Colored {
+                text: "this book".to_string(),
+                italic: true,
+                rgb: (0, 0, 255),
+            }
+        );
+        assert_eq!(text.spans[2], TextSpan::Italic(" first".to_string()));
     }
 
     #[test]
